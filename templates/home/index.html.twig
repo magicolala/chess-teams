@@ -1,26 +1,11 @@
 {% extends 'base.html.twig' %}
-
 {% block title %}Accueil - Chess Teams{% endblock %}
-
 {% block body %}
-  <section class="container" style="max-width:680px;margin:40px auto;font-family:system-ui;">
+  <section style="max-width:680px;margin:40px auto;font-family:system-ui;">
     <h1>Chess Teams — Bootstrap OK</h1>
-    <p>
-      Si tu vois la ligne ci-dessous se remplir automatiquement,
-      <strong>Stimulus</strong> est bien branché.
-    </p>
+<div data-controller="hello" data-hello-name-value="Cédric">
+  Chargement…
+</div>
 
-    <div
-      data-controller="hello"
-      data-hello-name-value="Cédric"
-      style="padding:12px;border:1px solid #ddd;border-radius:8px;margin-top:12px;"
-    >
-      <!-- Le texte sera remplacé par hello_controller.js -->
-      Chargement du controller Stimulus…
-    </div>
-
-    <p style="margin-top:24px;color:#666">
-      Tu peux ouvrir la console navigateur (F12) pour voir le log du controller.
-    </p>
   </section>
 {% endblock %}
