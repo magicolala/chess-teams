@@ -22,4 +22,9 @@ final class InviteRepository extends ServiceEntityRepository implements InviteRe
     {
         return $this->findOneBy(['game' => $game]);
     }
+
+    public function findOneByCode(string $code): ?Invite
+    {
+        return $this->findOneBy(['code' => $code]);
+    }
 }
