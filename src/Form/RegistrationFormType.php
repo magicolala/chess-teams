@@ -43,6 +43,11 @@ class RegistrationFormType extends AbstractType
                     ]),
                 ],
             ])
+            ->add('displayName', null, [
+                'label' => 'Pseudo',
+                'required' => false,
+                'attr' => ['maxlength' => 50, 'placeholder' => 'Cédric']
+            ])
         ;
     }
 
