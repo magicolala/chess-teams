@@ -15,7 +15,7 @@ final class GameRepository extends ServiceEntityRepository implements GameReposi
 
     public function add(Game $game): void
     {
-        $this->_em->persist($game);
+        $this->getEntityManager()->persist($game);
     }
 
     public function get(string $id): ?Game
