@@ -16,7 +16,7 @@ final class GameController extends AbstractController
 {
 	public function __construct(
 		private CreateGameHandler $createGame,
-		private JoinByCodeHandler $joinByCode // <-- ajoute l’arg
+		private JoinByCodeHandler $joinByCode
 	) {}
 
 	#[Route('', name: 'create', methods: ['POST'])]
