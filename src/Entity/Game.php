@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use App\Repository\GameRepository;
+use App\Infrastructure\Doctrine\Repository\GameRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: GameRepository::class)]

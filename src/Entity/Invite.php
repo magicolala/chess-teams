@@ -1,7 +1,7 @@
 <?php
 namespace App\Entity;
 
-use App\Repository\InviteRepository;
+use App\Infrastructure\Doctrine\Repository\InviteRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: InviteRepository::class)]
