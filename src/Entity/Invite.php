@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Entity;
 
 use App\Infrastructure\Doctrine\Repository\InviteRepository;
@@ -20,7 +21,14 @@ class Invite
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $expiresAt = null;
-    
+
+    public function __construct(Game $game, string $code)
+    {
+        $this->id = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
+        $this->game = $game;
+        $this->code = $code;
+        $this->expiresAt = new \DateTimeImmutable('+7 days');
+    }
 
     public function getId(): ?string
     {
