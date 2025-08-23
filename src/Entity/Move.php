@@ -2,76 +2,93 @@
 
 namespace App\Entity;
 
-use App\Repository\TeamMemberRepository;
+use App\Repository\MoveRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: TeamMemberRepository::class)]
-#[ORM\UniqueConstraint(name: 'uniq_team_user', columns: ['team_id', 'user_id'])]
-class TeamMember
+#[ORM\Entity(repositoryClass: MoveRepository::class)]
+#[ORM\Index(columns: ['game_id', 'ply'])]
+class Move
 {
+    public const TYPE_NORMAL = 'normal';
+    public const TYPE_TIMEOUT = 'timeout-pass';
+
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
     private string $id;
 
-    #[ORM\ManyToOne(targetEntity: Team::class)]
+    #[ORM\ManyToOne(targetEntity: Game::class)]
     #[ORM\JoinColumn(nullable: false)]
-    private Team $team;
+    private Game $game;
+
+    #[ORM\ManyToOne(targetEntity: Team::class)]
+    private ?Team $team = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private User $user;
+    private ?User $byUser = null;
 
     #[ORM\Column(type: 'integer')]
-    private int $position = 0;
+    private int $ply;
 
-    #[ORM\Column(type: 'boolean')]
-    private bool $active = true;
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $uci = null;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $san = null;
+
+    #[ORM\Column(type: 'text')]
+    private string $fenAfter;
+
+    #[ORM\Column(length: 20)]
+    private string $type = self::TYPE_NORMAL;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $joinedAt;
+    private \DateTimeImmutable $createdAt;
 
-    public function __construct(Team $team, User $user, int $position)
+    public function __construct(Game $g, int $ply)
     {
         $this->id = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
-        $this->team = $team;
-        $this->user = $user;
-        $this->position = $position;
-        $this->joinedAt = new \DateTimeImmutable();
-        $this->active = true;
+        $this->game = $g;
+        $this->ply = $ply;
+        $this->createdAt = new \DateTimeImmutable();
     }
 
+    // Getters/Setters (minimaux)
     public function getId(): string
     {
         return $this->id;
     }
-    public function getTeam(): Team
+    public function getGame(): Game
     {
-        return $this->team;
+        return $this->game;
     }
-    public function getUser(): User
+    public function setTeam(?Team $t): self
     {
-        return $this->user;
-    }
-    public function getPosition(): int
-    {
-        return $this->position;
-    }
-    public function setPosition(int $p): self
-    {
-        $this->position = $p;
+        $this->team = $t;
         return $this;
     }
-    public function isActive(): bool
+    public function setByUser(?User $u): self
     {
-        return $this->active;
-    }
-    public function setActive(bool $a): self
-    {
-        $this->active = $a;
+        $this->byUser = $u;
         return $this;
     }
-    public function getJoinedAt(): \DateTimeImmutable
+    public function setUci(?string $u): self
     {
-        return $this->joinedAt;
+        $this->uci = $u;
+        return $this;
+    }
+    public function setSan(?string $s): self
+    {
+        $this->san = $s;
+        return $this;
+    }
+    public function setFenAfter(string $f): self
+    {
+        $this->fenAfter = $f;
+        return $this;
+    }
+    public function setType(string $t): self
+    {
+        $this->type = $t;
+        return $this;
     }
 }

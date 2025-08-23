@@ -1,59 +1,28 @@
 <?php
-
 namespace App\Entity;
 
-use App\Repository\MoveRepository;
+use App\Repository\InviteRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: MoveRepository::class)]
-#[ORM\Index(columns: ['game_id', 'ply'])]
-class Move
+#[ORM\Entity(repositoryClass: InviteRepository::class)]
+#[ORM\Index(columns: ['code'], name: 'idx_invite_code')]
+class Invite
 {
-    public const TYPE_NORMAL = 'normal';
-    public const TYPE_TIMEOUT = 'timeout-pass';
-
-    #[ORM\Id]
-    #[ORM\Column(type: 'uuid', unique: true)]
-    private string $id;
+    #[ORM\Id, ORM\GeneratedValue, ORM\Column(type: 'uuid', unique: true)]
+    private ?string $id = null;
 
     #[ORM\ManyToOne(targetEntity: Game::class)]
     #[ORM\JoinColumn(nullable: false)]
     private Game $game;
 
-    #[ORM\ManyToOne(targetEntity: Team::class)]
-    private ?Team $team = null;
+    #[ORM\Column(length: 16, unique: true)]
+    private string $code;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    private ?User $byUser = null;
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $expiresAt = null;
+    
 
-    #[ORM\Column(type: 'integer')]
-    private int $ply;
-
-    #[ORM\Column(type: 'string', nullable: true)]
-    private ?string $uci = null;
-
-    #[ORM\Column(type: 'string', nullable: true)]
-    private ?string $san = null;
-
-    #[ORM\Column(type: 'text')]
-    private string $fenAfter;
-
-    #[ORM\Column(length: 20)]
-    private string $type = self::TYPE_NORMAL;
-
-    #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
-
-    public function __construct(Game $g, int $ply)
-    {
-        $this->id = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
-        $this->game = $g;
-        $this->ply = $ply;
-        $this->createdAt = new \DateTimeImmutable();
-    }
-
-    // Getters/Setters (minimaux)
-    public function getId(): string
+    public function getId(): ?string
     {
         return $this->id;
     }
@@ -61,34 +30,27 @@ class Move
     {
         return $this->game;
     }
-    public function setTeam(?Team $t): self
+    public function setGame(Game $g): self
     {
-        $this->team = $t;
+        $this->game = $g;
         return $this;
     }
-    public function setByUser(?User $u): self
+    public function getCode(): string
     {
-        $this->byUser = $u;
+        return $this->code;
+    }
+    public function setCode(string $c): self
+    {
+        $this->code = $c;
         return $this;
     }
-    public function setUci(?string $u): self
+    public function getExpiresAt(): ?\DateTimeImmutable
     {
-        $this->uci = $u;
-        return $this;
+        return $this->expiresAt;
     }
-    public function setSan(?string $s): self
+    public function setExpiresAt(?\DateTimeImmutable $dt): self
     {
-        $this->san = $s;
-        return $this;
-    }
-    public function setFenAfter(string $f): self
-    {
-        $this->fenAfter = $f;
-        return $this;
-    }
-    public function setType(string $t): self
-    {
-        $this->type = $t;
+        $this->expiresAt = $dt;
         return $this;
     }
 }
