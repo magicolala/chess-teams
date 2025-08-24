@@ -9,8 +9,8 @@ use Doctrine\ORM\Mapping as ORM;
 class Game
 {
     public const STATUS_LOBBY = 'lobby';
-    public const STATUS_LIVE  = 'live';
-    public const STATUS_DONE  = 'done';
+    public const STATUS_LIVE = 'live';
+    public const STATUS_DONE = 'done';
 
     public const TEAM_A = 'A';
     public const TEAM_B = 'B';
@@ -66,98 +66,129 @@ class Game
     {
         return $this->id;
     }
+
     public function getStatus(): string
     {
         return $this->status;
     }
+
     public function setStatus(string $s): self
     {
         $this->status = $s;
+
         return $this;
     }
+
     public function getCreatedBy(): ?User
     {
         return $this->createdBy;
     }
+
     public function setCreatedBy(?User $u): self
     {
         $this->createdBy = $u;
+
         return $this;
     }
+
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
+
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
     }
+
     public function setUpdatedAt(?\DateTimeImmutable $d): self
     {
         $this->updatedAt = $d;
+
         return $this;
     }
+
     public function getTurnDurationSec(): int
     {
         return $this->turnDurationSec;
     }
+
     public function setTurnDurationSec(int $s): self
     {
         $this->turnDurationSec = $s;
+
         return $this;
     }
+
     public function getVisibility(): string
     {
         return $this->visibility;
     }
+
     public function setVisibility(string $v): self
     {
         $this->visibility = $v;
+
         return $this;
     }
+
     public function getFen(): string
     {
         return $this->fen;
     }
+
     public function setFen(string $f): self
     {
         $this->fen = $f;
+
         return $this;
     }
+
     public function getPly(): int
     {
         return $this->ply;
     }
+
     public function setPly(int $p): self
     {
         $this->ply = $p;
+
         return $this;
     }
+
     public function getTurnTeam(): string
     {
         return $this->turnTeam;
     }
+
     public function setTurnTeam(string $t): self
     {
         $this->turnTeam = $t;
+
         return $this;
     }
+
     public function getTurnDeadline(): ?\DateTimeImmutable
     {
         return $this->turnDeadline;
     }
+
     public function setTurnDeadline(?\DateTimeImmutable $d): self
     {
         $this->turnDeadline = $d;
+
         return $this;
     }
+
     public function getResult(): ?array
     {
         return $this->result;
     }
+
     public function setResult(?array $r): self
     {
         $this->result = $r;
+
         return $this;
     }
 }

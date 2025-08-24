@@ -1,16 +1,22 @@
 <?php
+
 namespace App\Tests\Unit\Application\UseCase;
 
 use App\Application\DTO\JoinByCodeInput;
 use App\Application\UseCase\JoinByCodeHandler;
-use App\Domain\Repository\{InviteRepositoryInterface, TeamRepositoryInterface, TeamMemberRepositoryInterface};
-use App\Entity\{Game, Team, Invite, User, TeamMember};
+use App\Domain\Repository\InviteRepositoryInterface;
+use App\Domain\Repository\TeamMemberRepositoryInterface;
+use App\Domain\Repository\TeamRepositoryInterface;
+use App\Entity\Game;
+use App\Entity\Invite;
+use App\Entity\Team;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
 final class JoinByCodeHandlerTest extends TestCase
 {
-    public function test_join_assigns_to_smaller_team_and_returns_position(): void
+    public function testJoinAssignsToSmallerTeamAndReturnsPosition(): void
     {
         $invRepo = $this->createMock(InviteRepositoryInterface::class);
         $teamRepo = $this->createMock(TeamRepositoryInterface::class);
@@ -43,7 +49,8 @@ final class JoinByCodeHandlerTest extends TestCase
         $em->expects($this->once())->method('flush');
 
         $user = new User();
-        $user->setEmail('u@test.io'); $user->setPassword('x');
+        $user->setEmail('u@test.io');
+        $user->setPassword('x');
 
         $out = $handler(new JoinByCodeInput('ABCD1234', 'uid'), $user);
         $this->assertSame('B', $out->teamName);

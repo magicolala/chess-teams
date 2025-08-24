@@ -37,21 +37,26 @@ class Team
     {
         return $this->id;
     }
+
     public function getGame(): Game
     {
         return $this->game;
     }
+
     public function getName(): string
     {
         return $this->name;
     }
+
     public function getCurrentIndex(): int
     {
         return $this->currentIndex;
     }
+
     public function setCurrentIndex(int $i): self
     {
         $this->currentIndex = $i;
+
         return $this;
     }
 }

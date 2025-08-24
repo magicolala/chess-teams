@@ -1,16 +1,19 @@
 <?php
+
 namespace App\Tests\Unit\Application\UseCase;
 
 use App\Application\DTO\CreateGameInput;
 use App\Application\UseCase\CreateGameHandler;
-use App\Domain\Repository\{GameRepositoryInterface, TeamRepositoryInterface, InviteRepositoryInterface};
+use App\Domain\Repository\GameRepositoryInterface;
+use App\Domain\Repository\InviteRepositoryInterface;
+use App\Domain\Repository\TeamRepositoryInterface;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
 final class CreateGameHandlerTest extends TestCase
 {
-    public function test_creates_game_teams_invite_and_returns_output(): void
+    public function testCreatesGameTeamsInviteAndReturnsOutput(): void
     {
         $games = $this->createMock(GameRepositoryInterface::class);
         $teams = $this->createMock(TeamRepositoryInterface::class);

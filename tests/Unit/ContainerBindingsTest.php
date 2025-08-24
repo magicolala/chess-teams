@@ -1,16 +1,15 @@
 <?php
+
 namespace App\Tests\Unit;
 
+use App\Domain\Repository\GameRepositoryInterface;
+use App\Domain\Repository\InviteRepositoryInterface;
+use App\Domain\Repository\TeamRepositoryInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use App\Domain\Repository\{
-    GameRepositoryInterface,
-    TeamRepositoryInterface,
-    InviteRepositoryInterface
-};
 
 final class ContainerBindingsTest extends KernelTestCase
 {
-    public function test_repository_interfaces_are_bound(): void
+    public function testRepositoryInterfacesAreBound(): void
     {
         self::bootKernel();
         $c = static::getContainer();

@@ -57,38 +57,51 @@ class Move
     {
         return $this->id;
     }
+
     public function getGame(): Game
     {
         return $this->game;
     }
+
     public function setTeam(?Team $t): self
     {
         $this->team = $t;
+
         return $this;
     }
+
     public function setByUser(?User $u): self
     {
         $this->byUser = $u;
+
         return $this;
     }
+
     public function setUci(?string $u): self
     {
         $this->uci = $u;
+
         return $this;
     }
+
     public function setSan(?string $s): self
     {
         $this->san = $s;
+
         return $this;
     }
+
     public function setFenAfter(string $f): self
     {
         $this->fenAfter = $f;
+
         return $this;
     }
+
     public function setType(string $t): self
     {
         $this->type = $t;
+
         return $this;
     }
 }

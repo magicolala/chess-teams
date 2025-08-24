@@ -1,7 +1,10 @@
 <?php
+
 namespace App\Domain\Repository;
 
-use App\Entity\{Team, TeamMember, User};
+use App\Entity\Team;
+use App\Entity\TeamMember;
+use App\Entity\User;
 
 interface TeamMemberRepositoryInterface
 {

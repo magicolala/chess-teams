@@ -61,7 +61,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->createdAt = new \DateTimeImmutable();
     }
 
-
     /**
      * A visual identifier that represents this user.
      *
@@ -116,7 +115,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * Get the value of createdAt
+     * Get the value of createdAt.
      */
     public function getCreatedAt()
     {
@@ -124,9 +123,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * Set the value of createdAt
+     * Set the value of createdAt.
      *
-     * @return  self
+     * @return self
      */
     public function setCreatedAt($createdAt)
     {
@@ -136,7 +135,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * Get the value of displayName
+     * Get the value of displayName.
      */
     public function getDisplayName()
     {
@@ -144,9 +143,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * Set the value of displayName
+     * Set the value of displayName.
      *
-     * @return  self
+     * @return self
      */
     public function setDisplayName($displayName)
     {

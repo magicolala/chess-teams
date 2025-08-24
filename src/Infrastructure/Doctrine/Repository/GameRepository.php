@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Infrastructure\Doctrine\Repository;
 
 use App\Domain\Repository\GameRepositoryInterface;

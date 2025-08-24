@@ -44,32 +44,41 @@ class TeamMember
     {
         return $this->id;
     }
+
     public function getTeam(): Team
     {
         return $this->team;
     }
+
     public function getUser(): User
     {
         return $this->user;
     }
+
     public function getPosition(): int
     {
         return $this->position;
     }
+
     public function setPosition(int $p): self
     {
         $this->position = $p;
+
         return $this;
     }
+
     public function isActive(): bool
     {
         return $this->active;
     }
+
     public function setActive(bool $a): self
     {
         $this->active = $a;
+
         return $this;
     }
+
     public function getJoinedAt(): \DateTimeImmutable
     {
         return $this->joinedAt;

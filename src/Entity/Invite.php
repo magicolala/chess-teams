@@ -34,31 +34,40 @@ class Invite
     {
         return $this->id;
     }
+
     public function getGame(): Game
     {
         return $this->game;
     }
+
     public function setGame(Game $g): self
     {
         $this->game = $g;
+
         return $this;
     }
+
     public function getCode(): string
     {
         return $this->code;
     }
+
     public function setCode(string $c): self
     {
         $this->code = $c;
+
         return $this;
     }
+
     public function getExpiresAt(): ?\DateTimeImmutable
     {
         return $this->expiresAt;
     }
+
     public function setExpiresAt(?\DateTimeImmutable $dt): self
     {
         $this->expiresAt = $dt;
+
         return $this;
     }
 }

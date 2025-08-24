@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Application\DTO;
 
 final class CreateGameOutput
@@ -7,5 +8,6 @@ final class CreateGameOutput
         public readonly string $gameId,
         public readonly string $inviteCode,
         public readonly int $turnDurationSec
-    ) {}
+    ) {
+    }
 }

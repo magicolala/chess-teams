@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Application\DTO;
 
 final class StartGameOutput
@@ -8,5 +9,6 @@ final class StartGameOutput
         public readonly string $status,
         public readonly string $turnTeam,
         public readonly int $turnDeadlineTs // milliseconds epoch
-    ) {}
+    ) {
+    }
 }

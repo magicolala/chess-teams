@@ -1,15 +1,19 @@
 <?php
+
 namespace App\Application\UseCase;
 
-use App\Application\DTO\{StartGameInput, StartGameOutput};
-use App\Domain\Repository\{
-    GameRepositoryInterface,
-    TeamRepositoryInterface,
-    TeamMemberRepositoryInterface
-};
-use App\Entity\{Game, Team, User};
+use App\Application\DTO\StartGameInput;
+use App\Application\DTO\StartGameOutput;
+use App\Domain\Repository\GameRepositoryInterface;
+use App\Domain\Repository\TeamMemberRepositoryInterface;
+use App\Domain\Repository\TeamRepositoryInterface;
+use App\Entity\Game;
+use App\Entity\Team;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpKernel\Exception\{NotFoundHttpException, ConflictHttpException, AccessDeniedHttpException};
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final class StartGameHandler
 {
@@ -18,7 +22,8 @@ final class StartGameHandler
         private TeamRepositoryInterface $teams,
         private TeamMemberRepositoryInterface $members,
         private EntityManagerInterface $em
-    ) {}
+    ) {
+    }
 
     public function __invoke(StartGameInput $in, User $requestedBy): StartGameOutput
     {
@@ -32,7 +37,7 @@ final class StartGameHandler
             throw new AccessDeniedHttpException('only_creator_can_start');
         }
 
-        if ($game->getStatus() !== Game::STATUS_LOBBY) {
+        if (Game::STATUS_LOBBY !== $game->getStatus()) {
             throw new ConflictHttpException('already_started_or_finished');
         }
 
@@ -44,7 +49,7 @@ final class StartGameHandler
 
         $countA = $this->members->countActiveByTeam($teamA);
         $countB = $this->members->countActiveByTeam($teamB);
-        if ($countA === 0 || $countB === 0) {
+        if (0 === $countA || 0 === $countB) {
             throw new ConflictHttpException('each_team_must_have_at_least_one_member');
         }
 

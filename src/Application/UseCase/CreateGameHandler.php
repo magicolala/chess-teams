@@ -1,9 +1,16 @@
 <?php
+
 namespace App\Application\UseCase;
 
-use App\Application\DTO\{CreateGameInput, CreateGameOutput};
-use App\Domain\Repository\{GameRepositoryInterface, TeamRepositoryInterface, InviteRepositoryInterface};
-use App\Entity\{Game, Team, Invite, User};
+use App\Application\DTO\CreateGameInput;
+use App\Application\DTO\CreateGameOutput;
+use App\Domain\Repository\GameRepositoryInterface;
+use App\Domain\Repository\InviteRepositoryInterface;
+use App\Domain\Repository\TeamRepositoryInterface;
+use App\Entity\Game;
+use App\Entity\Invite;
+use App\Entity\Team;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 
 final class CreateGameHandler
@@ -13,7 +20,8 @@ final class CreateGameHandler
         private TeamRepositoryInterface $teams,
         private InviteRepositoryInterface $invites,
         private EntityManagerInterface $em
-    ) {}
+    ) {
+    }
 
     public function __invoke(CreateGameInput $in, User $creator): CreateGameOutput
     {
