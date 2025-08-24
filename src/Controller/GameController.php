@@ -10,13 +10,16 @@ use Symfony\Component\HttpFoundation\{JsonResponse, Request};
 use Symfony\Component\Routing\Annotation\Route;
 use App\Application\DTO\JoinByCodeInput;
 use App\Application\UseCase\JoinByCodeHandler;
+use App\Application\DTO\StartGameInput;
+use App\Application\UseCase\StartGameHandler;
 
 #[Route('/games', name: 'game_')]
 final class GameController extends AbstractController
 {
 	public function __construct(
 		private CreateGameHandler $createGame,
-		private JoinByCodeHandler $joinByCode
+		private JoinByCodeHandler $joinByCode,
+		private StartGameHandler $startGame,
 	) {}
 
 	#[Route('', name: 'create', methods: ['POST'])]
@@ -56,6 +59,24 @@ final class GameController extends AbstractController
 			'ok' => true,
 			'team' => $out->teamName,
 			'position' => $out->position,
+		]);
+	}
+
+	// Démarrer la partie
+	#[Route('/{id}/start', name: 'start', methods: ['POST'])]
+	public function start(string $id): JsonResponse
+	{
+		$this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+		/** @var \App\Entity\User $user */
+		$user = $this->getUser();
+
+		$out = ($this->startGame)(new StartGameInput($id, $user->getId() ?? ''), $user);
+
+		return $this->json([
+			'gameId' => $out->gameId,
+			'status' => $out->status,
+			'turnTeam' => $out->turnTeam,
+			'turnDeadline' => $out->turnDeadlineTs,
 		]);
 	}
 }
