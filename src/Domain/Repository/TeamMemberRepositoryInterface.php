@@ -15,4 +15,6 @@ interface TeamMemberRepositoryInterface
     public function maxPositionByTeam(Team $team): int; // -1 si aucun
 
     public function findOneByTeamAndUser(Team $team, User $user): ?TeamMember;
+
+    public function findActiveOrderedByTeam(Team $team): array; // TeamMember[]
 }

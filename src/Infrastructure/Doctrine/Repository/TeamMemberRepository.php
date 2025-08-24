@@ -40,4 +40,9 @@ final class TeamMemberRepository extends ServiceEntityRepository implements Team
     {
         return $this->findOneBy(['team' => $team, 'user' => $user]);
     }
+
+    public function findActiveOrderedByTeam(Team $team): array
+    {
+        return $this->findBy(['team' => $team, 'active' => true], ['position' => 'ASC']);
+    }
 }
