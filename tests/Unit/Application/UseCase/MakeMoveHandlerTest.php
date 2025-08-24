@@ -1,0 +1,78 @@
+<?php
+
+namespace App\Tests\Unit\Application\UseCase;
+
+use App\Application\DTO\MakeMoveInput;
+use App\Application\Port\ChessEngineInterface;
+use App\Application\UseCase\MakeMoveHandler;
+use App\Domain\Repository\GameRepositoryInterface;
+use App\Domain\Repository\MoveRepositoryInterface;
+use App\Domain\Repository\TeamMemberRepositoryInterface;
+use App\Domain\Repository\TeamRepositoryInterface;
+use App\Entity\Game;
+use App\Entity\Team;
+use App\Entity\TeamMember;
+use App\Entity\User;
+use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\LockInterface;
+
+final class MakeMoveHandlerTest extends TestCase
+{
+    public function testMakeMoveHappyPath(): void
+    {
+        $games = $this->createMock(GameRepositoryInterface::class);
+        $teams = $this->createMock(TeamRepositoryInterface::class);
+        $members = $this->createMock(TeamMemberRepositoryInterface::class);
+        $moves = $this->createMock(MoveRepositoryInterface::class);
+        $engine = $this->createMock(ChessEngineInterface::class);
+        $em = $this->createMock(EntityManagerInterface::class);
+
+        // Lock always acquired
+        $lock = $this->createMock(LockInterface::class);
+        $lock->method('acquire')->willReturn(true);
+        $lock->expects($this->once())->method('release');
+        $lockFactory = $this->createMock(LockFactory::class);
+        $lockFactory->method('createLock')->willReturn($lock);
+
+        $handler = new MakeMoveHandler($games, $teams, $members, $moves, $engine, $lockFactory, $em);
+
+        $uA = new User();
+        $uA->setEmail('a@test.io');
+        $uA->setPassword('x');
+        $g = (new Game())
+            ->setStatus(Game::STATUS_LIVE)
+            ->setTurnTeam(Team::NAME_A)
+            ->setFen('startpos')
+            ->setPly(0)
+            ->setTurnDurationSec(60);
+
+        $games->method('get')->willReturn($g);
+        $tA = new Team($g, Team::NAME_A);
+        $tB = new Team($g, Team::NAME_B);
+
+        $teams->method('findOneByGameAndName')->willReturnMap([
+            [$g, Team::NAME_A, $tA],
+            [$g, Team::NAME_B, $tB],
+        ]);
+
+        $members->method('findActiveOrderedByTeam')->willReturnMap([
+            [$tA, [new TeamMember($tA, $uA, 0)]],
+        ]);
+
+        $engine->method('applyUci')->with('startpos', 'e2e4')->willReturn([
+            'fenAfter' => 'startpos|e2e4',
+            'san' => 'E2E4',
+        ]);
+
+        $moves->expects($this->once())->method('add');
+        $em->expects($this->once())->method('flush');
+
+        $out = $handler(new MakeMoveInput($g->getId(), 'e2e4', $uA->getId() ?? ''), $uA);
+
+        $this->assertSame(1, $out->ply);
+        $this->assertSame('B', $out->turnTeam);
+        $this->assertSame('startpos|e2e4', $out->fen);
+    }
+}

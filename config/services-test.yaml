@@ -1,0 +1,2 @@
+  App\Application\Port\ChessEngineInterface: '@App\Tests\Fake\FakeChessEngine'
+  App\Tests\Fake\FakeChessEngine: ~
