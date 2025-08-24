@@ -16,7 +16,7 @@ final class TeamMemberRepository extends ServiceEntityRepository implements Team
 
 	public function add(TeamMember $member): void
 	{
-		$this->_em->persist($member);
+		$this->getEntityManager()->persist($member);
 	}
 
 	public function countActiveByTeam(Team $team): int

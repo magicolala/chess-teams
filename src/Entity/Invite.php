@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(columns: ['code'], name: 'idx_invite_code')]
 class Invite
 {
-    #[ORM\Id, ORM\GeneratedValue, ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\Id, ORM\Column(type: 'uuid', unique: true)]
     private ?string $id = null;
 
     #[ORM\ManyToOne(targetEntity: Game::class)]
