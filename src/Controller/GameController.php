@@ -4,10 +4,12 @@ namespace App\Controller;
 
 use App\Application\DTO\CreateGameInput;
 use App\Application\DTO\JoinByCodeInput;
+use App\Application\DTO\MakeMoveInput;
 use App\Application\DTO\ShowGameInput;
 use App\Application\DTO\StartGameInput;
 use App\Application\UseCase\CreateGameHandler;
 use App\Application\UseCase\JoinByCodeHandler;
+use App\Application\UseCase\MakeMoveHandler;
 use App\Application\UseCase\ShowGameHandler;
 use App\Application\UseCase\StartGameHandler;
 use App\Entity\User;
@@ -24,6 +26,7 @@ final class GameController extends AbstractController
         private JoinByCodeHandler $joinByCode,
         private StartGameHandler $startGame,
         private ShowGameHandler $showGame,
+        private MakeMoveHandler $makeMove,
     ) {
     }
 
@@ -103,5 +106,26 @@ final class GameController extends AbstractController
                 'B' => $out->teamB,
             ],
         ]);
+    }
+
+    // POST /games/{id}/move
+    #[Route('/{id}/move', name: 'move', methods: ['POST'])]
+    public function move(string $id, Request $r): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $payload = $r->toArray();
+        $uci = (string) ($payload['uci'] ?? '');
+        $out = ($this->makeMove)(new MakeMoveInput($id, $uci, $user->getId() ?? ''), $user);
+
+        return $this->json([
+            'gameId' => $out->gameId,
+            'ply' => $out->ply,
+            'turnTeam' => $out->turnTeam,
+            'turnDeadline' => $out->turnDeadlineTs,
+            'fen' => $out->fen,
+        ], 201);
     }
 }
