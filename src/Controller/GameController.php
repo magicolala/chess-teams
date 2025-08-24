@@ -4,9 +4,11 @@ namespace App\Controller;
 
 use App\Application\DTO\CreateGameInput;
 use App\Application\DTO\JoinByCodeInput;
+use App\Application\DTO\ShowGameInput;
 use App\Application\DTO\StartGameInput;
 use App\Application\UseCase\CreateGameHandler;
 use App\Application\UseCase\JoinByCodeHandler;
+use App\Application\UseCase\ShowGameHandler;
 use App\Application\UseCase\StartGameHandler;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,6 +23,7 @@ final class GameController extends AbstractController
         private CreateGameHandler $createGame,
         private JoinByCodeHandler $joinByCode,
         private StartGameHandler $startGame,
+        private ShowGameHandler $showGame,
     ) {
     }
 
@@ -79,6 +82,26 @@ final class GameController extends AbstractController
             'status' => $out->status,
             'turnTeam' => $out->turnTeam,
             'turnDeadline' => $out->turnDeadlineTs,
+        ]);
+    }
+
+    // GET /games/{id}
+    #[Route('/{id}', name: 'show', methods: ['GET'])]
+    public function show(string $id): JsonResponse
+    {
+        $out = ($this->showGame)(new ShowGameInput($id));
+
+        return $this->json([
+            'id' => $out->id,
+            'status' => $out->status,
+            'fen' => $out->fen,
+            'ply' => $out->ply,
+            'turnTeam' => $out->turnTeam,
+            'turnDeadline' => $out->turnDeadlineTs,
+            'teams' => [
+                'A' => $out->teamA,
+                'B' => $out->teamB,
+            ],
         ]);
     }
 }
