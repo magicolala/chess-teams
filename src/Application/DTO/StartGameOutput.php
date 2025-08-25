@@ -8,7 +8,7 @@ final class StartGameOutput
         public readonly string $gameId,
         public readonly string $status,
         public readonly string $turnTeam,
-        public readonly int $turnDeadlineTs // milliseconds epoch
+        public readonly int $turnDeadlineTs, // milliseconds epoch
     ) {
     }
 }

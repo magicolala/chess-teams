@@ -41,7 +41,7 @@ final class GameController extends AbstractController
         $user = $this->getUser();
 
         $payload = $r->toArray();
-        $in = new CreateGameInput(
+        $in      = new CreateGameInput(
             creatorUserId: $user->getId(),
             turnDurationSec: isset($payload['turnDurationSec']) ? (int) $payload['turnDurationSec'] : 60,
             visibility: $payload['visibility'] ?? 'private'
@@ -50,8 +50,8 @@ final class GameController extends AbstractController
         $out = ($this->createGame)($in, $user);
 
         return $this->json([
-            'gameId' => $out->gameId,
-            'inviteCode' => $out->inviteCode,
+            'gameId'          => $out->gameId,
+            'inviteCode'      => $out->inviteCode,
             'turnDurationSec' => $out->turnDurationSec,
         ], 201);
     }
@@ -63,12 +63,12 @@ final class GameController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        $in = new JoinByCodeInput(inviteCode: $code, userId: $user->getId() ?? '');
+        $in  = new JoinByCodeInput(inviteCode: $code, userId: $user->getId() ?? '');
         $out = ($this->joinByCode)($in, $user);
 
         return $this->json([
-            'ok' => true,
-            'team' => $out->teamName,
+            'ok'       => true,
+            'team'     => $out->teamName,
             'position' => $out->position,
         ]);
     }
@@ -84,9 +84,9 @@ final class GameController extends AbstractController
         $out = ($this->startGame)(new StartGameInput($id, $user->getId() ?? ''), $user);
 
         return $this->json([
-            'gameId' => $out->gameId,
-            'status' => $out->status,
-            'turnTeam' => $out->turnTeam,
+            'gameId'       => $out->gameId,
+            'status'       => $out->status,
+            'turnTeam'     => $out->turnTeam,
             'turnDeadline' => $out->turnDeadlineTs,
         ]);
     }
@@ -98,13 +98,13 @@ final class GameController extends AbstractController
         $out = ($this->showGame)(new ShowGameInput($id));
 
         return $this->json([
-            'id' => $out->id,
-            'status' => $out->status,
-            'fen' => $out->fen,
-            'ply' => $out->ply,
-            'turnTeam' => $out->turnTeam,
+            'id'           => $out->id,
+            'status'       => $out->status,
+            'fen'          => $out->fen,
+            'ply'          => $out->ply,
+            'turnTeam'     => $out->turnTeam,
             'turnDeadline' => $out->turnDeadlineTs,
-            'teams' => [
+            'teams'        => [
                 'A' => $out->teamA,
                 'B' => $out->teamB,
             ],
@@ -120,15 +120,15 @@ final class GameController extends AbstractController
         $user = $this->getUser();
 
         $payload = $r->toArray();
-        $uci = (string) ($payload['uci'] ?? '');
-        $out = ($this->makeMove)(new MakeMoveInput($id, $uci, $user->getId() ?? ''), $user);
+        $uci     = (string) ($payload['uci'] ?? '');
+        $out     = ($this->makeMove)(new MakeMoveInput($id, $uci, $user->getId() ?? ''), $user);
 
         return $this->json([
-            'gameId' => $out->gameId,
-            'ply' => $out->ply,
-            'turnTeam' => $out->turnTeam,
+            'gameId'       => $out->gameId,
+            'ply'          => $out->ply,
+            'turnTeam'     => $out->turnTeam,
             'turnDeadline' => $out->turnDeadlineTs,
-            'fen' => $out->fen,
+            'fen'          => $out->fen,
         ], 201);
     }
 
@@ -143,12 +143,12 @@ final class GameController extends AbstractController
         $out = ($this->timeoutTick)(new TimeoutTickInput($id, $user->getId() ?? ''), $user);
 
         return $this->json([
-            'gameId' => $out->gameId,
+            'gameId'          => $out->gameId,
             'timedOutApplied' => $out->timedOutApplied,
-            'ply' => $out->ply,
-            'turnTeam' => $out->turnTeam,
-            'turnDeadline' => $out->turnDeadlineTs,
-            'fen' => $out->fen,
+            'ply'             => $out->ply,
+            'turnTeam'        => $out->turnTeam,
+            'turnDeadline'    => $out->turnDeadlineTs,
+            'fen'             => $out->fen,
         ], $out->timedOutApplied ? 201 : 200);
     }
 }

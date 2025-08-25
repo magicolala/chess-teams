@@ -15,7 +15,7 @@ final class ShowGameHandler
     public function __construct(
         private GameRepositoryInterface $games,
         private TeamRepositoryInterface $teams,
-        private TeamMemberRepositoryInterface $members
+        private TeamMemberRepositoryInterface $members,
     ) {
     }
 
@@ -39,9 +39,9 @@ final class ShowGameHandler
             $u = $m->getUser();
 
             return [
-                'userId' => method_exists($u, 'getId') ? $u->getId() : null,
+                'userId'      => method_exists($u, 'getId') ? $u->getId() : null,
                 'displayName' => method_exists($u, 'getDisplayName') ? $u->getDisplayName() : null,
-                'position' => $m->getPosition(),
+                'position'    => $m->getPosition(),
             ];
         }, $arr);
 

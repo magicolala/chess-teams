@@ -16,7 +16,7 @@ final class StubChessEngine implements ChessEngineInterface
         if (!preg_match('/^[a-h][1-8][a-h][1-8][qrbn]?$/i', $uci)) {
             throw new \InvalidArgumentException('invalid_uci');
         }
-        $san = strtoupper($uci); // placeholder
+        $san      = strtoupper($uci); // placeholder
         $fenAfter = $fen.'|'.$uci;
 
         return ['fenAfter' => $fenAfter, 'san' => $san];

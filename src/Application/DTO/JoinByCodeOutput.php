@@ -6,7 +6,7 @@ final class JoinByCodeOutput
 {
     public function __construct(
         public readonly string $teamName,
-        public readonly int $position
+        public readonly int $position,
     ) {
     }
 }

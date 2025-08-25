@@ -5,7 +5,7 @@ namespace App\Application\DTO;
 final class ShowGameInput
 {
     public function __construct(
-        public readonly string $gameId
+        public readonly string $gameId,
     ) {
     }
 }

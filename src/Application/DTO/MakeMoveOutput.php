@@ -9,7 +9,7 @@ final class MakeMoveOutput
         public readonly int $ply,
         public readonly string $turnTeam,
         public readonly int $turnDeadlineTs,
-        public readonly string $fen
+        public readonly string $fen,
     ) {
     }
 }

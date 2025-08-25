@@ -12,7 +12,7 @@ final class ShowGameOutput
         public readonly string $turnTeam,
         public readonly ?int $turnDeadlineTs,
         public readonly array $teamA, // ['currentIndex'=>int, 'members'=>[...]]
-        public readonly array $teamB
+        public readonly array $teamB,
     ) {
     }
 }

@@ -19,7 +19,7 @@ final class CreateGameHandler
         private GameRepositoryInterface $games,
         private TeamRepositoryInterface $teams,
         private InviteRepositoryInterface $invites,
-        private EntityManagerInterface $em
+        private EntityManagerInterface $em,
     ) {
     }
 
@@ -32,7 +32,8 @@ final class CreateGameHandler
             ->setVisibility($in->visibility)
             ->setFen('startpos')
             ->setPly(0)
-            ->setTurnTeam(Game::TEAM_A);
+            ->setTurnTeam(Game::TEAM_A)
+        ;
 
         $this->games->add($g);
 
@@ -44,7 +45,7 @@ final class CreateGameHandler
 
         // 3) Créer code d’invite
         $code = substr(bin2hex(random_bytes(8)), 0, 12);
-        $inv = new Invite($g, $code);
+        $inv  = new Invite($g, $code);
         $this->invites->add($inv);
 
         // 4) Flush 1 fois

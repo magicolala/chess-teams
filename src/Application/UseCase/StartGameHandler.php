@@ -21,7 +21,7 @@ final class StartGameHandler
         private GameRepositoryInterface $games,
         private TeamRepositoryInterface $teams,
         private TeamMemberRepositoryInterface $members,
-        private EntityManagerInterface $em
+        private EntityManagerInterface $em,
     ) {
     }
 
@@ -53,14 +53,15 @@ final class StartGameHandler
             throw new ConflictHttpException('each_team_must_have_at_least_one_member');
         }
 
-        $now = new \DateTimeImmutable();
+        $now      = new \DateTimeImmutable();
         $deadline = $now->modify('+'.$game->getTurnDurationSec().' seconds');
 
         $game
             ->setStatus(Game::STATUS_LIVE)
             ->setTurnTeam(Game::TEAM_A)
             ->setTurnDeadline($deadline)
-            ->setUpdatedAt($now);
+            ->setUpdatedAt($now)
+        ;
 
         $this->em->flush();
 

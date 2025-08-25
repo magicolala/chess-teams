@@ -28,9 +28,10 @@ final class MoveRepository extends ServiceEntityRepository implements MoveReposi
     public function lastPlyByGame(Game $game): int
     {
         $q = $this->createQueryBuilder('m')
-          ->select('MAX(m.ply)')
-          ->where('m.game = :g')->setParameter('g', $game)
-          ->getQuery()->getSingleScalarResult();
+            ->select('MAX(m.ply)')
+            ->where('m.game = :g')->setParameter('g', $game)
+            ->getQuery()->getSingleScalarResult()
+        ;
 
         return null === $q ? -1 : (int) $q;
     }

@@ -30,7 +30,7 @@ final class MakeMoveHandler
         private MoveRepositoryInterface $moves,
         private ChessEngineInterface $engine,
         private LockFactory $lockFactory,
-        private EntityManagerInterface $em
+        private EntityManagerInterface $em,
     ) {
     }
 
@@ -90,11 +90,11 @@ final class MakeMoveHandler
             }
 
             $fenAfter = $result['fenAfter'];
-            $san = $result['san'];
+            $san      = $result['san'];
 
             // persist Move
             $ply = $game->getPly() + 1;
-            $mv = new Move($game, $ply);
+            $mv  = new Move($game, $ply);
             $mv->setTeam($teamToPlay)->setByUser($byUser)->setUci($in->uci)->setSan($san)->setFenAfter($fenAfter);
             $this->moves->add($mv);
 

@@ -2,12 +2,20 @@
 
 namespace App\Application\UseCase;
 
-use App\Application\DTO\{TimeoutTickInput, TimeoutTickOutput};
-use App\Domain\Repository\{GameRepositoryInterface, TeamRepositoryInterface, TeamMemberRepositoryInterface, MoveRepositoryInterface};
-use App\Entity\{Game, Team, Move, User};
+use App\Application\DTO\TimeoutTickInput;
+use App\Application\DTO\TimeoutTickOutput;
+use App\Domain\Repository\GameRepositoryInterface;
+use App\Domain\Repository\MoveRepositoryInterface;
+use App\Domain\Repository\TeamMemberRepositoryInterface;
+use App\Domain\Repository\TeamRepositoryInterface;
+use App\Entity\Game;
+use App\Entity\Move;
+use App\Entity\Team;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpKernel\Exception\{NotFoundHttpException, ConflictHttpException};
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Lock\LockFactory;
 
 final class TimeoutTickHandler
@@ -18,7 +26,7 @@ final class TimeoutTickHandler
         private TeamMemberRepositoryInterface $members,
         private MoveRepositoryInterface $moves,
         #[Autowire(service: 'lock.factory')] private LockFactory $lockFactory,
-        private EntityManagerInterface $em
+        private EntityManagerInterface $em,
     ) {
     }
 
@@ -38,7 +46,7 @@ final class TimeoutTickHandler
         }
 
         try {
-            $now = new \DateTimeImmutable();
+            $now      = new \DateTimeImmutable();
             $deadline = $game->getTurnDeadline();
             if (!$deadline || $now <= $deadline) {
                 return new TimeoutTickOutput(
@@ -51,8 +59,8 @@ final class TimeoutTickHandler
                 );
             }
 
-            $teamA = $this->teams->findOneByGameAndName($game, Team::NAME_A);
-            $teamB = $this->teams->findOneByGameAndName($game, Team::NAME_B);
+            $teamA      = $this->teams->findOneByGameAndName($game, Team::NAME_A);
+            $teamB      = $this->teams->findOneByGameAndName($game, Team::NAME_B);
             $teamToPlay = $game->getTurnTeam() === Team::NAME_A ? $teamA : $teamB;
             $othersTeam = $game->getTurnTeam() === Team::NAME_A ? $teamB : $teamA;
 
@@ -61,17 +69,18 @@ final class TimeoutTickHandler
                 $orderCount = 0;
             } else {
                 $orderCount = count($order);
-                $idx = max(0, min($teamToPlay->getCurrentIndex(), $orderCount - 1));
+                $idx        = max(0, min($teamToPlay->getCurrentIndex(), $orderCount - 1));
             }
 
             $ply = $game->getPly() + 1;
-            $mv = new Move($game, $ply);
+            $mv  = new Move($game, $ply);
             $mv->setTeam($teamToPlay)
-               ->setByUser(null)
-               ->setUci(null)
-               ->setSan(null)
-               ->setFenAfter($game->getFen())
-               ->setType(Move::TYPE_TIMEOUT);
+                ->setByUser(null)
+                ->setUci(null)
+                ->setSan(null)
+                ->setFenAfter($game->getFen())
+                ->setType(Move::TYPE_TIMEOUT)
+            ;
             $this->moves->add($mv);
 
             if ($orderCount > 0) {
@@ -99,5 +108,3 @@ final class TimeoutTickHandler
         }
     }
 }
-
-

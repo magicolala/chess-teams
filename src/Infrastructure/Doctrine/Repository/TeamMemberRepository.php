@@ -31,7 +31,8 @@ final class TeamMemberRepository extends ServiceEntityRepository implements Team
         $q = $this->createQueryBuilder('m')
             ->select('MAX(m.position)')
             ->where('m.team = :t')->setParameter('t', $team)
-            ->getQuery()->getSingleScalarResult();
+            ->getQuery()->getSingleScalarResult()
+        ;
 
         return null === $q ? -1 : (int) $q;
     }

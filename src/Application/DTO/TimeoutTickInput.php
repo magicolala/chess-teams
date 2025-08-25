@@ -6,10 +6,7 @@ final class TimeoutTickInput
 {
     public function __construct(
         public readonly string $gameId,
-        public readonly string $requestedByUserId
+        public readonly string $requestedByUserId,
     ) {
     }
 }
-
-
-
