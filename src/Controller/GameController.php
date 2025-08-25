@@ -19,6 +19,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Application\DTO\ListMovesInput;
+use App\Application\UseCase\ListMovesHandler;
 
 #[Route('/games', name: 'game_')]
 final class GameController extends AbstractController
@@ -30,8 +32,8 @@ final class GameController extends AbstractController
         private ShowGameHandler $showGame,
         private MakeMoveHandler $makeMove,
         private TimeoutTickHandler $timeoutTick,
-    ) {
-    }
+        private ListMovesHandler $listMoves,
+    ) {}
 
     #[Route('', name: 'create', methods: ['POST'])]
     public function create(Request $r): JsonResponse
@@ -150,5 +152,17 @@ final class GameController extends AbstractController
             'turnDeadline'    => $out->turnDeadlineTs,
             'fen'             => $out->fen,
         ], $out->timedOutApplied ? 201 : 200);
+    }
+
+    // GET /games/{id}/moves
+    #[Route('/{id}/moves', name: 'moves', methods: ['GET'])]
+    public function moves(string $id): JsonResponse
+    {
+        $out = ($this->listMoves)(new ListMovesInput($id));
+
+        return $this->json([
+            'gameId' => $out->gameId,
+            'moves' => $out->moves,
+        ]);
     }
 }

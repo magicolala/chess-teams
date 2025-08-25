@@ -52,7 +52,7 @@ class Move
         $this->createdAt = new \DateTimeImmutable();
     }
 
-    // Getters/Setters
+    // Getters/Setters (minimaux)
     public function getId(): string
     {
         return $this->id;
@@ -63,21 +63,11 @@ class Move
         return $this->game;
     }
 
-    public function getTeam(): ?Team
-    {
-        return $this->team;
-    }
-
     public function setTeam(?Team $t): self
     {
         $this->team = $t;
 
         return $this;
-    }
-
-    public function getByUser(): ?User
-    {
-        return $this->byUser;
     }
 
     public function setByUser(?User $u): self
@@ -87,26 +77,11 @@ class Move
         return $this;
     }
 
-    public function getPly(): int
-    {
-        return $this->ply;
-    }
-
-    public function getUci(): ?string
-    {
-        return $this->uci;
-    }
-
     public function setUci(?string $u): self
     {
         $this->uci = $u;
 
         return $this;
-    }
-
-    public function getSan(): ?string
-    {
-        return $this->san;
     }
 
     public function setSan(?string $s): self
@@ -116,11 +91,6 @@ class Move
         return $this;
     }
 
-    public function getFenAfter(): string
-    {
-        return $this->fenAfter;
-    }
-
     public function setFenAfter(string $f): self
     {
         $this->fenAfter = $f;
@@ -128,20 +98,10 @@ class Move
         return $this;
     }
 
-    public function getType(): string
-    {
-        return $this->type;
-    }
-
     public function setType(string $t): self
     {
         $this->type = $t;
 
         return $this;
-    }
-
-    public function getCreatedAt(): \DateTimeImmutable
-    {
-        return $this->createdAt;
     }
 }
