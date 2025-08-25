@@ -25,10 +25,10 @@ final class GameMoveTest extends WebTestCase
 
         // 2 users
         $uA = new User();
-        $uA->setEmail('ma+'.bin2hex(random_bytes(3)).'@test.io');
+        $uA->setEmail('ma+' . bin2hex(random_bytes(3)) . '@test.io');
         $uA->setPassword(password_hash('x', PASSWORD_BCRYPT));
         $uB = new User();
-        $uB->setEmail('mb+'.bin2hex(random_bytes(3)).'@test.io');
+        $uB->setEmail('mb+' . bin2hex(random_bytes(3)) . '@test.io');
         $uB->setPassword(password_hash('x', PASSWORD_BCRYPT));
         $em->persist($uA);
         $em->persist($uB);
@@ -62,7 +62,7 @@ final class GameMoveTest extends WebTestCase
         // move
         $client->request(
             'POST',
-            '/games/'.$game->getId().'/move',
+            '/games/' . $game->getId() . '/move',
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode(['uci' => 'e2e4'])
         );
@@ -71,6 +71,6 @@ final class GameMoveTest extends WebTestCase
         $json = json_decode($client->getResponse()->getContent(), true);
         $this->assertSame(1, $json['ply']);
         $this->assertSame('B', $json['turnTeam']);
-        $this->assertStringContainsString('|e2e4', $json['fen']); // FakeEngine concat
+        $this->assertSame('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1', $json['fen']);
     }
 }
