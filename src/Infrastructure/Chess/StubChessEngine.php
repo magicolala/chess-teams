@@ -5,7 +5,8 @@ namespace App\Infrastructure\Chess;
 use App\Application\Port\ChessEngineInterface;
 
 /**
- * Stub permissif: vérifie la forme de l'UCI et renvoie la même FEN (sans la changer).
+ * Stub permissif: vérifie la forme de l'UCI et renvoie une FEN prédictible
+ * pour les tests fonctionnels en concaténant l'uci (ex: "startpos|e2e4").
  * À remplacer par une vraie lib (ex: php-chess) ultérieurement.
  */
 final class StubChessEngine implements ChessEngineInterface
@@ -16,7 +17,8 @@ final class StubChessEngine implements ChessEngineInterface
             throw new \InvalidArgumentException('invalid_uci');
         }
         $san = strtoupper($uci); // placeholder
+        $fenAfter = $fen.'|'.$uci;
 
-        return ['fenAfter' => $fen, 'san' => $san];
+        return ['fenAfter' => $fenAfter, 'san' => $san];
     }
 }

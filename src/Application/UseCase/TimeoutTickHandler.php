@@ -1,0 +1,103 @@
+<?php
+
+namespace App\Application\UseCase;
+
+use App\Application\DTO\{TimeoutTickInput, TimeoutTickOutput};
+use App\Domain\Repository\{GameRepositoryInterface, TeamRepositoryInterface, TeamMemberRepositoryInterface, MoveRepositoryInterface};
+use App\Entity\{Game, Team, Move, User};
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpKernel\Exception\{NotFoundHttpException, ConflictHttpException};
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Lock\LockFactory;
+
+final class TimeoutTickHandler
+{
+    public function __construct(
+        private GameRepositoryInterface $games,
+        private TeamRepositoryInterface $teams,
+        private TeamMemberRepositoryInterface $members,
+        private MoveRepositoryInterface $moves,
+        #[Autowire(service: 'lock.factory')] private LockFactory $lockFactory,
+        private EntityManagerInterface $em
+    ) {
+    }
+
+    public function __invoke(TimeoutTickInput $in, User $requestedBy): TimeoutTickOutput
+    {
+        $game = $this->games->get($in->gameId);
+        if (!$game) {
+            throw new NotFoundHttpException('game_not_found');
+        }
+        if ($game->getStatus() !== Game::STATUS_LIVE) {
+            throw new ConflictHttpException('game_not_live');
+        }
+
+        $lock = $this->lockFactory->createLock('game:'.$game->getId(), 5.0);
+        if (!$lock->acquire()) {
+            throw new ConflictHttpException('locked');
+        }
+
+        try {
+            $now = new \DateTimeImmutable();
+            $deadline = $game->getTurnDeadline();
+            if (!$deadline || $now <= $deadline) {
+                return new TimeoutTickOutput(
+                    $game->getId(),
+                    false,
+                    $game->getPly(),
+                    $game->getTurnTeam(),
+                    ($deadline?->getTimestamp() ?? $now->getTimestamp()) * 1000,
+                    $game->getFen()
+                );
+            }
+
+            $teamA = $this->teams->findOneByGameAndName($game, Team::NAME_A);
+            $teamB = $this->teams->findOneByGameAndName($game, Team::NAME_B);
+            $teamToPlay = $game->getTurnTeam() === Team::NAME_A ? $teamA : $teamB;
+            $othersTeam = $game->getTurnTeam() === Team::NAME_A ? $teamB : $teamA;
+
+            $order = $this->members->findActiveOrderedByTeam($teamToPlay);
+            if (!$order) {
+                $orderCount = 0;
+            } else {
+                $orderCount = count($order);
+                $idx = max(0, min($teamToPlay->getCurrentIndex(), $orderCount - 1));
+            }
+
+            $ply = $game->getPly() + 1;
+            $mv = new Move($game, $ply);
+            $mv->setTeam($teamToPlay)
+               ->setByUser(null)
+               ->setUci(null)
+               ->setSan(null)
+               ->setFenAfter($game->getFen())
+               ->setType(Move::TYPE_TIMEOUT);
+            $this->moves->add($mv);
+
+            if ($orderCount > 0) {
+                $teamToPlay->setCurrentIndex(($teamToPlay->getCurrentIndex() + 1) % $orderCount);
+            }
+
+            $game->setPly($ply);
+            $game->setTurnTeam($othersTeam->getName());
+            $newDeadline = $now->modify('+'.$game->getTurnDurationSec().' seconds');
+            $game->setTurnDeadline($newDeadline);
+            $game->setUpdatedAt($now);
+
+            $this->em->flush();
+
+            return new TimeoutTickOutput(
+                $game->getId(),
+                true,
+                $ply,
+                $game->getTurnTeam(),
+                $newDeadline->getTimestamp() * 1000,
+                $game->getFen()
+            );
+        } finally {
+            $lock->release();
+        }
+    }
+}
+
+

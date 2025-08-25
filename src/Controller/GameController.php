@@ -7,11 +7,13 @@ use App\Application\DTO\JoinByCodeInput;
 use App\Application\DTO\MakeMoveInput;
 use App\Application\DTO\ShowGameInput;
 use App\Application\DTO\StartGameInput;
+use App\Application\DTO\TimeoutTickInput;
 use App\Application\UseCase\CreateGameHandler;
 use App\Application\UseCase\JoinByCodeHandler;
 use App\Application\UseCase\MakeMoveHandler;
 use App\Application\UseCase\ShowGameHandler;
 use App\Application\UseCase\StartGameHandler;
+use App\Application\UseCase\TimeoutTickHandler;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,6 +29,7 @@ final class GameController extends AbstractController
         private StartGameHandler $startGame,
         private ShowGameHandler $showGame,
         private MakeMoveHandler $makeMove,
+        private TimeoutTickHandler $timeoutTick,
     ) {
     }
 
@@ -127,5 +130,25 @@ final class GameController extends AbstractController
             'turnDeadline' => $out->turnDeadlineTs,
             'fen' => $out->fen,
         ], 201);
+    }
+
+    // POST /games/{id}/tick
+    #[Route('/{id}/tick', name: 'tick', methods: ['POST'])]
+    public function tick(string $id): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $out = ($this->timeoutTick)(new TimeoutTickInput($id, $user->getId() ?? ''), $user);
+
+        return $this->json([
+            'gameId' => $out->gameId,
+            'timedOutApplied' => $out->timedOutApplied,
+            'ply' => $out->ply,
+            'turnTeam' => $out->turnTeam,
+            'turnDeadline' => $out->turnDeadlineTs,
+            'fen' => $out->fen,
+        ], $out->timedOutApplied ? 201 : 200);
     }
 }
