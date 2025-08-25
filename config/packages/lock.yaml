@@ -2,4 +2,5 @@ framework:
   lock:
     resources:
       game_ply:
-        - 'redis://%env(REDIS_DSN)%'   # store pour les verrous (NX PX)
+        - 'redis://%env(REDIS_DSN)%'
+        - 'flock'

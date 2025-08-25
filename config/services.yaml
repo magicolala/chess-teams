@@ -28,3 +28,15 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\Application\UseCase\MakeMoveHandler:
+        arguments:
+            $lockFactory: '@lock.factory'
+
+    # Lock: définition explicite d'un store local et de la factory
+    lock.store.flock:
+        class: Symfony\Component\Lock\Store\FlockStore
+    lock.factory:
+        class: Symfony\Component\Lock\LockFactory
+        arguments:
+            - '@lock.store.flock'
