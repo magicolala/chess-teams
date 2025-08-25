@@ -12,4 +12,6 @@ interface MoveRepositoryInterface
     public function countByGame(Game $game): int;
 
     public function lastPlyByGame(Game $game): int; // -1 si aucun
+    /** @return Move[] */
+    public function listByGameOrdered(Game $game): array;
 }
