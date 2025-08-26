@@ -5,6 +5,7 @@ namespace App\Application\UseCase;
 use App\Application\DTO\MakeMoveInput;
 use App\Application\DTO\MakeMoveOutput;
 use App\Application\Port\ChessEngineInterface;
+use App\Application\Service\GameEndEvaluator;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Domain\Repository\MoveRepositoryInterface;
 use App\Domain\Repository\TeamMemberRepositoryInterface;
@@ -31,6 +32,7 @@ final class MakeMoveHandler
         private ChessEngineInterface $engine,
         private LockFactory $lockFactory,
         private EntityManagerInterface $em,
+        private GameEndEvaluator $endEvaluator,
     ) {
     }
 
@@ -42,6 +44,9 @@ final class MakeMoveHandler
         }
         if (Game::STATUS_LIVE !== $game->getStatus()) {
             throw new ConflictHttpException('game_not_live');
+        }
+        if ($game->getStatus() === Game::STATUS_FINISHED) {
+            throw new ConflictHttpException('game_finished');
         }
 
         // Lock sur la partie (évite les moves concurrents)
@@ -111,13 +116,20 @@ final class MakeMoveHandler
             $game->setTurnDeadline($deadline);
             $game->setUpdatedAt($now);
 
+            // -> ici, on évalue la fin :
+            $end = $this->endEvaluator->evaluateAndApply($game);
+            if ($end['isOver']) {
+                // si fini, plus de deadline ni tour
+                $game->setTurnDeadline(null);
+            }
+
             $this->em->flush();
 
             return new MakeMoveOutput(
                 $game->getId(),
                 $ply,
                 $game->getTurnTeam(),
-                $deadline->getTimestamp() * 1000,
+                $game->getTurnDeadline()?->getTimestamp() * 1000 ?? 0,
                 $game->getFen()
             );
         } finally {

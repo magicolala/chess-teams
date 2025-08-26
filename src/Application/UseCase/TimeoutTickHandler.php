@@ -4,6 +4,7 @@ namespace App\Application\UseCase;
 
 use App\Application\DTO\TimeoutTickInput;
 use App\Application\DTO\TimeoutTickOutput;
+use App\Application\Service\GameEndEvaluator;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Domain\Repository\MoveRepositoryInterface;
 use App\Domain\Repository\TeamMemberRepositoryInterface;
@@ -27,6 +28,7 @@ final class TimeoutTickHandler
         private MoveRepositoryInterface $moves,
         #[Autowire(service: 'lock.factory')] private LockFactory $lockFactory,
         private EntityManagerInterface $em,
+        private GameEndEvaluator $endEvaluator,
     ) {
     }
 
@@ -43,6 +45,9 @@ final class TimeoutTickHandler
         $lock = $this->lockFactory->createLock('game:'.$game->getId(), 5.0);
         if (!$lock->acquire()) {
             throw new ConflictHttpException('locked');
+        }
+        if ($game->getStatus() === Game::STATUS_FINISHED) {
+            throw new ConflictHttpException('game_finished');
         }
 
         try {
@@ -93,6 +98,11 @@ final class TimeoutTickHandler
             $game->setTurnDeadline($newDeadline);
             $game->setUpdatedAt($now);
 
+            $end = $this->endEvaluator->evaluateAndApply($game);
+            if ($end['isOver']) {
+                $game->setTurnDeadline(null);
+            }
+
             $this->em->flush();
 
             return new TimeoutTickOutput(
@@ -100,7 +110,7 @@ final class TimeoutTickHandler
                 true,
                 $ply,
                 $game->getTurnTeam(),
-                $newDeadline->getTimestamp() * 1000,
+                $game->getTurnDeadline()?->getTimestamp() * 1000 ?? 0,
                 $game->getFen()
             );
         } finally {

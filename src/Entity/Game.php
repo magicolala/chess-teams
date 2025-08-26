@@ -15,6 +15,8 @@ class Game
     public const TEAM_A = 'A';
     public const TEAM_B = 'B';
 
+    public const STATUS_FINISHED = 'finished';
+
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
     private string $id;
@@ -51,8 +53,8 @@ class Game
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $turnDeadline = null;
 
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $result = null;
+    #[ORM\Column(length: 16, nullable: true)]
+    private ?string $result = null; // Ex: 'A#' (A mat), 'B#', '1/2-1/2', 'resignA', 'timeoutA', etc.
 
     public function __construct()
     {
@@ -180,12 +182,12 @@ class Game
         return $this;
     }
 
-    public function getResult(): ?array
+    public function getResult(): ?string
     {
         return $this->result;
     }
 
-    public function setResult(?array $r): self
+    public function setResult(?string $r): self
     {
         $this->result = $r;
 

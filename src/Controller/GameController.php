@@ -4,23 +4,24 @@ namespace App\Controller;
 
 use App\Application\DTO\CreateGameInput;
 use App\Application\DTO\JoinByCodeInput;
+use App\Application\DTO\ListMovesInput;
 use App\Application\DTO\MakeMoveInput;
 use App\Application\DTO\ShowGameInput;
 use App\Application\DTO\StartGameInput;
 use App\Application\DTO\TimeoutTickInput;
 use App\Application\UseCase\CreateGameHandler;
 use App\Application\UseCase\JoinByCodeHandler;
+use App\Application\UseCase\ListMovesHandler;
 use App\Application\UseCase\MakeMoveHandler;
 use App\Application\UseCase\ShowGameHandler;
 use App\Application\UseCase\StartGameHandler;
 use App\Application\UseCase\TimeoutTickHandler;
+use App\Domain\Repository\GameRepositoryInterface;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Application\DTO\ListMovesInput;
-use App\Application\UseCase\ListMovesHandler;
 
 #[Route('/games', name: 'game_')]
 final class GameController extends AbstractController
@@ -33,7 +34,8 @@ final class GameController extends AbstractController
         private MakeMoveHandler $makeMove,
         private TimeoutTickHandler $timeoutTick,
         private ListMovesHandler $listMoves,
-    ) {}
+    ) {
+    }
 
     #[Route('', name: 'create', methods: ['POST'])]
     public function create(Request $r): JsonResponse
@@ -115,7 +117,7 @@ final class GameController extends AbstractController
 
     // POST /games/{id}/move
     #[Route('/{id}/move', name: 'move', methods: ['POST'])]
-    public function move(string $id, Request $r): JsonResponse
+    public function move(string $id, Request $r, GameRepositoryInterface $gameRepo): JsonResponse
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
         /** @var User $user */
@@ -131,6 +133,8 @@ final class GameController extends AbstractController
             'turnTeam'     => $out->turnTeam,
             'turnDeadline' => $out->turnDeadlineTs,
             'fen'          => $out->fen,
+            'status'       => $gameRepo->get($out->gameId)->getStatus(),
+            'result'       => $gameRepo->get($out->gameId)->getResult(),
         ], 201);
     }
 
@@ -162,7 +166,7 @@ final class GameController extends AbstractController
 
         return $this->json([
             'gameId' => $out->gameId,
-            'moves' => $out->moves,
+            'moves'  => $out->moves,
         ]);
     }
 }
