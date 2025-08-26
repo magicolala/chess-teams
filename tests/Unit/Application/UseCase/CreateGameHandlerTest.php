@@ -11,19 +11,24 @@ use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 final class CreateGameHandlerTest extends TestCase
 {
     public function testCreatesGameTeamsInviteAndReturnsOutput(): void
     {
-        $games = $this->createMock(GameRepositoryInterface::class);
-        $teams = $this->createMock(TeamRepositoryInterface::class);
+        $games   = $this->createMock(GameRepositoryInterface::class);
+        $teams   = $this->createMock(TeamRepositoryInterface::class);
         $invites = $this->createMock(InviteRepositoryInterface::class);
-        $em = $this->createMock(EntityManagerInterface::class);
+        $em      = $this->createMock(EntityManagerInterface::class);
 
-        $games->expects($this->once())->method('add');
-        $teams->expects($this->exactly(2))->method('add');
-        $invites->expects($this->once())->method('add');
-        $em->expects($this->once())->method('flush');
+        $games->expects(self::once())->method('add');
+        $teams->expects(self::exactly(2))->method('add');
+        $invites->expects(self::once())->method('add');
+        $em->expects(self::once())->method('flush');
 
         $handler = new CreateGameHandler($games, $teams, $invites, $em);
 
@@ -35,8 +40,8 @@ final class CreateGameHandlerTest extends TestCase
 
         $out = $handler($in, $user);
 
-        $this->assertNotEmpty($out->gameId);
-        $this->assertNotEmpty($out->inviteCode);
-        $this->assertSame(60, $out->turnDurationSec);
+        self::assertNotEmpty($out->gameId);
+        self::assertNotEmpty($out->inviteCode);
+        self::assertSame(60, $out->turnDurationSec);
     }
 }

@@ -13,22 +13,27 @@ use App\Entity\TeamMember;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 final class GameMoveTest extends WebTestCase
 {
     use _AuthTestTrait;
 
     public function testMakeMoveOk(): void
     {
-        $client = static::createClient();
-        $c = static::getContainer();
-        $em = $c->get('doctrine')->getManager();
+        $client = self::createClient();
+        $c      = self::getContainer();
+        $em     = $c->get('doctrine')->getManager();
 
         // 2 users
         $uA = new User();
-        $uA->setEmail('ma+' . bin2hex(random_bytes(3)) . '@test.io');
+        $uA->setEmail('ma+'.bin2hex(random_bytes(3)).'@test.io');
         $uA->setPassword(password_hash('x', PASSWORD_BCRYPT));
         $uB = new User();
-        $uB->setEmail('mb+' . bin2hex(random_bytes(3)) . '@test.io');
+        $uB->setEmail('mb+'.bin2hex(random_bytes(3)).'@test.io');
         $uB->setPassword(password_hash('x', PASSWORD_BCRYPT));
         $em->persist($uA);
         $em->persist($uB);
@@ -37,8 +42,8 @@ final class GameMoveTest extends WebTestCase
         // create game by uA
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out = $create(new CreateGameInput($uA->getId() ?? 'x', 60, 'private'), $uA);
-        $game = $em->getRepository(\App\Entity\Game::class)->find($out->gameId);
+        $out    = $create(new CreateGameInput($uA->getId() ?? 'x', 60, 'private'), $uA);
+        $game   = $em->getRepository(\App\Entity\Game::class)->find($out->gameId);
 
         /** @var TeamRepositoryInterface $teams */
         $teams = $c->get(TeamRepositoryInterface::class);
@@ -62,15 +67,15 @@ final class GameMoveTest extends WebTestCase
         // move
         $client->request(
             'POST',
-            '/games/' . $game->getId() . '/move',
+            '/games/'.$game->getId().'/move',
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode(['uci' => 'e2e4'])
         );
         $this->assertResponseStatusCodeSame(201);
 
         $json = json_decode($client->getResponse()->getContent(), true);
-        $this->assertSame(1, $json['ply']);
-        $this->assertSame('B', $json['turnTeam']);
-        $this->assertSame('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1', $json['fen']);
+        self::assertSame(1, $json['ply']);
+        self::assertSame('B', $json['turnTeam']);
+        self::assertSame('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1', $json['fen']);
     }
 }

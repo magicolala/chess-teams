@@ -2,29 +2,38 @@
 
 namespace App\Tests\Functional;
 
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use App\Application\DTO\CreateGameInput;
+use App\Application\DTO\StartGameInput;
+use App\Application\UseCase\CreateGameHandler;
+use App\Application\UseCase\StartGameHandler;
+use App\Domain\Repository\TeamMemberRepositoryInterface;
+use App\Domain\Repository\TeamRepositoryInterface;
+use App\Entity\Team;
+use App\Entity\TeamMember;
 use App\Entity\User;
-use App\Application\DTO\{CreateGameInput, StartGameInput};
-use App\Application\UseCase\{CreateGameHandler, StartGameHandler};
-use App\Domain\Repository\{TeamRepositoryInterface, TeamMemberRepositoryInterface};
-use App\Entity\{Team, TeamMember};
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 final class GameMovesListTest extends WebTestCase
 {
     use _AuthTestTrait;
 
-    public function test_get_moves_returns_array(): void
+    public function testGetMovesReturnsArray(): void
     {
-        $client = static::createClient();
-        $c = static::getContainer();
-        $em = $c->get('doctrine')->getManager();
+        $client = self::createClient();
+        $c      = self::getContainer();
+        $em     = $c->get('doctrine')->getManager();
 
         // users
         $uA = new User();
-        $uA->setEmail('lm+' . bin2hex(random_bytes(3)) . '@test.io');
+        $uA->setEmail('lm+'.bin2hex(random_bytes(3)).'@test.io');
         $uA->setPassword(password_hash('x', PASSWORD_BCRYPT));
         $uB = new User();
-        $uB->setEmail('ln+' . bin2hex(random_bytes(3)) . '@test.io');
+        $uB->setEmail('ln+'.bin2hex(random_bytes(3)).'@test.io');
         $uB->setPassword(password_hash('x', PASSWORD_BCRYPT));
         $em->persist($uA);
         $em->persist($uB);
@@ -33,8 +42,8 @@ final class GameMovesListTest extends WebTestCase
         // create game
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out = $create(new CreateGameInput($uA->getId() ?? 'x', 60, 'private'), $uA);
-        $game = $em->getRepository(\App\Entity\Game::class)->find($out->gameId);
+        $out    = $create(new CreateGameInput($uA->getId() ?? 'x', 60, 'private'), $uA);
+        $game   = $em->getRepository(\App\Entity\Game::class)->find($out->gameId);
 
         /** @var TeamRepositoryInterface $teams */
         $teams = $c->get(TeamRepositoryInterface::class);
@@ -56,20 +65,20 @@ final class GameMovesListTest extends WebTestCase
         $this->loginClient($client, $uA);
         $client->request(
             'POST',
-            '/games/' . $game->getId() . '/move',
+            '/games/'.$game->getId().'/move',
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode(['uci' => 'e2e4'])
         );
         $this->assertResponseStatusCodeSame(201);
 
         // GET /moves
-        $client->request('GET', '/games/' . $game->getId() . '/moves');
+        $client->request('GET', '/games/'.$game->getId().'/moves');
         $this->assertResponseIsSuccessful();
 
         $json = json_decode($client->getResponse()->getContent(), true);
-        $this->assertArrayHasKey('moves', $json);
-        $this->assertIsArray($json['moves']);
-        $this->assertGreaterThanOrEqual(1, count($json['moves']));
-        $this->assertSame('e2e4', $json['moves'][0]['uci']);
+        self::assertArrayHasKey('moves', $json);
+        self::assertIsArray($json['moves']);
+        self::assertGreaterThanOrEqual(1, count($json['moves']));
+        self::assertSame('e2e4', $json['moves'][0]['uci']);
     }
 }

@@ -18,21 +18,26 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Lock\LockInterface;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 final class MakeMoveHandlerTest extends TestCase
 {
     public function testMakeMoveHappyPath(): void
     {
-        $games = $this->createMock(GameRepositoryInterface::class);
-        $teams = $this->createMock(TeamRepositoryInterface::class);
+        $games   = $this->createMock(GameRepositoryInterface::class);
+        $teams   = $this->createMock(TeamRepositoryInterface::class);
         $members = $this->createMock(TeamMemberRepositoryInterface::class);
-        $moves = $this->createMock(MoveRepositoryInterface::class);
-        $engine = $this->createMock(ChessEngineInterface::class);
-        $em = $this->createMock(EntityManagerInterface::class);
+        $moves   = $this->createMock(MoveRepositoryInterface::class);
+        $engine  = $this->createMock(ChessEngineInterface::class);
+        $em      = $this->createMock(EntityManagerInterface::class);
 
         // Lock always acquired
         $lock = $this->createMock(LockInterface::class);
         $lock->method('acquire')->willReturn(true);
-        $lock->expects($this->once())->method('release');
+        $lock->expects(self::once())->method('release');
         $lockFactory = $this->createMock(LockFactory::class);
         $lockFactory->method('createLock')->willReturn($lock);
 
@@ -46,7 +51,8 @@ final class MakeMoveHandlerTest extends TestCase
             ->setTurnTeam(Team::NAME_A)
             ->setFen('startpos')
             ->setPly(0)
-            ->setTurnDurationSec(60);
+            ->setTurnDurationSec(60)
+        ;
 
         $games->method('get')->willReturn($g);
         $tA = new Team($g, Team::NAME_A);
@@ -63,16 +69,16 @@ final class MakeMoveHandlerTest extends TestCase
 
         $engine->method('applyUci')->with('startpos', 'e2e4')->willReturn([
             'fenAfter' => 'startpos|e2e4',
-            'san' => 'E2E4',
+            'san'      => 'E2E4',
         ]);
 
-        $moves->expects($this->once())->method('add');
-        $em->expects($this->once())->method('flush');
+        $moves->expects(self::once())->method('add');
+        $em->expects(self::once())->method('flush');
 
         $out = $handler(new MakeMoveInput($g->getId(), 'e2e4', $uA->getId() ?? ''), $uA);
 
-        $this->assertSame(1, $out->ply);
-        $this->assertSame('B', $out->turnTeam);
-        $this->assertSame('startpos|e2e4', $out->fen);
+        self::assertSame(1, $out->ply);
+        self::assertSame('B', $out->turnTeam);
+        self::assertSame('startpos|e2e4', $out->fen);
     }
 }

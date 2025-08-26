@@ -4,32 +4,45 @@ namespace App\Tests\Unit\Application\UseCase;
 
 use App\Application\DTO\TimeoutTickInput;
 use App\Application\UseCase\TimeoutTickHandler;
-use App\Domain\Repository\{GameRepositoryInterface, TeamRepositoryInterface, TeamMemberRepositoryInterface, MoveRepositoryInterface};
-use App\Entity\{Game, Team, TeamMember, User};
+use App\Domain\Repository\GameRepositoryInterface;
+use App\Domain\Repository\MoveRepositoryInterface;
+use App\Domain\Repository\TeamMemberRepositoryInterface;
+use App\Domain\Repository\TeamRepositoryInterface;
+use App\Entity\Game;
+use App\Entity\Team;
+use App\Entity\TeamMember;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Lock\LockInterface;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 final class TimeoutTickHandlerTest extends TestCase
 {
-    public function test_applies_timeout_and_switches_team(): void
+    public function testAppliesTimeoutAndSwitchesTeam(): void
     {
-        $games = $this->createMock(GameRepositoryInterface::class);
-        $teams = $this->createMock(TeamRepositoryInterface::class);
+        $games   = $this->createMock(GameRepositoryInterface::class);
+        $teams   = $this->createMock(TeamRepositoryInterface::class);
         $members = $this->createMock(TeamMemberRepositoryInterface::class);
-        $moves = $this->createMock(MoveRepositoryInterface::class);
-        $em = $this->createMock(EntityManagerInterface::class);
+        $moves   = $this->createMock(MoveRepositoryInterface::class);
+        $em      = $this->createMock(EntityManagerInterface::class);
 
         $lock = $this->createMock(LockInterface::class);
         $lock->method('acquire')->willReturn(true);
-        $lock->expects($this->once())->method('release');
+        $lock->expects(self::once())->method('release');
         $lockFactory = $this->createMock(LockFactory::class);
         $lockFactory->method('createLock')->willReturn($lock);
 
         $handler = new TimeoutTickHandler($games, $teams, $members, $moves, $lockFactory, $em);
 
-        $creator = new User(); $creator->setEmail('c@test.io'); $creator->setPassword('x');
+        $creator = new User();
+        $creator->setEmail('c@test.io');
+        $creator->setPassword('x');
         $g = (new Game())
             ->setCreatedBy($creator)
             ->setStatus(Game::STATUS_LIVE)
@@ -37,7 +50,8 @@ final class TimeoutTickHandlerTest extends TestCase
             ->setTurnDurationSec(60)
             ->setFen('startpos')
             ->setPly(0)
-            ->setTurnDeadline((new \DateTimeImmutable())->modify('-1 second'));
+            ->setTurnDeadline((new \DateTimeImmutable())->modify('-1 second'))
+        ;
 
         $games->method('get')->willReturn($g);
 
@@ -48,20 +62,18 @@ final class TimeoutTickHandlerTest extends TestCase
             [$g, Team::NAME_B, $tb],
         ]);
 
-        $uA = new User(); $uA->setEmail('a@test.io'); $uA->setPassword('x');
+        $uA = new User();
+        $uA->setEmail('a@test.io');
+        $uA->setPassword('x');
         $members->method('findActiveOrderedByTeam')->with($ta)->willReturn([new TeamMember($ta, $uA, 0)]);
 
-        $moves->expects($this->once())->method('add');
-        $em->expects($this->once())->method('flush');
+        $moves->expects(self::once())->method('add');
+        $em->expects(self::once())->method('flush');
 
         $out = $handler(new TimeoutTickInput($g->getId(), $creator->getId() ?? ''), $creator);
 
-        $this->assertTrue($out->timedOutApplied);
-        $this->assertSame('B', $out->turnTeam);
-        $this->assertSame(1, $out->ply);
+        self::assertTrue($out->timedOutApplied);
+        self::assertSame('B', $out->turnTeam);
+        self::assertSame(1, $out->ply);
     }
 }
-
-
-
-

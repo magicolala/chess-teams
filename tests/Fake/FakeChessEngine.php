@@ -13,13 +13,13 @@ final class FakeChessEngine implements ChessEngineInterface
         }
 
         // Debug
-        error_log("FakeEngine - FEN reçu: " . $fen);
-        error_log("FakeEngine - UCI reçu: " . $uci);
+        error_log('FakeEngine - FEN reçu: '.$fen);
+        error_log('FakeEngine - UCI reçu: '.$uci);
 
-        $fenAfter = $fen . '|' . $uci;
-        $san = strtoupper($uci);
+        $fenAfter = $fen.'|'.$uci;
+        $san      = strtoupper($uci);
 
-        error_log("FakeEngine - FEN retourné: " . $fenAfter);
+        error_log('FakeEngine - FEN retourné: '.$fenAfter);
 
         return ['fenAfter' => $fenAfter, 'san' => $san];
     }

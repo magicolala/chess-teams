@@ -13,12 +13,17 @@ use App\Entity\TeamMember;
 use App\Entity\User;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 final class ShowGameHandlerTest extends TestCase
 {
     public function testReturnsProjectionWithMembers(): void
     {
-        $games = $this->createMock(GameRepositoryInterface::class);
-        $teams = $this->createMock(TeamRepositoryInterface::class);
+        $games   = $this->createMock(GameRepositoryInterface::class);
+        $teams   = $this->createMock(TeamRepositoryInterface::class);
         $members = $this->createMock(TeamMemberRepositoryInterface::class);
 
         $handler = new ShowGameHandler($games, $teams, $members);
@@ -51,10 +56,10 @@ final class ShowGameHandlerTest extends TestCase
         ]);
 
         $out = $handler(new ShowGameInput($g->getId()));
-        $this->assertSame($g->getId(), $out->id);
-        $this->assertSame('startpos', $out->fen);
-        $this->assertSame('A', $out->turnTeam);
-        $this->assertCount(1, $out->teamA['members']);
-        $this->assertCount(1, $out->teamB['members']);
+        self::assertSame($g->getId(), $out->id);
+        self::assertSame('startpos', $out->fen);
+        self::assertSame('A', $out->turnTeam);
+        self::assertCount(1, $out->teamA['members']);
+        self::assertCount(1, $out->teamB['members']);
     }
 }

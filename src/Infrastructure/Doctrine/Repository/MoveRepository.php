@@ -3,7 +3,8 @@
 namespace App\Infrastructure\Doctrine\Repository;
 
 use App\Domain\Repository\MoveRepositoryInterface;
-use App\Entity\{Game, Move};
+use App\Entity\Game;
+use App\Entity\Move;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -21,7 +22,7 @@ final class MoveRepository extends ServiceEntityRepository implements MoveReposi
 
     public function countByGame(Game $game): int
     {
-        return (int)$this->count(['game' => $game]);
+        return (int) $this->count(['game' => $game]);
     }
 
     public function lastPlyByGame(Game $game): int
@@ -29,9 +30,10 @@ final class MoveRepository extends ServiceEntityRepository implements MoveReposi
         $q = $this->createQueryBuilder('m')
             ->select('MAX(m.ply)')
             ->where('m.game = :g')->setParameter('g', $game)
-            ->getQuery()->getSingleScalarResult();
+            ->getQuery()->getSingleScalarResult()
+        ;
 
-        return $q === null ? -1 : (int)$q;
+        return $q === null ? -1 : (int) $q;
     }
 
     public function listByGameOrdered(Game $game): array

@@ -3,9 +3,9 @@
 namespace App\Infrastructure\Chess;
 
 use App\Application\Port\ChessEngineInterface;
+use PChess\Chess\Board;
 use PChess\Chess\Chess;
 use PChess\Chess\Move;
-use PChess\Chess\Board;
 
 final class PChessEngine implements ChessEngineInterface
 {
@@ -43,7 +43,7 @@ final class PChessEngine implements ChessEngineInterface
         }
 
         // SAN dispo directement (move() appelle moveToSAN())
-        $san = $move->san ?? (string) $move;
+        $san      = $move->san ?? (string) $move;
         $fenAfter = $chess->fen();
 
         return ['fenAfter' => $fenAfter, 'san' => $san ?: strtoupper($uci)];

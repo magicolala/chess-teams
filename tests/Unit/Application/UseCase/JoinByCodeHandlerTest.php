@@ -14,18 +14,23 @@ use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 final class JoinByCodeHandlerTest extends TestCase
 {
     public function testJoinAssignsToSmallerTeamAndReturnsPosition(): void
     {
-        $invRepo = $this->createMock(InviteRepositoryInterface::class);
+        $invRepo  = $this->createMock(InviteRepositoryInterface::class);
         $teamRepo = $this->createMock(TeamRepositoryInterface::class);
-        $memRepo = $this->createMock(TeamMemberRepositoryInterface::class);
-        $em = $this->createMock(EntityManagerInterface::class);
+        $memRepo  = $this->createMock(TeamMemberRepositoryInterface::class);
+        $em       = $this->createMock(EntityManagerInterface::class);
 
         $handler = new JoinByCodeHandler($invRepo, $teamRepo, $memRepo, $em);
 
-        $game = (new Game())->setStatus(Game::STATUS_LOBBY);
+        $game  = (new Game())->setStatus(Game::STATUS_LOBBY);
         $teamA = new Team($game, Team::NAME_A);
         $teamB = new Team($game, Team::NAME_B);
 
@@ -45,15 +50,15 @@ final class JoinByCodeHandlerTest extends TestCase
         $memRepo->method('findOneByTeamAndUser')->willReturn(null);
         $memRepo->method('maxPositionByTeam')->with($teamB)->willReturn(-1);
 
-        $memRepo->expects($this->once())->method('add');
-        $em->expects($this->once())->method('flush');
+        $memRepo->expects(self::once())->method('add');
+        $em->expects(self::once())->method('flush');
 
         $user = new User();
         $user->setEmail('u@test.io');
         $user->setPassword('x');
 
         $out = $handler(new JoinByCodeInput('ABCD1234', 'uid'), $user);
-        $this->assertSame('B', $out->teamName);
-        $this->assertSame(0, $out->position);
+        self::assertSame('B', $out->teamName);
+        self::assertSame(0, $out->position);
     }
 }

@@ -12,15 +12,20 @@ use App\Entity\TeamMember;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 final class GameStartTest extends WebTestCase
 {
     use _AuthTestTrait;
 
     public function testStartGameOk(): void
     {
-        $client = static::createClient();
-        $c = static::getContainer();
-        $em = $c->get('doctrine')->getManager();
+        $client = self::createClient();
+        $c      = self::getContainer();
+        $em     = $c->get('doctrine')->getManager();
 
         // users
         $creator = new User();
@@ -36,7 +41,7 @@ final class GameStartTest extends WebTestCase
         // create game (use case direct)
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out = $create(new CreateGameInput($creator->getId() ?? 'x', 60, 'private'), $creator);
+        $out    = $create(new CreateGameInput($creator->getId() ?? 'x', 60, 'private'), $creator);
 
         // fetch game+teams
         /** @var \Doctrine\ORM\EntityManagerInterface $em */
@@ -64,17 +69,17 @@ final class GameStartTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         $json = json_decode($client->getResponse()->getContent(), true);
-        $this->assertSame('live', $json['status']);
-        $this->assertSame('A', $json['turnTeam']);
-        $this->assertArrayHasKey('turnDeadline', $json);
-        $this->assertGreaterThan(time() * 1000, $json['turnDeadline'] - 1000);
+        self::assertSame('live', $json['status']);
+        self::assertSame('A', $json['turnTeam']);
+        self::assertArrayHasKey('turnDeadline', $json);
+        self::assertGreaterThan(time() * 1000, $json['turnDeadline'] - 1000);
     }
 
     public function testStartGameRequiresOneMemberEachTeam(): void
     {
-        $client = static::createClient();
-        $c = static::getContainer();
-        $em = $c->get('doctrine')->getManager();
+        $client = self::createClient();
+        $c      = self::getContainer();
+        $em     = $c->get('doctrine')->getManager();
 
         $creator = new User();
         $creator->setEmail('host+'.bin2hex(random_bytes(3)).'@test.io');
@@ -84,7 +89,7 @@ final class GameStartTest extends WebTestCase
 
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out = $create(new CreateGameInput($creator->getId() ?? 'x', 60, 'private'), $creator);
+        $out    = $create(new CreateGameInput($creator->getId() ?? 'x', 60, 'private'), $creator);
 
         $game = $em->getRepository(Game::class)->find($out->gameId);
 

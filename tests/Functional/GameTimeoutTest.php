@@ -2,33 +2,46 @@
 
 namespace App\Tests\Functional;
 
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use App\Entity\User;
 use App\Application\DTO\CreateGameInput;
+use App\Application\DTO\StartGameInput;
 use App\Application\UseCase\CreateGameHandler;
 use App\Application\UseCase\StartGameHandler;
-use App\Application\DTO\StartGameInput;
-use App\Domain\Repository\{TeamRepositoryInterface, TeamMemberRepositoryInterface};
-use App\Entity\{Team, TeamMember};
+use App\Domain\Repository\TeamMemberRepositoryInterface;
+use App\Domain\Repository\TeamRepositoryInterface;
+use App\Entity\Team;
+use App\Entity\TeamMember;
+use App\Entity\User;
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 final class GameTimeoutTest extends WebTestCase
 {
     use _AuthTestTrait;
 
-    public function test_tick_applies_timeout_and_switches_turn(): void
+    public function testTickAppliesTimeoutAndSwitchesTurn(): void
     {
-        $client = static::createClient();
-        $c = static::getContainer();
-        $em = $c->get('doctrine')->getManager();
+        $client = self::createClient();
+        $c      = self::getContainer();
+        $em     = $c->get('doctrine')->getManager();
 
-        $uA = new User(); $uA->setEmail('ta+'.bin2hex(random_bytes(3)).'@test.io'); $uA->setPassword(password_hash('x', PASSWORD_BCRYPT));
-        $uB = new User(); $uB->setEmail('tb+'.bin2hex(random_bytes(3)).'@test.io'); $uB->setPassword(password_hash('x', PASSWORD_BCRYPT));
-        $em->persist($uA); $em->persist($uB); $em->flush();
+        $uA = new User();
+        $uA->setEmail('ta+'.bin2hex(random_bytes(3)).'@test.io');
+        $uA->setPassword(password_hash('x', PASSWORD_BCRYPT));
+        $uB = new User();
+        $uB->setEmail('tb+'.bin2hex(random_bytes(3)).'@test.io');
+        $uB->setPassword(password_hash('x', PASSWORD_BCRYPT));
+        $em->persist($uA);
+        $em->persist($uB);
+        $em->flush();
 
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out = $create(new CreateGameInput($uA->getId() ?? 'x', 5, 'private'), $uA);
-        $game = $em->getRepository(\App\Entity\Game::class)->find($out->gameId);
+        $out    = $create(new CreateGameInput($uA->getId() ?? 'x', 5, 'private'), $uA);
+        $game   = $em->getRepository(\App\Entity\Game::class)->find($out->gameId);
 
         /** @var TeamRepositoryInterface $teams */
         $teams = $c->get(TeamRepositoryInterface::class);
@@ -56,25 +69,31 @@ final class GameTimeoutTest extends WebTestCase
         $this->assertResponseStatusCodeSame(201);
 
         $json = json_decode($client->getResponse()->getContent(), true);
-        $this->assertTrue($json['timedOutApplied']);
-        $this->assertSame(1, $json['ply']);
-        $this->assertSame('B', $json['turnTeam']);
+        self::assertTrue($json['timedOutApplied']);
+        self::assertSame(1, $json['ply']);
+        self::assertSame('B', $json['turnTeam']);
     }
 
-    public function test_tick_noop_if_not_expired(): void
+    public function testTickNoopIfNotExpired(): void
     {
-        $client = static::createClient();
-        $c = static::getContainer();
-        $em = $c->get('doctrine')->getManager();
+        $client = self::createClient();
+        $c      = self::getContainer();
+        $em     = $c->get('doctrine')->getManager();
 
-        $uA = new User(); $uA->setEmail('tc+'.bin2hex(random_bytes(3)).'@test.io'); $uA->setPassword(password_hash('x', PASSWORD_BCRYPT));
-        $uB = new User(); $uB->setEmail('td+'.bin2hex(random_bytes(3)).'@test.io'); $uB->setPassword(password_hash('x', PASSWORD_BCRYPT));
-        $em->persist($uA); $em->persist($uB); $em->flush();
+        $uA = new User();
+        $uA->setEmail('tc+'.bin2hex(random_bytes(3)).'@test.io');
+        $uA->setPassword(password_hash('x', PASSWORD_BCRYPT));
+        $uB = new User();
+        $uB->setEmail('td+'.bin2hex(random_bytes(3)).'@test.io');
+        $uB->setPassword(password_hash('x', PASSWORD_BCRYPT));
+        $em->persist($uA);
+        $em->persist($uB);
+        $em->flush();
 
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out = $create(new CreateGameInput($uA->getId() ?? 'x', 60, 'private'), $uA);
-        $game = $em->getRepository(\App\Entity\Game::class)->find($out->gameId);
+        $out    = $create(new CreateGameInput($uA->getId() ?? 'x', 60, 'private'), $uA);
+        $game   = $em->getRepository(\App\Entity\Game::class)->find($out->gameId);
 
         /** @var TeamRepositoryInterface $teams */
         $teams = $c->get(TeamRepositoryInterface::class);
@@ -97,12 +116,8 @@ final class GameTimeoutTest extends WebTestCase
         $this->assertResponseStatusCodeSame(200);
 
         $json = json_decode($client->getResponse()->getContent(), true);
-        $this->assertFalse($json['timedOutApplied']);
-        $this->assertSame(0, $json['ply']);
-        $this->assertSame('A', $json['turnTeam']);
+        self::assertFalse($json['timedOutApplied']);
+        self::assertSame(0, $json['ply']);
+        self::assertSame('A', $json['turnTeam']);
     }
 }
-
-
-
-

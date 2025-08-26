@@ -4,15 +4,24 @@ namespace App\Tests\Unit\Application\UseCase;
 
 use App\Application\DTO\ListMovesInput;
 use App\Application\UseCase\ListMovesHandler;
-use App\Domain\Repository\{GameRepositoryInterface, MoveRepositoryInterface};
-use App\Entity\{Game, Move, Team, User};
+use App\Domain\Repository\GameRepositoryInterface;
+use App\Domain\Repository\MoveRepositoryInterface;
+use App\Entity\Game;
+use App\Entity\Move;
+use App\Entity\Team;
+use App\Entity\User;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 final class ListMovesHandlerTest extends TestCase
 {
-    public function test_returns_moves_projection(): void
+    public function testReturnsMovesProjection(): void
     {
-        $games = $this->createMock(GameRepositoryInterface::class);
+        $games     = $this->createMock(GameRepositoryInterface::class);
         $movesRepo = $this->createMock(MoveRepositoryInterface::class);
 
         $handler = new ListMovesHandler($games, $movesRepo);
@@ -31,8 +40,8 @@ final class ListMovesHandlerTest extends TestCase
         $movesRepo->method('listByGameOrdered')->with($g)->willReturn([$m1]);
 
         $out = $handler(new ListMovesInput($g->getId()));
-        $this->assertSame($g->getId(), $out->gameId);
-        $this->assertCount(1, $out->moves);
-        $this->assertSame('e2e4', $out->moves[0]['uci']);
+        self::assertSame($g->getId(), $out->gameId);
+        self::assertCount(1, $out->moves);
+        self::assertSame('e2e4', $out->moves[0]['uci']);
     }
 }

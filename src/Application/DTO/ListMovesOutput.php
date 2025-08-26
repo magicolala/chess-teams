@@ -7,6 +7,7 @@ final class ListMovesOutput
     /** @param array<int, array<string, mixed>> $moves */
     public function __construct(
         public readonly string $gameId,
-        public readonly array $moves // [{ply, team, byUserId, uci, san, type, fenAfter, createdAt}]
-    ) {}
+        public readonly array $moves, // [{ply, team, byUserId, uci, san, type, fenAfter, createdAt}]
+    ) {
+    }
 }

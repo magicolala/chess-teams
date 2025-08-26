@@ -11,13 +11,18 @@ use App\Entity\TeamMember;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 final class GameShowTest extends WebTestCase
 {
     public function testShowGameReturnsState(): void
     {
-        $client = static::createClient();
-        $c = static::getContainer();
-        $em = $c->get('doctrine')->getManager();
+        $client = self::createClient();
+        $c      = self::getContainer();
+        $em     = $c->get('doctrine')->getManager();
 
         // users
         $u1 = new User();
@@ -33,7 +38,7 @@ final class GameShowTest extends WebTestCase
         // create game
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out = $create(new CreateGameInput($u1->getId() ?? 'x', 60, 'private'), $u1);
+        $out    = $create(new CreateGameInput($u1->getId() ?? 'x', 60, 'private'), $u1);
 
         $game = $em->getRepository(\App\Entity\Game::class)->find($out->gameId);
         /** @var TeamRepositoryInterface $teams */
@@ -52,11 +57,11 @@ final class GameShowTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         $json = json_decode($client->getResponse()->getContent(), true);
-        $this->assertSame($game->getId(), $json['id']);
-        $this->assertSame('A', $json['turnTeam']); // par défaut
-        $this->assertArrayHasKey('teams', $json);
-        $this->assertArrayHasKey('A', $json['teams']);
-        $this->assertArrayHasKey('B', $json['teams']);
-        $this->assertGreaterThanOrEqual(0, $json['teams']['A']['currentIndex']);
+        self::assertSame($game->getId(), $json['id']);
+        self::assertSame('A', $json['turnTeam']); // par défaut
+        self::assertArrayHasKey('teams', $json);
+        self::assertArrayHasKey('A', $json['teams']);
+        self::assertArrayHasKey('B', $json['teams']);
+        self::assertGreaterThanOrEqual(0, $json['teams']['A']['currentIndex']);
     }
 }

@@ -7,15 +7,20 @@ use App\Application\UseCase\CreateGameHandler;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 final class GameJoinTest extends WebTestCase
 {
     use _AuthTestTrait;
 
     public function testJoinByCodeWorks(): void
     {
-        $client = static::createClient();
-        $c = static::getContainer();
-        $em = $c->get('doctrine')->getManager();
+        $client = self::createClient();
+        $c      = self::getContainer();
+        $em     = $c->get('doctrine')->getManager();
 
         $u1 = new User();
         $u1->setEmail('u1+'.bin2hex(random_bytes(4)).'@test.io');
@@ -32,7 +37,7 @@ final class GameJoinTest extends WebTestCase
         // créer une partie via use case (plus simple que passer par HTTP ici)
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out = $create(new CreateGameInput($u1->getId() ?? 'uid', 60, 'private'), $u1);
+        $out    = $create(new CreateGameInput($u1->getId() ?? 'uid', 60, 'private'), $u1);
 
         // login as u2
         $this->loginClient($client, $u2);
@@ -42,8 +47,8 @@ final class GameJoinTest extends WebTestCase
         $this->assertResponseIsSuccessful();
 
         $json = json_decode($client->getResponse()->getContent(), true);
-        $this->assertTrue($json['ok']);
-        $this->assertContains($json['team'], ['A', 'B']);
-        $this->assertIsInt($json['position']);
+        self::assertTrue($json['ok']);
+        self::assertContains($json['team'], ['A', 'B']);
+        self::assertIsInt($json['position']);
     }
 }
