@@ -1,0 +1,6 @@
+framework:
+    http_client:
+        default_options:
+            # ATTENTION : Pour le développement local uniquement.
+            # Ne pas utiliser en production.
+            verify_peer: false

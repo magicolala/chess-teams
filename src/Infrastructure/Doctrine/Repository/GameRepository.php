@@ -23,4 +23,15 @@ final class GameRepository extends ServiceEntityRepository implements GameReposi
     {
         return $this->find($id);
     }
+
+    public function findOneByInviteCode(string $code): ?Game
+    {
+        return $this->createQueryBuilder('g')
+            ->innerJoin('g.invite', 'i')
+            ->andWhere('i.code = :code')
+            ->setParameter('code', $code)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
 }

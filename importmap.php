@@ -25,4 +25,10 @@ return [
     '@hotwired/turbo' => [
         'version' => '7.3.0',
     ],
+    'chessground' => [
+        'version' => '9.2.1',
+    ],
+    'chess.js' => [
+        'version' => '1.4.0',
+    ],
 ];

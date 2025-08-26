@@ -9,4 +9,6 @@ interface GameRepositoryInterface
     public function add(Game $game): void;
 
     public function get(string $id): ?Game;
+
+    public function findOneByInviteCode(string $inviteCode): ?Game;
 }
