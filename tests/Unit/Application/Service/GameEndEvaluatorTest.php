@@ -22,7 +22,7 @@ final class GameEndEvaluatorTest extends TestCase
         // Ici on force une FEN de mat simple (roi noir mat). Exemple:
         // "rnb1kbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 3"
         // (à adapter si besoin selon la lib)
-        $g->setFen('rnb1kbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 3');
+        $g->setFen('6Rk/4r3/2p1pN1p/p2pP3/P2P1n2/1rP4P/3q1PP1/6RK b - - 0 1');
 
         $res = $svc->evaluateAndApply($g);
         self::assertTrue($res['isOver']);

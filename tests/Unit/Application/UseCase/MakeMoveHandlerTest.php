@@ -4,6 +4,7 @@ namespace App\Tests\Unit\Application\UseCase;
 
 use App\Application\DTO\MakeMoveInput;
 use App\Application\Port\ChessEngineInterface;
+use App\Application\Service\GameEndEvaluator;
 use App\Application\UseCase\MakeMoveHandler;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Domain\Repository\MoveRepositoryInterface;
@@ -41,7 +42,16 @@ final class MakeMoveHandlerTest extends TestCase
         $lockFactory = $this->createMock(LockFactory::class);
         $lockFactory->method('createLock')->willReturn($lock);
 
-        $handler = new MakeMoveHandler($games, $teams, $members, $moves, $engine, $lockFactory, $em);
+        // Pas de mock (classe finale) : on prend l’implé réelle.
+        // Sur notre scénario (e2e4 depuis startpos), l’évaluateur ne finira pas la partie.
+        $end = new GameEndEvaluator();
+
+        // ⚠️ Vérifie l'ordre des arguments selon TA classe :
+        // MakeMoveHandler::__construct(
+        //   GameRepositoryInterface, TeamRepositoryInterface, TeamMemberRepositoryInterface,
+        //   MoveRepositoryInterface, ChessEngineInterface, LockFactory, EntityManagerInterface, GameEndEvaluator
+        // )
+        $handler = new MakeMoveHandler($games, $teams, $members, $moves, $engine, $lockFactory, $em, $end);
 
         $uA = new User();
         $uA->setEmail('a@test.io');
@@ -68,8 +78,9 @@ final class MakeMoveHandlerTest extends TestCase
         ]);
 
         $engine->method('applyUci')->with('startpos', 'e2e4')->willReturn([
-            'fenAfter' => 'startpos|e2e4',
-            'san'      => 'E2E4',
+            // FEN valide après 1.e4 (au trait: noir)
+            'fenAfter' => 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1',
+            'san'      => 'e4',
         ]);
 
         $moves->expects(self::once())->method('add');
@@ -79,6 +90,6 @@ final class MakeMoveHandlerTest extends TestCase
 
         self::assertSame(1, $out->ply);
         self::assertSame('B', $out->turnTeam);
-        self::assertSame('startpos|e2e4', $out->fen);
+        self::assertSame('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1', $out->fen);
     }
 }

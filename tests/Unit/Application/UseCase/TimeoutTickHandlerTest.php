@@ -3,6 +3,7 @@
 namespace App\Tests\Unit\Application\UseCase;
 
 use App\Application\DTO\TimeoutTickInput;
+use App\Application\Service\GameEndEvaluator;
 use App\Application\UseCase\TimeoutTickHandler;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Domain\Repository\MoveRepositoryInterface;
@@ -38,7 +39,9 @@ final class TimeoutTickHandlerTest extends TestCase
         $lockFactory = $this->createMock(LockFactory::class);
         $lockFactory->method('createLock')->willReturn($lock);
 
-        $handler = new TimeoutTickHandler($games, $teams, $members, $moves, $lockFactory, $em);
+        $end = new GameEndEvaluator();
+
+        $handler = new TimeoutTickHandler($games, $teams, $members, $moves, $lockFactory, $em, $end);
 
         $creator = new User();
         $creator->setEmail('c@test.io');

@@ -58,19 +58,17 @@ final class GameEndTest extends WebTestCase
         $start = $c->get(StartGameHandler::class);
         $start(new StartGameInput($game->getId(), $uA->getId() ?? ''), $uA);
 
-        // On pousse une mini-séquence forçant un mat rapide (avec l'engine réel en dev : en test, FakeEngine ne gère pas)
-        // Ici, on triche pour le test fonctionnel en forçant directement une FEN de "mat imminent"
-        $game->setFen('7k/5Q2/6K1/8/8/8/8/8 b - - 0 1'); // pat/mat-like — adapter selon attente
+        // Ici on simule la fin de partie pour tester la protection HTTP (FakeEngine ne calcule pas la fin).
+        $game->setStatus('finished');
+        $game->setResult('A#');
         $em->flush();
-
-        $this->loginClient($client, $uB); // camp au trait = noir
+        $this->loginClient($client, $uB);
         $client->request(
             'POST',
             '/games/'.$game->getId().'/move',
             server: ['CONTENT_TYPE' => 'application/json'],
-            content: json_encode(['uci' => 'h8h7']) // coup illégal si mat/pat ⇒ devrait renvoyer 422 ou 409
+            content: json_encode(['uci' => 'e7e5'])
         );
-        // Selon comportement, attends 422 (illegal_move) ou 409 (game_finished) si déjà fini :
-        self::assertTrue(in_array($client->getResponse()->getStatusCode(), [409, 422], true));
+        self::assertSame(409, $client->getResponse()->getStatusCode());
     }
 }
