@@ -4,52 +4,59 @@
 {% endblock %}
 
 {% block body %}
-	<div class="container container-sm">
-		<h1>Bienvenue 👋</h1>
+	<h4 class="header">Bienvenue 👋</h4>
 
-		<section class="section">
-			<div class="card">
-				<div class="card-header">
-					<h3 class="mb-0">Créer une partie</h3>
-				</div>
-				<div class="card-body">
-					<form method="post" action="{{ path('app_game_create_form') }}" class="form-row">
-						<div class="form-col">
-							<label for="turnDuration" class="form-label">Durée par tour (sec)</label>
-							<input type="number" id="turnDuration" name="turnDuration" value="60" min="10" max="600" class="form-control">
+	{# Créer une partie #}
+	<section class="section">
+		<div class="card z-depth-1">
+			<div class="card-content">
+				<span class="card-title">Créer une partie</span>
+				<form method="post" action="{{ path('app_game_create_form') }}">
+					<div class="row">
+						<div class="input-field col s12 m6">
+							<input type="number" id="turnDuration" name="turnDuration" value="60" min="10" max="600" class="validate">
+							<label for="turnDuration">Durée par tour (sec)</label>
+							<span class="helper-text" data-error="Invalide" data-success="Ok">Entre 10 et 600</span>
 						</div>
-						<div class="form-col">
-							<label for="visibility" class="form-label">Visibilité</label>
-							<select id="visibility" name="visibility" class="form-control">
-								<option value="private">Privée</option>
+
+						<div class="input-field col s12 m6">
+							<select id="visibility" name="visibility">
+								<option value="private" selected>Privée</option>
 								<option value="public">Publique</option>
 							</select>
+							<label for="visibility">Visibilité</label>
 						</div>
-						<div class="form-col-auto">
-							<button type="submit" class="btn btn-primary btn-lg">Créer une partie</button>
-						</div>
-					</form>
-				</div>
-			</div>
-		</section>
+					</div>
 
-		<section class="section">
-			<div class="card">
-				<div class="card-header">
-					<h3 class="mb-0">Rejoindre une partie</h3>
-				</div>
-				<div class="card-body">
-					<form method="get" action="{{ path('app_game_show_page') }}" class="form-row">
-						<div class="form-col">
-							<label for="invitationCode" class="form-label">Code d'invitation</label>
-							<input type="text" id="invitationCode" name="code" placeholder="ABCD12" required class="form-control">
-						</div>
-						<div class="form-col-auto">
-							<button type="submit" class="btn btn-primary btn-lg">Rejoindre</button>
-						</div>
-					</form>
-				</div>
+					<button type="submit" class="btn-large waves-effect waves-light blue">
+						<i class="material-icons left">add</i>
+						Créer une partie
+					</button>
+				</form>
 			</div>
-		</section>
-	</div>
+		</div>
+	</section>
+
+	{# Rejoindre une partie #}
+	<section class="section">
+		<div class="card z-depth-1">
+			<div class="card-content">
+				<span class="card-title">Rejoindre une partie</span>
+				<form method="get" action="{{ path('app_game_show_page') }}">
+					<div class="row">
+						<div class="input-field col s12 m8">
+							<input type="text" id="invitationCode" name="code" placeholder="ABCD12" required class="validate">
+							<label for="invitationCode">Code d'invitation</label>
+						</div>
+						<div class="input-field col s12 m4">
+							<button type="submit" class="btn-large waves-effect waves-light blue w-100" style="width:100%">
+								<i class="material-icons left">login</i>
+								Rejoindre
+							</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</section>
 {% endblock %}

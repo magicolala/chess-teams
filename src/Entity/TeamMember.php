@@ -13,7 +13,7 @@ class TeamMember
     #[ORM\Column(type: 'uuid', unique: true)]
     private string $id;
 
-    #[ORM\ManyToOne(targetEntity: Team::class)]
+    #[ORM\ManyToOne(targetEntity: Team::class, inversedBy: 'members')]
     #[ORM\JoinColumn(nullable: false)]
     private Team $team;
 
@@ -48,6 +48,13 @@ class TeamMember
     public function getTeam(): Team
     {
         return $this->team;
+    }
+
+    public function setTeam(Team $team): self
+    {
+        $this->team = $team;
+
+        return $this;
     }
 
     public function getUser(): User

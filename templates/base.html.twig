@@ -7,17 +7,40 @@
 			{% block title %}Chess Teams
 			{% endblock %}
 		</title>
+
 		{{ importmap('app') }}
-		{% block styles %}{% endblock %}
+
+		{# Materialize CSS + Material Icons #}
+		{% block stylesheets %}
+			<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+			<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+			{% block styles %}{% endblock %}
+		{% endblock %}
 	</head>
+
 	<body>
-		<header class="header">
-			<div class="container">
-				<a href="/" class="header-brand">Chess Teams</a>
-			</div>
+		<header class="blue darken-2">
+			<nav class="blue darken-2">
+				<div class="nav-wrapper container">
+					<a href="{{ path('app_home') }}" class="brand-logo">Chess Teams</a>
+				</div>
+			</nav>
 		</header>
 
-		<main class="main"> {% block body %}{% endblock %}
+		<main class="container section"> {% block body %}{% endblock %}
 			</main>
+
+			{# Materialize JS #}
+			{% block javascripts %}
+				<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+				<script>
+					document.addEventListener('DOMContentLoaded', function () {
+const selects = document.querySelectorAll('select');
+M.FormSelect.init(selects);
+const tooltips = document.querySelectorAll('.tooltipped');
+M.Tooltip.init(tooltips);
+});
+				</script>
+			{% endblock %}
 		</body>
 	</html>

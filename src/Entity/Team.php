@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Infrastructure\Doctrine\Repository\TeamRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TeamRepository::class)]
@@ -26,11 +28,15 @@ class Team
     #[ORM\Column(type: 'integer')]
     private int $currentIndex = 0;
 
+    #[ORM\OneToMany(mappedBy: 'team', targetEntity: TeamMember::class, orphanRemoval: true)]
+    private Collection $members;
+
     public function __construct(Game $game, string $name)
     {
-        $this->id   = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
-        $this->game = $game;
-        $this->name = $name;
+        $this->id      = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
+        $this->game    = $game;
+        $this->name    = $name;
+        $this->members = new ArrayCollection();
     }
 
     public function getId(): string
@@ -56,6 +62,35 @@ class Team
     public function setCurrentIndex(int $i): self
     {
         $this->currentIndex = $i;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TeamMember>
+     */
+    public function getMembers(): Collection
+    {
+        return $this->members;
+    }
+
+    public function addMember(TeamMember $member): self
+    {
+        if (!$this->members->contains($member)) {
+            $this->members[] = $member;
+            $member->setTeam($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMember(TeamMember $member): self
+    {
+        // set the owning side to null (unless already changed)
+        if ($this->members->removeElement($member) && $member->getTeam() === $this) {
+            // This would require the team property to be nullable in TeamMember, which might not be desired.
+            // orphanRemoval=true will handle the deletion from the DB.
+        }
 
         return $this;
     }
