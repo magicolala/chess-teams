@@ -11,6 +11,7 @@ use App\Domain\Repository\TeamMemberRepositoryInterface;
 use App\Domain\Repository\TeamRepositoryInterface;
 use App\Entity\Team;
 use App\Entity\TeamMember;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -75,11 +76,37 @@ final class GameWebController extends AbstractController
         $teamB = $this->teams->findOneByGameAndName($game, Team::NAME_B);
         $moves = $this->moves->listByGameOrdered($game);
 
+        // Vérifie si l'utilisateur connecté fait déjà partie de cette partie
+        $userMembership = null;
+        if ($this->getUser()) {
+            $userMembership = $this->members->findOneByGameAndUser($game, $this->getUser());
+        }
+
+        // Détermine le joueur actuel qui doit jouer
+        $currentPlayer = null;
+        if ($game->getStatus() === 'live' && $teamA && $teamB) {
+            $currentTeam = $game->getTurnTeam() === 'A' ? $teamA : $teamB;
+            $teamMembers = $this->members->findActiveOrderedByTeam($currentTeam);
+            if (!empty($teamMembers)) {
+                $currentIndex  = $currentTeam->getCurrentIndex() % count($teamMembers);
+                $currentPlayer = $teamMembers[$currentIndex] ?? null;
+            }
+        }
+
+        // Vérifie si tous les joueurs sont prêts
+        $allReady = $this->allPlayersReady($game);
+        $canStart = $allReady && $game->getStatus() === 'waiting';
+
         return $this->render('game/show.html.twig', [
-            'game'  => $game,
-            'teamA' => $teamA,
-            'teamB' => $teamB,
-            'moves' => $moves,
+            'game'           => $game,
+            'teamA'          => $teamA,
+            'teamB'          => $teamB,
+            'moves'          => $moves,
+            'userMembership' => $userMembership,
+            'currentPlayer'  => $currentPlayer,
+            'allReady'       => $allReady,
+            'canStart'       => $canStart,
+            'isCreator'      => $this->getUser() && $game->getCreatedBy() === $this->getUser(),
             // Données utiles pour JS :
             'initial' => [
                 'gameId'       => $game->getId(),
@@ -97,6 +124,7 @@ final class GameWebController extends AbstractController
         string $id,
         Request $request,
         CsrfTokenManagerInterface $csrf,
+        EntityManagerInterface $em,
     ): RedirectResponse {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
         /** @var \App\Entity\User $user */
@@ -128,7 +156,7 @@ final class GameWebController extends AbstractController
         }
 
         // Vérifie si l'utilisateur est déjà membre de la partie (dans l'équipe A ou B)
-        $existingAnywhere = $this->members->findOneBy(['game' => $game, 'user' => $user]);
+        $existingAnywhere = $this->members->findOneByGameAndUser($game, $user);
         if ($existingAnywhere) {
             // S'il est déjà dans une équipe, on refuse l'inscription dans une autre équipe.
             $this->addFlash('info', 'Tu es déjà inscrit dans une équipe.');
@@ -142,10 +170,134 @@ final class GameWebController extends AbstractController
 
         $member = new TeamMember($team, $user, $position);
         $member->setActive(true);
-        $this->members->add($member); // ton repo doit faire persist+flush, sinon utilise l’EM explicitement
+        $this->members->add($member);
+        $em->flush();
 
         $this->addFlash('success', \sprintf('Inscription OK dans l’équipe %s', $teamName));
 
         return $this->redirectToRoute('app_game_show_page', ['id' => $id]);
+    }
+
+    #[Route('/{id}/ready', name: 'ready', methods: ['POST'])]
+    public function toggleReady(
+        string $id,
+        Request $request,
+        CsrfTokenManagerInterface $csrf,
+        EntityManagerInterface $em,
+    ): RedirectResponse {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+
+        $token = new CsrfToken('toggle-ready-'.$id, (string) $request->request->get('_token'));
+        if (!$csrf->isTokenValid($token)) {
+            throw new BadRequestHttpException('invalid_csrf');
+        }
+
+        $game = $this->games->get($id);
+        if (!$game || $game->getStatus() !== 'lobby') {
+            throw new NotFoundHttpException('game_not_found_or_not_in_lobby');
+        }
+
+        $membership = $this->members->findOneByGameAndUser($game, $user);
+        if (!$membership) {
+            $this->addFlash('error', 'Vous devez faire partie de la partie pour vous déclarer prêt');
+
+            return $this->redirectToRoute('app_game_show_page', ['id' => $id]);
+        }
+
+        $membership->setReadyToStart(!$membership->isReadyToStart());
+        $em->flush();
+
+        $readyStatus = $membership->isReadyToStart() ? 'prêt' : 'pas prêt';
+        $this->addFlash('success', 'Vous êtes maintenant '.$readyStatus);
+
+        // Vérifier si tout le monde est prêt pour changer le statut
+        if ($this->allPlayersReady($game)) {
+            $game->setStatus('waiting');
+            $em->flush();
+            $this->addFlash('info', 'Tous les joueurs sont prêts ! Le créateur peut maintenant démarrer la partie.');
+        }
+
+        return $this->redirectToRoute('app_game_show_page', ['id' => $id]);
+    }
+
+    #[Route('/{id}/start-game', name: 'start_game', methods: ['POST'])]
+    public function startGame(
+        string $id,
+        Request $request,
+        CsrfTokenManagerInterface $csrf,
+        EntityManagerInterface $em,
+    ): RedirectResponse {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+
+        $token = new CsrfToken('start-game-'.$id, (string) $request->request->get('_token'));
+        if (!$csrf->isTokenValid($token)) {
+            throw new BadRequestHttpException('invalid_csrf');
+        }
+
+        $game = $this->games->get($id);
+        if (!$game || $game->getStatus() !== 'waiting') {
+            throw new NotFoundHttpException('game_not_found_or_not_ready');
+        }
+
+        if ($game->getCreatedBy() !== $user) {
+            $this->addFlash('error', 'Seul le créateur peut démarrer la partie');
+
+            return $this->redirectToRoute('app_game_show_page', ['id' => $id]);
+        }
+
+        if (!$this->canStartGame($game)) {
+            $this->addFlash('error', 'Impossible de démarrer : il faut au moins 1 joueur par équipe et tous doivent être prêts');
+
+            return $this->redirectToRoute('app_game_show_page', ['id' => $id]);
+        }
+
+        // Démarrer la partie
+        $game->setStatus('live');
+        $game->setTurnDeadline(new \DateTimeImmutable('+'.$game->getTurnDurationSec().' seconds'));
+        $em->flush();
+
+        $this->addFlash('success', 'Partie démarrée ! C\'est à l\'équipe A de commencer.');
+
+        return $this->redirectToRoute('app_game_show_page', ['id' => $id]);
+    }
+
+    private function allPlayersReady(\App\Entity\Game $game): bool
+    {
+        $teamA = $this->teams->findOneByGameAndName($game, Team::NAME_A);
+        $teamB = $this->teams->findOneByGameAndName($game, Team::NAME_B);
+
+        if (!$teamA || !$teamB) {
+            return false;
+        }
+
+        $membersA = $this->members->findActiveOrderedByTeam($teamA);
+        $membersB = $this->members->findActiveOrderedByTeam($teamB);
+
+        if (empty($membersA) || empty($membersB)) {
+            return false;
+        }
+
+        foreach ($membersA as $member) {
+            if (!$member->isReadyToStart()) {
+                return false;
+            }
+        }
+
+        foreach ($membersB as $member) {
+            if (!$member->isReadyToStart()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function canStartGame(\App\Entity\Game $game): bool
+    {
+        return $this->allPlayersReady($game);
     }
 }

@@ -28,7 +28,22 @@
 				</div>
 			</nav>
 		</header>
-
+		<div class="container">
+			{% for label, messages in app.flashes %}
+				{% for message in messages %}
+					<div class="card-panel {{ label == 'error' or label == 'danger' ? 'red lighten-4 red-text text-darken-4' : (label == 'success' ? 'green lighten-4 green-text text-darken-4' : (label == 'warning' ? 'orange lighten-4 orange-text text-darken-4' : 'blue lighten-4 blue-text text-darken-4')) }}" style="margin-top: 20px;">
+						<i class="material-icons left">
+							{%- if label == 'error' or label == 'danger' -%}error
+							{%- elseif label == 'success' -%}check_circle
+							{%- elseif label == 'warning' -%}warning
+							{%- else -%}info
+							{%- endif -%}
+						</i>
+						{{ message }}
+					</div>
+				{% endfor %}
+			{% endfor %}
+		</div>
 		<main class="container section"> {% block body %}{% endblock %}
 			</main>
 

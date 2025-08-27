@@ -40,6 +40,15 @@
 				<div>Tour:
 					<strong data-game-board-target="turnTeam"></strong>
 				</div>
+				{% if currentPlayer and game.status == 'live' %}
+				<div>C'est au tour de:
+					<strong>{{ currentPlayer.user.username ?? 'Joueur' }}</strong>
+					(Équipe {{ currentPlayer.team.name }})
+					{% if userMembership and userMembership.id == currentPlayer.id %}
+						<span style="color: green;">← C'est votre tour !</span>
+					{% endif %}
+				</div>
+				{% endif %}
 				<div>Timer:
 					<span data-game-board-target="timer"></span>
 				</div>
@@ -68,23 +77,59 @@
 			<p>A:
 				{{ teamA.members|length }}
 				joueurs</p>
-			{% if is_granted('IS_AUTHENTICATED_FULLY') %}
+			{% if teamA and teamA.members|length > 0 %}
+				<ul style="font-size: 0.9em; margin: 0.25rem 0;">
+				{% for member in teamA.members %}
+					<li>
+						{{ member.user.username ?? 'Joueur' }}
+						{% if member.isReadyToStart %}<span style="color: green;">✓</span>{% else %}<span style="color: orange;">⏳</span>{% endif %}
+					</li>
+				{% endfor %}
+				</ul>
+			{% endif %}
+			{% if is_granted('IS_AUTHENTICATED_FULLY') and not userMembership and game.status == 'lobby' %}
 				<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" style="margin:.25rem 0;">
 					<input type="hidden" name="_token" value="{{ csrf_token('join-team-' ~ game.id ~ '-A') }}">
 					<input type="hidden" name="team" value="A">
-					<button type="submit">Rejoindre l’équipe A</button>
+					<button type="submit" class="btn blue waves-effect waves-light">
+						<i class="material-icons left">group_add</i>
+						Rejoindre l'équipe A
+					</button>
 				</form>
+			{% elseif userMembership and userMembership.team.name == 'TeamA' %}
+				<div class="card-panel green lighten-4 green-text text-darken-4" style="margin:.25rem 0;">
+					<i class="material-icons left">check_circle</i>
+					Vous êtes dans cette équipe
+				</div>
 			{% endif %}
 
 			<p style="margin-top:.5rem;">B:
 				{{ teamB.members|length }}
 				joueurs</p>
-			{% if is_granted('IS_AUTHENTICATED_FULLY') %}
+			{% if teamB and teamB.members|length > 0 %}
+				<ul style="font-size: 0.9em; margin: 0.25rem 0;">
+				{% for member in teamB.members %}
+					<li>
+						{{ member.user.username ?? 'Joueur' }}
+						{% if member.isReadyToStart %}<span style="color: green;">✓</span>{% else %}<span style="color: orange;">⏳</span>{% endif %}
+					</li>
+				{% endfor %}
+				</ul>
+			{% endif %}
+			{% if is_granted('IS_AUTHENTICATED_FULLY') and not userMembership and game.status == 'lobby' %}
 				<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" style="margin:.25rem 0;">
 					<input type="hidden" name="_token" value="{{ csrf_token('join-team-' ~ game.id ~ '-B') }}">
 					<input type="hidden" name="team" value="B">
-					<button type="submit">Rejoindre l’équipe B</button>
+					<button type="submit" class="btn red waves-effect waves-light">
+						<i class="material-icons left">group_add</i>
+						Rejoindre l'équipe B
+					</button>
 				</form>
+			{% elseif userMembership and userMembership.team.name == 'TeamB' %}
+				<div class="card-panel green lighten-4 green-text text-darken-4" style="margin:.25rem 0;">
+					<i class="material-icons left">check_circle</i>
+					Vous êtes dans cette équipe
+				</div>
 			{% endif %}
 
 			{% if game.invite %}
@@ -96,6 +141,48 @@
 			<p>
 				<a href="{{ path('app_game_show_page', {'id': game.id}) }}">Partager la page</a>
 			</p>
+
+			{# Bouton Prêt/Pas prêt #}
+			{% if is_granted('IS_AUTHENTICATED_FULLY') and userMembership and game.status == 'lobby' %}
+				<form method="post" action="{{ path('app_game_ready', {id: game.id}) }}" style="margin:.5rem 0;">
+					<input type="hidden" name="_token" value="{{ csrf_token('toggle-ready-' ~ game.id) }}">
+					{% if userMembership.isReadyToStart %}
+						<button type="submit" class="btn orange waves-effect waves-light">
+							<i class="material-icons left">pause</i>
+							Je ne suis plus prêt
+						</button>
+					{% else %}
+						<button type="submit" class="btn green waves-effect waves-light">
+							<i class="material-icons left">check</i>
+							Je suis prêt !
+						</button>
+					{% endif %}
+				</form>
+			{% endif %}
+
+			{# Bouton Démarrer la partie (pour le créateur) #}
+			{% if is_granted('IS_AUTHENTICATED_FULLY') and isCreator and canStart %}
+				<form method="post" action="{{ path('app_game_start_game', {id: game.id}) }}" style="margin:.5rem 0;">
+					<input type="hidden" name="_token" value="{{ csrf_token('start-game-' ~ game.id) }}">
+					<button type="submit" class="btn green darken-2 waves-effect waves-light pulse">
+						<i class="material-icons left">play_arrow</i>
+						Démarrer la partie
+					</button>
+				</form>
+			{% endif %}
+
+			{# Message d'attente #}
+			{% if game.status == 'lobby' and not allReady %}
+				<div class="card-panel blue lighten-4 blue-text text-darken-2" style="margin:.5rem 0; font-size: 0.9em;">
+					<i class="material-icons left">info</i>
+					En attente que tous les joueurs soient prêts
+				</div>
+			{% elseif game.status == 'waiting' and not isCreator %}
+				<div class="card-panel orange lighten-4 orange-text text-darken-2" style="margin:.5rem 0; font-size: 0.9em;">
+					<i class="material-icons left">hourglass_empty</i>
+					En attente que le créateur démarre la partie
+				</div>
+			{% endif %}
 
 			{# Petits messages flash #}
 			{% for label, messages in app.flashes %}

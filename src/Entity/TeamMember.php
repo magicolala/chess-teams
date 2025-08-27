@@ -31,6 +31,9 @@ class TeamMember
     #[ORM\Column(type: 'boolean')]
     private bool $active = true;
 
+    #[ORM\Column(type: 'boolean')]
+    private bool $readyToStart = false;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $joinedAt;
 
@@ -99,5 +102,17 @@ class TeamMember
     public function getJoinedAt(): \DateTimeImmutable
     {
         return $this->joinedAt;
+    }
+
+    public function isReadyToStart(): bool
+    {
+        return $this->readyToStart;
+    }
+
+    public function setReadyToStart(bool $ready): self
+    {
+        $this->readyToStart = $ready;
+
+        return $this;
     }
 }

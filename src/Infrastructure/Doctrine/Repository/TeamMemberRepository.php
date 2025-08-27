@@ -3,6 +3,7 @@
 namespace App\Infrastructure\Doctrine\Repository;
 
 use App\Domain\Repository\TeamMemberRepositoryInterface;
+use App\Entity\Game;
 use App\Entity\Team;
 use App\Entity\TeamMember;
 use App\Entity\User;
@@ -40,6 +41,19 @@ final class TeamMemberRepository extends ServiceEntityRepository implements Team
     public function findOneByTeamAndUser(Team $team, User $user): ?TeamMember
     {
         return $this->findOneBy(['team' => $team, 'user' => $user]);
+    }
+
+    public function findOneByGameAndUser(Game $game, User $user): ?TeamMember
+    {
+        return $this->createQueryBuilder('m')
+            ->join('m.team', 't')
+            ->where('t.game = :game')
+            ->andWhere('m.user = :user')
+            ->setParameter('game', $game)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
     }
 
     public function findActiveOrderedByTeam(Team $team): array
