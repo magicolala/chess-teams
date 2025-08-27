@@ -84,7 +84,7 @@ final class GameWebController extends AbstractController
 
         // Détermine le joueur actuel qui doit jouer
         $currentPlayer = null;
-        if ($game->getStatus() === 'live' && $teamA && $teamB) {
+        if ($game->getStatus() === \App\Entity\Game::STATUS_LIVE && $teamA && $teamB) {
             $currentTeam = $game->getTurnTeam() === 'A' ? $teamA : $teamB;
             $teamMembers = $this->members->findActiveOrderedByTeam($currentTeam);
             if (!empty($teamMembers)) {
@@ -95,7 +95,7 @@ final class GameWebController extends AbstractController
 
         // Vérifie si tous les joueurs sont prêts
         $allReady = $this->allPlayersReady($game);
-        $canStart = $allReady && $game->getStatus() === 'waiting';
+        $canStart = $allReady && $game->getStatus() === \App\Entity\Game::STATUS_WAITING;
 
         return $this->render('game/show.html.twig', [
             'game'           => $game,
@@ -195,7 +195,7 @@ final class GameWebController extends AbstractController
         }
 
         $game = $this->games->get($id);
-        if (!$game || $game->getStatus() !== 'lobby') {
+        if (!$game || $game->getStatus() !== \App\Entity\Game::STATUS_LOBBY) {
             throw new NotFoundHttpException('game_not_found_or_not_in_lobby');
         }
 
@@ -214,7 +214,7 @@ final class GameWebController extends AbstractController
 
         // Vérifier si tout le monde est prêt pour changer le statut
         if ($this->allPlayersReady($game)) {
-            $game->setStatus('waiting');
+            $game->setStatus(\App\Entity\Game::STATUS_WAITING);
             $em->flush();
             $this->addFlash('info', 'Tous les joueurs sont prêts ! Le créateur peut maintenant démarrer la partie.');
         }
@@ -239,7 +239,7 @@ final class GameWebController extends AbstractController
         }
 
         $game = $this->games->get($id);
-        if (!$game || $game->getStatus() !== 'waiting') {
+        if (!$game || $game->getStatus() !== \App\Entity\Game::STATUS_WAITING) {
             throw new NotFoundHttpException('game_not_found_or_not_ready');
         }
 
@@ -256,7 +256,7 @@ final class GameWebController extends AbstractController
         }
 
         // Démarrer la partie
-        $game->setStatus('live');
+        $game->setStatus(\App\Entity\Game::STATUS_LIVE);
         $game->setTurnDeadline(new \DateTimeImmutable('+'.$game->getTurnDurationSec().' seconds'));
         $em->flush();
 
