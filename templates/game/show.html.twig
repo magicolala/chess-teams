@@ -31,7 +31,7 @@
 
 	<div class="row" data-controller="game-board game-poll" data-game-board-fen-value="{{ initial.fen }}" data-game-board-game-id-value="{{ initial.gameId }}" data-game-board-turn-team-value="{{ initial.turnTeam }}" data-game-board-status-value="{{ initial.status }}" data-game-board-deadline-ts-value="{{ initial.turnDeadline ?: 0 }}" data-game-poll-game-id-value="{{ initial.gameId }}">
 		<div>
-			<div id="board" class="cg-wrap brown"></div>
+			<div id="board" class="cg-wrap"></div>
 			<div style="margin-top:.5rem">
 				<button data-action="game-board#offerMove" data-uci="e2e4">Jouer e2e4 (démo)</button>
 				<button data-action="game-board#tick">Tick (timeout)</button>

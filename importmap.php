@@ -31,7 +31,4 @@ return [
     'chess.js' => [
         'version' => '1.4.0',
     ],
-    'chessground/dist/chessground.css' => [
-        'path' => './assets/vendor/chessground/dist/chessground.css',
-    ],
 ];
