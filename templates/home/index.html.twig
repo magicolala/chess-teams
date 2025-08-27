@@ -7,25 +7,26 @@
 	<h1>Bienvenue 👋</h1>
 
 	<section style="margin:1rem 0">
-		<form method="post">
-			<label>Durée par tour (sec)
-				<input type="number" name="turnDuration" value="60" min="10" max="600">
-			</label>
-			<label>Visibilité
-				<select name="visibility">
+		<form method="post" action="{{ path('app_game_create_form') }}" style="display: flex; gap: 1rem; align-items: flex-end;">
+			<div>
+				<label for="turnDuration">Durée par tour (sec)</label>
+				<input type="number" id="turnDuration" name="turnDuration" value="60" min="10" max="600" style="display: block;">
+			</div>
+			<div>
+				<label for="visibility">Visibilité</label>
+				<select id="visibility" name="visibility" style="display: block;">
 					<option value="private">Privée</option>
 					<option value="public">Publique</option>
 				</select>
-			</label>
+			</div>
 			<button type="submit">Créer une partie</button>
 		</form>
 	</section>
 
 	<section style="margin:1rem 0">
-		<form method="get" action="{{ path('app_game_show_page') }}">
-			<label>Code d’invitation
-				<input type="text" name="code" placeholder="ABCD12" required>
-			</label>
+		<form method="get" action="{{ path('app_game_show_page') }}" style="display: flex; gap: 1rem; align-items: flex-end;">
+			<label for="invitationCode">Code d’invitation</label>
+			<input type="text" id="invitationCode" name="code" placeholder="ABCD12" required>
 			<button type="submit">Rejoindre</button>
 		</form>
 	</section>

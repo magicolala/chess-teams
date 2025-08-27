@@ -4,6 +4,7 @@ namespace App\Infrastructure\Doctrine\Repository;
 
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Entity\Game;
+use App\Entity\Invite;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -27,8 +28,8 @@ final class GameRepository extends ServiceEntityRepository implements GameReposi
     public function findOneByInviteCode(string $code): ?Game
     {
         return $this->createQueryBuilder('g')
-            ->innerJoin('g.invite', 'i')
-            ->andWhere('i.code = :code')
+            ->innerJoin(Invite::class, 'i', 'WITH', 'i.game = g')
+            ->where('i.code = :code')
             ->setParameter('code', $code)
             ->getQuery()
             ->getOneOrNullResult()

@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Application\DTO\CreateGameInput;
 use App\Application\UseCase\CreateGameHandler;
 use App\Domain\Repository\GameRepositoryInterface;
+use App\Domain\Repository\InviteRepositoryInterface;
 use App\Domain\Repository\MoveRepositoryInterface;
 use App\Domain\Repository\TeamMemberRepositoryInterface;
 use App\Domain\Repository\TeamRepositoryInterface;
@@ -24,6 +25,7 @@ final class GameWebController extends AbstractController
         private TeamMemberRepositoryInterface $members,
         private MoveRepositoryInterface $moves,
         private CreateGameHandler $createGame,
+        private InviteRepositoryInterface $invites,
     ) {
     }
 
@@ -50,7 +52,8 @@ final class GameWebController extends AbstractController
         // Si on vient via ?code=XXXX, on retrouve la partie par code
         if (!$id && $request->query->get('code')) {
             $inviteCode = (string) $request->query->get('code');
-            $game       = $this->games->findOneByInviteCode($inviteCode);
+            $invite     = $this->invites->findOneByCode($inviteCode);
+            $game       = $invite?->getGame();
             if (!$game) {
                 throw $this->createNotFoundException('game_not_found');
             }
