@@ -82,53 +82,64 @@ body {
     gap: 1rem;
 }
 
-.cg-wrap {
+#board {
     width: min(90vmin, 560px);
     aspect-ratio: 1;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-elevated);
     overflow: hidden;
-    background: #f0f0f0;
     margin: 0 auto;
     position: relative;
     contain: layout style paint;
 }
 
-.cg-wrap.coordinates .cg-board {
+/* Styles pour chessboard.js */
+.chessboard-63f37 {
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+}
+
+.board-b72b1 {
+    border: 2px solid #333;
+    border-radius: var(--border-radius);
+}
+
+.square-55d63 {
     position: relative;
+    float: left;
 }
 
-.cg-wrap.coordinates::before,
-.cg-wrap.coordinates::after {
+.white-1e1d7 {
+    background-color: #f0d9b5;
+}
+
+.black-3c85d {
+    background-color: #b58863;
+}
+
+.notation-322f9 {
     position: absolute;
-    font-size: 0.7em;
-    font-weight: 600;
-    color: rgba(0, 0, 0, 0.6);
-    z-index: 200;
-    pointer-events: none;
+    font-size: 12px;
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.7);
+    z-index: 10;
 }
 
-.cg-wrap.coordinates::before {
-    content: '8\A 7\A 6\A 5\A 4\A 3\A 2\A 1';
-    white-space: pre;
+.numeric-fc462 {
+    top: 2px;
     left: 2px;
-    top: 0;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    align-items: flex-start;
-    line-height: 1;
 }
 
-.cg-wrap.coordinates::after {
-    content: 'a b c d e f g h';
+.alpha-d2270 {
     bottom: 2px;
-    right: 0;
-    width: 100%;
-    display: flex;
-    justify-content: space-around;
-    align-items: flex-end;
+    right: 2px;
+}
+
+.piece-417db {
+    cursor: pointer;
+    position: relative;
+    z-index: 5;
 }
 
 /* Actions de jeu */

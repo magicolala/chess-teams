@@ -1,6 +1,10 @@
 import { Controller } from '@hotwired/stimulus'
-import { Chessground } from 'chessground'
+import $ from 'jquery'
+import Chessboard from 'chessboardjs'
 import { Chess as ChessJs } from 'chess.js'
+
+// Rendre jQuery global pour chessboard.js
+window.$ = window.jQuery = $
 
 export default class extends Controller {
     static values = { fen: String, gameId: String, turnTeam: String, deadlineTs: Number, status: String }
@@ -22,33 +26,25 @@ export default class extends Controller {
         this.chessJs = new ChessJs(this.fenValue === 'startpos' ? undefined : this.fenValue)
 
         try {
-            this.cg = Chessground(boardEl, {
-                fen: this.fenValue === 'startpos' ? undefined : this.fenValue,
-                animation: { duration: 150 },
-                draggable: { enabled: true },
-                highlight: { 
-                    lastMove: true, 
-                    check: true 
+            this.board = Chessboard(boardEl, {
+                position: this.fenValue === 'startpos' ? 'start' : this.fenValue,
+                draggable: true,
+                pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
+                onDragStart: (source, piece, position, orientation) => {
+                    return this.onDragStart(source, piece, position, orientation)
                 },
-                movable: {
-                    free: false,
-                    color: this.getPlayerColor(),
-                    dests: this.calcLegalMoves()
+                onDrop: (source, target) => {
+                    return this.onDrop(source, target)
                 },
-                drawable: {
-                    enabled: true,
-                    visible: true
-                },
-                events: { 
-                    move: (from, to) => this.onDragMove(from, to),
-                    select: (key) => this.onSquareSelect(key)
+                onSnapEnd: () => {
+                    this.board.position(this.chessJs.fen())
                 }
             })
-            console.debug('[game-board] Chessground prêt', this.cg)
-            this.printDebug('✅ Chessground initialisé')
+            console.debug('[game-board] Chessboard.js prêt', this.board)
+            this.printDebug('✅ Chessboard.js initialisé')
         } catch (e) {
-            console.error('[game-board] échec init Chessground', e)
-            this.printDebug('❌ Erreur init Chessground: ' + e?.message)
+            console.error('[game-board] échec init Chessboard.js', e)
+            this.printDebug('❌ Erreur init Chessboard.js: ' + e?.message)
             return
         }
 
@@ -56,7 +52,7 @@ export default class extends Controller {
         const rect = boardEl.getBoundingClientRect()
         console.debug('[game-board] board rect', rect)
         if (rect.width === 0 || rect.height === 0) {
-            this.printDebug('⚠️ Board a 0x0 px. Ajoute une taille CSS (.cg-wrap {width/height}).')
+            this.printDebug('⚠️ Board a 0x0 px. Ajoute une taille CSS au conteneur.')
             boardEl.style.outline = '2px solid red'
         }
 
@@ -67,7 +63,7 @@ export default class extends Controller {
 
     disconnect() {
         clearInterval(this.timerInterval)
-        this.cg?.destroy?.()
+        this.board?.destroy?.()
         console.debug('[game-board] disconnect()')
     }
 
@@ -109,10 +105,37 @@ export default class extends Controller {
         }
     }
 
-    async onDragMove(from, to) {
-        const uci = from + to // TODO: promo
-        console.debug('[game-board] drag move', uci)
-        await this.sendMove(uci)
+    onDragStart(source, piece, position, orientation) {
+        // Ne permettre de déplacer que si la partie est en cours
+        if (this.statusValue === 'finished') return false
+        
+        // Pour l'instant, permettre de déplacer toutes les pièces (simplification)
+        // TODO: implémenter la vérification des équipes plus tard
+        return true
+    }
+
+    onDrop(source, target) {
+        // Sauvegarder la position actuelle pour pouvoir revenir en arrière si nécessaire
+        const originalPos = this.chessJs.fen()
+        
+        // Voir si le coup est légal
+        const move = this.chessJs.move({
+            from: source,
+            to: target,
+            promotion: 'q' // Toujours promouvoir en dame pour simplifier
+        })
+
+        // Coup illégal - revenir à la position d'origine
+        if (move === null) {
+            return 'snapback'
+        }
+
+        // Coup légal - l'envoyer au serveur
+        this.sendMove(move.from + move.to + (move.promotion || ''))
+        
+        // Laisser la pièce à sa nouvelle position temporairement
+        // Elle sera mise à jour par le serveur
+        return true
     }
 
     async offerMove(e) {
@@ -139,13 +162,7 @@ export default class extends Controller {
         
         this.chessJs.load(g.fen === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : g.fen)
         
-        this.cg.set({ 
-            fen: g.fen === 'startpos' ? undefined : g.fen,
-            movable: {
-                color: this.getPlayerColor(),
-                dests: this.calcLegalMoves()
-            }
-        })
+        this.board.position(g.fen === 'startpos' ? 'start' : g.fen)
         
         await this.reloadMoves()
         this.printDebug('✅ Move OK, FEN mise à jour')
@@ -180,32 +197,6 @@ export default class extends Controller {
 
     getPlayerColor() {
         return 'white'
-    }
-
-    calcLegalMoves() {
-        const dests = new Map()
-        for (const square of ['a1', 'b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h1',
-                              'a2', 'b2', 'c2', 'd2', 'e2', 'f2', 'g2', 'h2',
-                              'a3', 'b3', 'c3', 'd3', 'e3', 'f3', 'g3', 'h3',
-                              'a4', 'b4', 'c4', 'd4', 'e4', 'f4', 'g4', 'h4',
-                              'a5', 'b5', 'c5', 'd5', 'e5', 'f5', 'g5', 'h5',
-                              'a6', 'b6', 'c6', 'd6', 'e6', 'f6', 'g6', 'h6',
-                              'a7', 'b7', 'c7', 'd7', 'e7', 'f7', 'g7', 'h7',
-                              'a8', 'b8', 'c8', 'd8', 'e8', 'f8', 'g8', 'h8']) {
-            try {
-                const moves = this.chessJs.moves({ square, verbose: true })
-                if (moves.length > 0) {
-                    dests.set(square, moves.map(m => m.to))
-                }
-            } catch (e) {
-                continue
-            }
-        }
-        return dests
-    }
-
-    onSquareSelect(key) {
-        console.debug('[game-board] square selected:', key)
     }
 
     async apiPost(path, body) {
