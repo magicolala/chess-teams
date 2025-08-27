@@ -19,11 +19,30 @@ export default class extends Controller {
             return
         }
 
+        this.chessJs = new ChessJs(this.fenValue === 'startpos' ? undefined : this.fenValue)
+
         try {
             this.cg = Chessground(boardEl, {
                 fen: this.fenValue === 'startpos' ? undefined : this.fenValue,
+                animation: { duration: 150 },
                 draggable: { enabled: true },
-                events: { move: (from, to) => this.onDragMove(from, to) }
+                highlight: { 
+                    lastMove: true, 
+                    check: true 
+                },
+                movable: {
+                    free: false,
+                    color: this.getPlayerColor(),
+                    dests: this.calcLegalMoves()
+                },
+                drawable: {
+                    enabled: true,
+                    visible: true
+                },
+                events: { 
+                    move: (from, to) => this.onDragMove(from, to),
+                    select: (key) => this.onSquareSelect(key)
+                }
             })
             console.debug('[game-board] Chessground prêt', this.cg)
             this.printDebug('✅ Chessground initialisé')
@@ -112,11 +131,22 @@ export default class extends Controller {
         if (!ok) { this.printDebug('❌ Move refusé'); return }
         const g = await this.fetchGame()
         console.debug('[game-board] state after move', g)
+        
         this.fenValue = g.fen
         this.turnTeamValue = g.turnTeam
         this.deadlineTsValue = g.turnDeadline || 0
         this.statusValue = g.status
-        this.cg.set({ fen: g.fen === 'startpos' ? undefined : g.fen })
+        
+        this.chessJs.load(g.fen === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : g.fen)
+        
+        this.cg.set({ 
+            fen: g.fen === 'startpos' ? undefined : g.fen,
+            movable: {
+                color: this.getPlayerColor(),
+                dests: this.calcLegalMoves()
+            }
+        })
+        
         await this.reloadMoves()
         this.printDebug('✅ Move OK, FEN mise à jour')
     }
@@ -146,6 +176,36 @@ export default class extends Controller {
     async fetchGame() {
         const res = await fetch(`/games/${this.gameIdValue}`, { headers: { 'Accept': 'application/json' } })
         return res.ok ? res.json() : {}
+    }
+
+    getPlayerColor() {
+        return 'white'
+    }
+
+    calcLegalMoves() {
+        const dests = new Map()
+        for (const square of ['a1', 'b1', 'c1', 'd1', 'e1', 'f1', 'g1', 'h1',
+                              'a2', 'b2', 'c2', 'd2', 'e2', 'f2', 'g2', 'h2',
+                              'a3', 'b3', 'c3', 'd3', 'e3', 'f3', 'g3', 'h3',
+                              'a4', 'b4', 'c4', 'd4', 'e4', 'f4', 'g4', 'h4',
+                              'a5', 'b5', 'c5', 'd5', 'e5', 'f5', 'g5', 'h5',
+                              'a6', 'b6', 'c6', 'd6', 'e6', 'f6', 'g6', 'h6',
+                              'a7', 'b7', 'c7', 'd7', 'e7', 'f7', 'g7', 'h7',
+                              'a8', 'b8', 'c8', 'd8', 'e8', 'f8', 'g8', 'h8']) {
+            try {
+                const moves = this.chessJs.moves({ square, verbose: true })
+                if (moves.length > 0) {
+                    dests.set(square, moves.map(m => m.to))
+                }
+            } catch (e) {
+                continue
+            }
+        }
+        return dests
+    }
+
+    onSquareSelect(key) {
+        console.debug('[game-board] square selected:', key)
     }
 
     async apiPost(path, body) {

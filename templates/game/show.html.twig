@@ -29,7 +29,7 @@
 
 	<div class="game-container chess-fade-in" data-controller="game-board game-poll" data-game-board-fen-value="{{ initial.fen }}" data-game-board-game-id-value="{{ initial.gameId }}" data-game-board-turn-team-value="{{ initial.turnTeam }}" data-game-board-status-value="{{ initial.status }}" data-game-board-deadline-ts-value="{{ initial.turnDeadline ?: 0 }}" data-game-poll-game-id-value="{{ initial.gameId }}">
 		<div class="board-container">
-			<div id="board" class="cg-wrap"></div>
+			<div id="board" class="cg-wrap coordinates"></div>
 			<div class="game-actions">
 				<button class="btn demo-btn waves-effect waves-light" data-action="game-board#offerMove" data-uci="e2e4">
 					<i class="material-icons left">play_arrow</i>
