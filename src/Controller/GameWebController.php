@@ -10,11 +10,16 @@ use App\Domain\Repository\MoveRepositoryInterface;
 use App\Domain\Repository\TeamMemberRepositoryInterface;
 use App\Domain\Repository\TeamRepositoryInterface;
 use App\Entity\Team;
+use App\Entity\TeamMember;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 #[Route('/app/games', name: 'app_game_')]
 final class GameWebController extends AbstractController
@@ -85,5 +90,62 @@ final class GameWebController extends AbstractController
                 'result'       => $game->getResult(),
             ],
         ]);
+    }
+
+    #[Route('/{id}/join', name: 'join', methods: ['POST'])]
+    public function joinTeam(
+        string $id,
+        Request $request,
+        CsrfTokenManagerInterface $csrf,
+    ): RedirectResponse {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+
+        $teamName = (string) $request->request->get('team', '');
+        if (!\in_array($teamName, [Team::NAME_A, Team::NAME_B, 'A', 'B'], true)) {
+            throw new BadRequestHttpException('invalid_team');
+        }
+        // normalise
+        $teamName = $teamName === 'A' ? Team::NAME_A : ($teamName === 'B' ? Team::NAME_B : $teamName);
+
+        $token = new CsrfToken('join-team-'.$id.'-'.($teamName === Team::NAME_A ? 'A' : 'B'), (string) $request->request->get('_token'));
+        if (!$csrf->isTokenValid($token)) {
+            throw new BadRequestHttpException('invalid_csrf');
+        }
+
+        $game = $this->games->get($id);
+        if (!$game) {
+            throw new NotFoundHttpException('game_not_found');
+        }
+
+        // Récupère l’équipe cible (A/B)
+        $team = $this->teams->findOneByGameAndName($game, $teamName);
+        if (!$team) {
+            $this->addFlash('error', 'Équipe introuvable');
+
+            return $this->redirectToRoute('app_game_show_page', ['id' => $id]);
+        }
+
+        // Vérifie si l'utilisateur est déjà membre de la partie (dans l'équipe A ou B)
+        $existingAnywhere = $this->members->findOneBy(['game' => $game, 'user' => $user]);
+        if ($existingAnywhere) {
+            // S'il est déjà dans une équipe, on refuse l'inscription dans une autre équipe.
+            $this->addFlash('info', 'Tu es déjà inscrit dans une équipe.');
+
+            return $this->redirectToRoute('app_game_show_page', ['id' => $id]);
+        }
+
+        // Position = fin de file pour cette équipe
+        $current  = $this->members->findActiveOrderedByTeam($team);
+        $position = \is_array($current) ? \count($current) : 0;
+
+        $member = new TeamMember($team, $user, $position);
+        $member->setActive(true);
+        $this->members->add($member); // ton repo doit faire persist+flush, sinon utilise l’EM explicitement
+
+        $this->addFlash('success', \sprintf('Inscription OK dans l’équipe %s', $teamName));
+
+        return $this->redirectToRoute('app_game_show_page', ['id' => $id]);
     }
 }

@@ -6,12 +6,16 @@ use App\Infrastructure\Doctrine\Repository\TeamMemberRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TeamMemberRepository::class)]
-#[ORM\UniqueConstraint(name: 'uniq_team_user', columns: ['team_id', 'user_id'])]
+#[ORM\UniqueConstraint(name: 'uniq_game_user', columns: ['game_id', 'user_id'])]
 class TeamMember
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
     private string $id;
+
+    #[ORM\ManyToOne(targetEntity: Game::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private Game $game;
 
     #[ORM\ManyToOne(targetEntity: Team::class, inversedBy: 'members')]
     #[ORM\JoinColumn(nullable: false)]
@@ -33,6 +37,7 @@ class TeamMember
     public function __construct(Team $team, User $user, int $position)
     {
         $this->id       = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
+        $this->game     = $team->getGame();
         $this->team     = $team;
         $this->user     = $user;
         $this->position = $position;
@@ -43,6 +48,11 @@ class TeamMember
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function getGame(): Game
+    {
+        return $this->game;
     }
 
     public function getTeam(): Team

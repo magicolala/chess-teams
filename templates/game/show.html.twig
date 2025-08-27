@@ -64,20 +64,47 @@
 
 		<div class="panel" style="width:260px">
 			<h3>Équipes</h3>
+
 			<p>A:
 				{{ teamA.members|length }}
 				joueurs</p>
-			<p>B:
+			{% if is_granted('IS_AUTHENTICATED_FULLY') %}
+				<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" style="margin:.25rem 0;">
+					<input type="hidden" name="_token" value="{{ csrf_token('join-team-' ~ game.id ~ '-A') }}">
+					<input type="hidden" name="team" value="A">
+					<button type="submit">Rejoindre l’équipe A</button>
+				</form>
+			{% endif %}
+
+			<p style="margin-top:.5rem;">B:
 				{{ teamB.members|length }}
 				joueurs</p>
+			{% if is_granted('IS_AUTHENTICATED_FULLY') %}
+				<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" style="margin:.25rem 0;">
+					<input type="hidden" name="_token" value="{{ csrf_token('join-team-' ~ game.id ~ '-B') }}">
+					<input type="hidden" name="team" value="B">
+					<button type="submit">Rejoindre l’équipe B</button>
+				</form>
+			{% endif %}
+
 			{% if game.invite %}
-				<p>Code d'invitation :
+				<p style="margin-top:.75rem;">Code d'invitation :
 					<code>{{ game.invite.code }}</code>
 				</p>
 			{% endif %}
+
 			<p>
 				<a href="{{ path('app_game_show_page', {'id': game.id}) }}">Partager la page</a>
 			</p>
+
+			{# Petits messages flash #}
+			{% for label, messages in app.flashes %}
+				{% for message in messages %}
+					<div class="flash-{{ label }}" style="margin-top:.5rem;font-size:.9rem;opacity:.85;">
+						{{ message }}
+					</div>
+				{% endfor %}
+			{% endfor %}
 		</div>
 	</div>
 {% endblock %}
