@@ -44,9 +44,20 @@ class RegistrationFormType extends AbstractType
                 ],
             ])
             ->add('displayName', null, [
-                'label'    => 'Pseudo',
-                'required' => false,
-                'attr'     => ['maxlength' => 50, 'placeholder' => 'Cédric'],
+                'label'       => 'Pseudo',
+                'required'    => true,
+                'attr'        => ['maxlength' => 50, 'placeholder' => 'ChessPlayer123'],
+                'constraints' => [
+                    new NotBlank([
+                        'message' => 'Veuillez choisir un pseudo',
+                    ]),
+                    new Length([
+                        'min'        => 2,
+                        'max'        => 50,
+                        'minMessage' => 'Votre pseudo doit faire au moins {{ limit }} caractères',
+                        'maxMessage' => 'Votre pseudo ne peut pas dépasser {{ limit }} caractères',
+                    ]),
+                ],
             ])
         ;
     }

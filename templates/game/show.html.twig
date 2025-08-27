@@ -50,7 +50,7 @@
 				<div class="chess-status-item" style="background-color: #e3f2fd;">
 					<span>Joueur actuel:</span>
 					<span>
-						{{ currentPlayer.user.username ?? 'Joueur' }} (Équipe {{ currentPlayer.team.name }})
+						{{ currentPlayer.user.displayName ?? 'Joueur' }} (Équipe {{ currentPlayer.team.name }})
 						{% if userMembership and userMembership.id == currentPlayer.id %}
 							<i class="material-icons" style="color: var(--chess-success);">star</i>
 						{% endif %}
@@ -86,27 +86,63 @@
 
 			<div class="team-section team-a">
 				<div class="team-header">
+					<i class="material-icons">group</i>
 					<span class="team-badge">Équipe A</span>
-					<span>{{ teamA.members|length }} joueur{{ teamA.members|length > 1 ? 's' : '' }}</span>
+					<span class="team-count">{{ teamA.members|length }} joueur{{ teamA.members|length > 1 ? 's' : '' }}</span>
 				</div>
 				{% if teamA and teamA.members|length > 0 %}
 					<ul class="player-list">
 					{% for member in teamA.members %}
 						<li class="player-item{% if currentPlayer and currentPlayer.id == member.id %} current-player{% endif %}">
-							<span class="player-name">
-								<i class="material-icons tiny">person</i>
-								{{ member.user.username ?? 'Joueur' }}
-							</span>
-							<span class="player-status">
-								{% if member.isReadyToStart %}
-									<span class="status-ready">✓ Prêt</span>
+							<div class="player-info">
+								<div class="player-avatar">
+									<i class="material-icons">{{ member.user.displayName ? 'account_circle' : 'person_outline' }}</i>
+								</div>
+								<div class="player-details">
+									<span class="player-name">
+										{{ member.user.displayName ?? ('Joueur #' ~ loop.index) }}
+									</span>
+									<span class="player-meta">
+										<i class="material-icons tiny">schedule</i>
+										Rejoint {{ member.joinedAt|date('d/m à H:i') }}
+										{% if member.position > 0 %}
+											• Position {{ member.position }}
+										{% endif %}
+									</span>
+								</div>
+							</div>
+							<div class="player-status">
+								{% if currentPlayer and currentPlayer.id == member.id %}
+									<span class="status-current">
+										<i class="material-icons">play_arrow</i>
+										À son tour
+									</span>
+								{% elseif member.isReadyToStart %}
+									<span class="status-ready">
+										<i class="material-icons">check_circle</i>
+										Prêt
+									</span>
 								{% else %}
-									<span class="status-waiting">⏳ En attente</span>
+									<span class="status-waiting">
+										<i class="material-icons">hourglass_empty</i>
+										En attente
+									</span>
 								{% endif %}
-							</span>
+								{% if userMembership and userMembership.id == member.id %}
+									<span class="status-you">
+										<i class="material-icons">star</i>
+										Vous
+									</span>
+								{% endif %}
+							</div>
 						</li>
 					{% endfor %}
 					</ul>
+				{% else %}
+					<div class="empty-team">
+						<i class="material-icons">group_add</i>
+						<p>Aucun joueur dans cette équipe</p>
+					</div>
 				{% endif %}
 				{% if is_granted('IS_AUTHENTICATED_FULLY') and not userMembership and game.status == 'lobby' %}
 					<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" class="slide-up">
@@ -127,27 +163,63 @@
 
 			<div class="team-section team-b">
 				<div class="team-header">
+					<i class="material-icons">group</i>
 					<span class="team-badge">Équipe B</span>
-					<span>{{ teamB.members|length }} joueur{{ teamB.members|length > 1 ? 's' : '' }}</span>
+					<span class="team-count">{{ teamB.members|length }} joueur{{ teamB.members|length > 1 ? 's' : '' }}</span>
 				</div>
 				{% if teamB and teamB.members|length > 0 %}
 					<ul class="player-list">
 					{% for member in teamB.members %}
 						<li class="player-item{% if currentPlayer and currentPlayer.id == member.id %} current-player{% endif %}">
-							<span class="player-name">
-								<i class="material-icons tiny">person</i>
-								{{ member.user.username ?? 'Joueur' }}
-							</span>
-							<span class="player-status">
-								{% if member.isReadyToStart %}
-									<span class="status-ready">✓ Prêt</span>
+							<div class="player-info">
+								<div class="player-avatar">
+									<i class="material-icons">{{ member.user.displayName ? 'account_circle' : 'person_outline' }}</i>
+								</div>
+								<div class="player-details">
+									<span class="player-name">
+										{{ member.user.displayName ?? ('Joueur #' ~ loop.index) }}
+									</span>
+									<span class="player-meta">
+										<i class="material-icons tiny">schedule</i>
+										Rejoint {{ member.joinedAt|date('d/m à H:i') }}
+										{% if member.position > 0 %}
+											• Position {{ member.position }}
+										{% endif %}
+									</span>
+								</div>
+							</div>
+							<div class="player-status">
+								{% if currentPlayer and currentPlayer.id == member.id %}
+									<span class="status-current">
+										<i class="material-icons">play_arrow</i>
+										À son tour
+									</span>
+								{% elseif member.isReadyToStart %}
+									<span class="status-ready">
+										<i class="material-icons">check_circle</i>
+										Prêt
+									</span>
 								{% else %}
-									<span class="status-waiting">⏳ En attente</span>
+									<span class="status-waiting">
+										<i class="material-icons">hourglass_empty</i>
+										En attente
+									</span>
 								{% endif %}
-							</span>
+								{% if userMembership and userMembership.id == member.id %}
+									<span class="status-you">
+										<i class="material-icons">star</i>
+										Vous
+									</span>
+								{% endif %}
+							</div>
 						</li>
 					{% endfor %}
 					</ul>
+				{% else %}
+					<div class="empty-team">
+						<i class="material-icons">group_add</i>
+						<p>Aucun joueur dans cette équipe</p>
+					</div>
 				{% endif %}
 				{% if is_granted('IS_AUTHENTICATED_FULLY') and not userMembership and game.status == 'lobby' %}
 					<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" class="slide-up">
