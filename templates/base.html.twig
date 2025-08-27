@@ -11,11 +11,13 @@
 		{% block styles %}{% endblock %}
 	</head>
 	<body>
-		<header style="padding:1rem;border-bottom:1px solid #eee">
-			<a href="{{ path('app_home') }}">Chess Teams</a>
+		<header class="header">
+			<div class="container">
+				<a href="/" class="header-brand">Chess Teams</a>
+			</div>
 		</header>
 
-		<main style="max-width:1100px;margin:1rem auto;padding:0 1rem"> {% block body %}{% endblock %}
+		<main class="main"> {% block body %}{% endblock %}
 			</main>
 		</body>
 	</html>
