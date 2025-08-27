@@ -47,6 +47,7 @@ final class CreateGameHandler
         $code = substr(bin2hex(random_bytes(8)), 0, 12);
         $inv  = new Invite($g, $code);
         $g->setInvite($inv);
+        $this->invites->add($inv);
 
         // 4) Flush 1 fois
         $this->em->flush();

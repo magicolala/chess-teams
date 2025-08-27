@@ -42,7 +42,6 @@ class CreateTestUsersCommand extends Command
 
             return Command::INVALID;
         }
-
         $io->progressStart($count);
         $createdUsersData = [];
 
@@ -54,16 +53,13 @@ class CreateTestUsersCommand extends Command
 
             $hashedPassword = $this->passwordHasher->hashPassword($user, 'password');
             $user->setPassword($hashedPassword);
-
             $this->entityManager->persist($user);
             $createdUsersData[] = ['email' => $email, 'password' => 'password']; // Store email and plain password
             $io->progressAdvance();
         }
 
         $this->entityManager->flush();
-        $io->progressFinish();
-
-        $io->success(sprintf('%d test users have been created.', $count));
+        $io->success(sprintf('%d test users have been created. Default password is "password".', $count));
         $io->text('Here are the credentials for the created users:');
         $io->table(['Email', 'Password'], $createdUsersData);
 
