@@ -1,13 +1,13 @@
 import { Controller } from '@hotwired/stimulus'
-import Chessground from 'chessground'
-import { Chess as ChessJs } from 'chess.js'
+import { Chessground } from 'chessground'
+import { Chess } from 'chess.js'
 
 export default class extends Controller {
-    static values = { fen: String, gameId: String, turnTeam: String, deadlineTs: Number, status: String }
+    static values = { fen: String, gameId: String, turnTeam: String, deadlineTs: Number, status: String, result: String }
     static targets = ['timer', 'turnTeam', 'status', 'result']
 
     connect() {
-        this.cg = Chessground(this.element.querySelector('#board'), {
+        this.cg = Chessground(document.getElementById('board'), {
             fen: this.fenValue === 'startpos' ? undefined : this.fenValue,
             draggable: { enabled: true },
             events: { move: (from, to) => this.onDragMove(from, to) }
@@ -20,6 +20,7 @@ export default class extends Controller {
     renderState() {
         if (this.hasTurnTeamTarget) this.turnTeamTarget.textContent = this.turnTeamValue
         if (this.hasStatusTarget) this.statusTarget.textContent = this.statusValue
+        if (this.hasResultTarget) this.resultTarget.textContent = this.resultValue || ''
     }
     tickTimer() {
         if (!this.deadlineTsValue || this.statusValue === 'finished') {
@@ -35,18 +36,36 @@ export default class extends Controller {
         await this.sendMove(uci)
     }
     async offerMove(e) { await this.sendMove(e.currentTarget.dataset.uci) }
-    async tick() { await this.apiPost(`/games/${this.gameIdValue}/tick`, {}) }
+    async tick() {
+        await this.apiPost(`/games/${this.gameIdValue}/tick`, {})
+        const g = await this.fetchGame()
+        this.updateGameState(g)
+    }
 
     async sendMove(uci) {
         const ok = await this.apiPost(`/games/${this.gameIdValue}/move`, { uci })
-        if (!ok) return
+        if (!ok) {
+            // Re-sync board with server state if move was illegal
+            const g = await this.fetchGame()
+            this.cg.set({ fen: g.fen === 'startpos' ? undefined : g.fen })
+            return
+        }
         const g = await this.fetchGame()
-        this.fenValue = g.fen
-        this.turnTeamValue = g.turnTeam
-        this.deadlineTsValue = g.turnDeadline || 0
-        this.statusValue = g.status
-        this.cg.set({ fen: g.fen === 'startpos' ? undefined : g.fen })
-        await this.reloadMoves()
+        this.updateGameState(g)
+    }
+
+    updateGameState(gameData) {
+        if (!gameData || !gameData.id) return
+
+        this.fenValue = gameData.fen
+        this.turnTeamValue = gameData.turnTeam
+        this.deadlineTsValue = gameData.turnDeadline || 0
+        this.statusValue = gameData.status
+        this.resultValue = gameData.result || ''
+
+        this.cg.set({ fen: gameData.fen === 'startpos' ? undefined : gameData.fen })
+        this.renderState()
+        this.reloadMoves()
     }
 
     async reloadMoves() {
@@ -58,7 +77,7 @@ export default class extends Controller {
         list.innerHTML = ''
         for (const m of json.moves) {
             const li = document.createElement('li')
-            li.textContent = `#${m.ply}: ${m.san ?? m.uci} (${m.team})`
+            li.textContent = `#${m.ply}: ${m.san ?? m.uci} (${m.team.name})`
             list.appendChild(li)
         }
     }
@@ -72,7 +91,12 @@ export default class extends Controller {
         const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
         if (res.status === 401) { alert('Connecte-toi'); return false }
         if (res.status === 409) { /* finished/locked */ return false }
-        if (res.status === 422) { alert('Coup illégal'); return false }
+        if (res.status === 422) {
+            alert('Coup illégal')
+            const g = await this.fetchGame()
+            this.cg.set({ fen: g.fen === 'startpos' ? undefined : g.fen })
+            return false
+        }
         return res.ok
     }
 }

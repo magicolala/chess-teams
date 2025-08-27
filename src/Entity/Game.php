@@ -56,6 +56,9 @@ class Game
     #[ORM\Column(length: 16, nullable: true)]
     private ?string $result = null; // Ex: 'A#' (A mat), 'B#', '1/2-1/2', 'resignA', 'timeoutA', etc.
 
+    #[ORM\OneToOne(mappedBy: 'game', targetEntity: Invite::class, cascade: ['persist', 'remove'])]
+    private ?Invite $invite = null;
+
     public function __construct()
     {
         // UUID en texte (SQLite-friendly)
@@ -190,6 +193,23 @@ class Game
     public function setResult(?string $r): self
     {
         $this->result = $r;
+
+        return $this;
+    }
+
+    public function getInvite(): ?Invite
+    {
+        return $this->invite;
+    }
+
+    public function setInvite(Invite $invite): self
+    {
+        // S'assure que l'autre côté de la relation est bien défini
+        if ($invite->getGame() !== $this) {
+            $invite->setGame($this);
+        }
+
+        $this->invite = $invite;
 
         return $this;
     }

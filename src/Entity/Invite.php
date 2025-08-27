@@ -12,8 +12,8 @@ class Invite
     #[ORM\Id, ORM\Column(type: 'uuid', unique: true)]
     private ?string $id = null;
 
-    #[ORM\ManyToOne(targetEntity: Game::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\OneToOne(inversedBy: 'invite', targetEntity: Game::class)]
+    #[ORM\JoinColumn(nullable: false, unique: true)]
     private Game $game;
 
     #[ORM\Column(length: 16, unique: true)]
