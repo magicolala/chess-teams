@@ -71,11 +71,23 @@ export default class extends Controller {
 
     tickTimer() {
         if (!this.deadlineTsValue || this.statusValue === 'finished') {
-            if (this.hasTimerTarget) this.timerTarget.textContent = '-'
+            if (this.hasTimerTarget) {
+                this.timerTarget.textContent = '-'
+                this.timerTarget.classList.remove('chess-timer-urgent')
+            }
             return
         }
         const remain = Math.max(0, Math.floor((this.deadlineTsValue - Date.now()) / 1000))
-        if (this.hasTimerTarget) this.timerTarget.textContent = remain + 's'
+        if (this.hasTimerTarget) {
+            this.timerTarget.textContent = remain + 's'
+            
+            // Ajouter un feedback visuel pour les dernières 30 secondes
+            if (remain <= 30 && remain > 0) {
+                this.timerTarget.classList.add('chess-timer-urgent')
+            } else {
+                this.timerTarget.classList.remove('chess-timer-urgent')
+            }
+        }
     }
 
     async onDragMove(from, to) {
@@ -118,8 +130,16 @@ export default class extends Controller {
         list.innerHTML = ''
         for (const m of json.moves) {
             const li = document.createElement('li')
-            li.textContent = `#${m.ply}: ${m.san ?? m.uci} (${m.team})`
+            li.className = 'move-item slide-up'
+            li.innerHTML = `
+                <span class="move-notation">#${m.ply}: ${m.san ?? m.uci}</span>
+                <span class="move-team team-${m.team.toLowerCase()}">${m.team}</span>
+            `
             list.appendChild(li)
+        }
+        // Auto-scroll vers le dernier coup
+        if (list.lastElementChild) {
+            list.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'end' })
         }
     }
 

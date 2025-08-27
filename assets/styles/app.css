@@ -1,0 +1,123 @@
+/* CSS minimal pour Chess Teams - évite les conflits avec Materialize */
+
+/* Variables CSS basiques */
+:root {
+    --chess-primary: #1976d2;
+    --chess-success: #4caf50;
+    --chess-error: #f44336;
+    --chess-warning: #ff9800;
+}
+
+/* Styles spécifiques à l'échiquier uniquement */
+.cg-wrap {
+    width: 480px;
+    height: 480px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive pour l'échiquier */
+@media (max-width: 768px) {
+    .cg-wrap {
+        width: min(350px, calc(100vw - 40px));
+        height: min(350px, calc(100vw - 40px));
+    }
+}
+
+@media (max-width: 480px) {
+    .cg-wrap {
+        width: calc(100vw - 20px);
+        height: calc(100vw - 20px);
+        max-width: 320px;
+        max-height: 320px;
+    }
+}
+
+/* Layout de base pour la page de jeu */
+.game-container {
+    display: grid;
+    grid-template-columns: 1fr 300px 280px;
+    gap: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+@media (max-width: 1200px) {
+    .game-container {
+        grid-template-columns: 1fr 280px;
+        gap: 1rem;
+    }
+    
+    .moves-panel {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .game-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 0 1rem;
+    }
+}
+
+/* Styles pour les panneaux */
+.chess-panel {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 1.25rem;
+    border-left: 4px solid var(--chess-primary);
+}
+
+.chess-status-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Timer spécial */
+.chess-timer {
+    background: linear-gradient(135deg, var(--chess-primary), #64b5f6);
+    color: white !important;
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    text-align: center;
+}
+
+.chess-timer-urgent {
+    background: linear-gradient(135deg, var(--chess-error), #ef5350) !important;
+    animation: chess-pulse 2s infinite;
+}
+
+@keyframes chess-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+/* Styles pour les boutons personnalisés */
+.btn-success {
+    background-color: var(--chess-success) !important;
+}
+
+.btn-warning {
+    background-color: var(--chess-warning) !important;
+    color: white !important;
+}
+
+/* Animations simples */
+.chess-fade-in {
+    animation: chessFadeIn 0.5s ease;
+}
+
+@keyframes chessFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

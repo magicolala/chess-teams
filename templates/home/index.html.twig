@@ -4,59 +4,131 @@
 {% endblock %}
 
 {% block body %}
-	<h4 class="header">Bienvenue 👋</h4>
-
-	{# Créer une partie #}
-	<section class="section">
-		<div class="card z-depth-1">
-			<div class="card-content">
-				<span class="card-title">Créer une partie</span>
-				<form method="post" action="{{ path('app_game_create_form') }}">
-					<div class="row">
-						<div class="input-field col s12 m6">
-							<input type="number" id="turnDuration" name="turnDuration" value="60" min="10" max="600" class="validate">
-							<label for="turnDuration">Durée par tour (sec)</label>
-							<span class="helper-text" data-error="Invalide" data-success="Ok">Entre 10 et 600</span>
-						</div>
-
-						<div class="input-field col s12 m6">
-							<select id="visibility" name="visibility">
-								<option value="private" selected>Privée</option>
-								<option value="public">Publique</option>
-							</select>
-							<label for="visibility">Visibilité</label>
-						</div>
-					</div>
-
-					<button type="submit" class="btn-large waves-effect waves-light blue">
-						<i class="material-icons left">add</i>
-						Créer une partie
-					</button>
-				</form>
-			</div>
+	<div class="chess-fade-in">
+		<div class="center-align" style="margin-bottom: 3rem;">
+			<h3 class="header" style="color: var(--primary-color); font-weight: 300;">
+				<i class="material-icons large" style="vertical-align: middle; margin-right: 0.5rem;">sports_esports</i>
+				Chess Teams
+			</h3>
+			<p class="flow-text grey-text" style="margin-bottom: 2rem;">
+				Jouez aux échecs en équipe avec vos amis
+			</p>
 		</div>
-	</section>
 
-	{# Rejoindre une partie #}
-	<section class="section">
-		<div class="card z-depth-1">
-			<div class="card-content">
-				<span class="card-title">Rejoindre une partie</span>
-				<form method="get" action="{{ path('app_game_show_page') }}">
-					<div class="row">
-						<div class="input-field col s12 m8">
-							<input type="text" id="invitationCode" name="code" placeholder="ABCD12" required class="validate">
-							<label for="invitationCode">Code d'invitation</label>
-						</div>
-						<div class="input-field col s12 m4">
-							<button type="submit" class="btn-large waves-effect waves-light blue w-100" style="width:100%">
-								<i class="material-icons left">login</i>
-								Rejoindre
+		<div class="row" style="max-width: 1000px; margin: 0 auto;">
+			{# Créer une partie #}
+			<div class="col s12 l6" style="margin-bottom: 2rem;">
+				<div class="card hoverable" style="height: 100%;">
+					<div class="card-content">
+						<span class="card-title" style="color: var(--primary-color); display: flex; align-items: center; gap: 0.5rem;">
+							<i class="material-icons">add_circle</i>
+							Créer une partie
+						</span>
+						<p class="grey-text" style="margin-bottom: 1.5rem;">
+							Lancez une nouvelle partie et invitez vos amis à rejoindre votre équipe
+						</p>
+						<form method="post" action="{{ path('app_game_create_form') }}">
+							<div class="row" style="margin-bottom: 1rem;">
+								<div class="input-field col s12">
+									<input type="number" id="turnDuration" name="turnDuration" value="60" min="10" max="600" class="validate">
+									<label for="turnDuration">
+										<i class="material-icons tiny" style="vertical-align: middle;">schedule</i>
+										Durée par tour (secondes)
+									</label>
+									<span class="helper-text" data-error="Valeur invalide" data-success="Parfait !">
+										Choisissez entre 10 et 600 secondes
+									</span>
+								</div>
+							</div>
+
+							<div class="row" style="margin-bottom: 1.5rem;">
+								<div class="input-field col s12">
+									<select id="visibility" name="visibility">
+										<option value="private" selected>Partie privée (sur invitation)</option>
+										<option value="public">Partie publique</option>
+									</select>
+									<label for="visibility">
+										<i class="material-icons tiny" style="vertical-align: middle;">visibility</i>
+										Visibilité de la partie
+									</label>
+								</div>
+							</div>
+
+							<button type="submit" class="btn-large waves-effect waves-light blue pulse" style="width: 100%;">
+								<i class="material-icons left">rocket_launch</i>
+								Créer ma partie
 							</button>
-						</div>
+						</form>
 					</div>
-				</form>
+				</div>
+			</div>
+
+			{# Rejoindre une partie #}
+			<div class="col s12 l6" style="margin-bottom: 2rem;">
+				<div class="card hoverable" style="height: 100%;">
+					<div class="card-content">
+						<span class="card-title" style="color: var(--success-color); display: flex; align-items: center; gap: 0.5rem;">
+							<i class="material-icons">login</i>
+							Rejoindre une partie
+						</span>
+						<p class="grey-text" style="margin-bottom: 1.5rem;">
+							Entrez le code d'invitation que vous avez reçu pour rejoindre une partie
+						</p>
+						<form method="get" action="{{ path('app_game_show_page') }}">
+							<div class="row" style="margin-bottom: 1.5rem;">
+								<div class="input-field col s12">
+									<input type="text" id="invitationCode" name="code" placeholder="Ex: CHESS123" required class="validate" style="text-transform: uppercase;">
+									<label for="invitationCode">
+										<i class="material-icons tiny" style="vertical-align: middle;">vpn_key</i>
+										Code d'invitation
+									</label>
+									<span class="helper-text">Saisissez le code partagé par l'hôte</span>
+								</div>
+							</div>
+
+							<button type="submit" class="btn-large waves-effect waves-light green" style="width: 100%;">
+								<i class="material-icons left">group_add</i>
+								Rejoindre la partie
+							</button>
+						</form>
+					</div>
+				</div>
 			</div>
 		</div>
-	</section>
+
+		{# Section informative #}
+		<div class="row" style="max-width: 1000px; margin: 2rem auto 0;">
+			<div class="col s12">
+				<div class="card-panel blue lighten-5" style="border-left: 4px solid var(--primary-color);">
+					<h5 style="color: var(--primary-color); margin-top: 0;">
+						<i class="material-icons left">info</i>
+						Comment ça marche ?
+					</h5>
+					<div class="row">
+						<div class="col s12 m4">
+							<div class="center-align">
+								<i class="material-icons large" style="color: var(--primary-color);">group</i>
+								<p><strong>Formez vos équipes</strong><br>
+								<span class="grey-text">Rejoignez l'équipe A ou B avec vos amis</span></p>
+							</div>
+						</div>
+						<div class="col s12 m4">
+							<div class="center-align">
+								<i class="material-icons large" style="color: var(--success-color);">schedule</i>
+								<p><strong>Jouez chacun votre tour</strong><br>
+								<span class="grey-text">Chaque membre joue à tour de rôle</span></p>
+							</div>
+						</div>
+						<div class="col s12 m4">
+							<div class="center-align">
+								<i class="material-icons large" style="color: var(--warning-color);">emoji_events</i>
+								<p><strong>Gagnez ensemble</strong><br>
+								<span class="grey-text">La victoire appartient à toute l'équipe</span></p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 {% endblock %}

@@ -5,11 +5,8 @@
 
 {% block styles %}
 	<style>
-		.cg-wrap {
-			width: 480px;
-			height: 480px;
-		}
-		.panel {
+		/* Styles spécifiques à la page de jeu - les styles principaux sont dans app.css */
+		.legacy-panel {
 			border: 1px solid #eee;
 			padding: 0.75rem;
 			border-radius: 0.5rem;
@@ -18,6 +15,7 @@
 			font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 			font-size: 0.95rem;
 		}
+		/* Override pour la compatibilité avec l'ancien layout */
 		.row {
 			display: flex;
 			gap: 1rem;
@@ -29,158 +27,201 @@
 {% block body %}
 	<h1>Partie</h1>
 
-	<div class="row" data-controller="game-board game-poll" data-game-board-fen-value="{{ initial.fen }}" data-game-board-game-id-value="{{ initial.gameId }}" data-game-board-turn-team-value="{{ initial.turnTeam }}" data-game-board-status-value="{{ initial.status }}" data-game-board-deadline-ts-value="{{ initial.turnDeadline ?: 0 }}" data-game-poll-game-id-value="{{ initial.gameId }}">
-		<div>
+	<div class="game-container chess-fade-in" data-controller="game-board game-poll" data-game-board-fen-value="{{ initial.fen }}" data-game-board-game-id-value="{{ initial.gameId }}" data-game-board-turn-team-value="{{ initial.turnTeam }}" data-game-board-status-value="{{ initial.status }}" data-game-board-deadline-ts-value="{{ initial.turnDeadline ?: 0 }}" data-game-poll-game-id-value="{{ initial.gameId }}">
+		<div class="board-container">
 			<div id="board" class="cg-wrap"></div>
-			<div style="margin-top:.5rem">
-				<button data-action="game-board#offerMove" data-uci="e2e4">Jouer e2e4 (démo)</button>
-				<button data-action="game-board#tick">Tick (timeout)</button>
+			<div class="game-actions">
+				<button class="btn demo-btn waves-effect waves-light" data-action="game-board#offerMove" data-uci="e2e4">
+					<i class="material-icons left">play_arrow</i>
+					Jouer e2e4 (démo)
+				</button>
+				<button class="btn demo-btn waves-effect waves-light" data-action="game-board#tick">
+					<i class="material-icons left">schedule</i>
+					Tick (timeout)
+				</button>
 			</div>
-			<div class="panel" style="margin-top:.5rem">
-				<div>Tour:
-					<strong data-game-board-target="turnTeam"></strong>
+			<div class="chess-panel">
+				<h3><i class="material-icons">info</i>État de la partie</h3>
+				<div class="chess-status-item">
+					<span>Tour actuel:</span>
+					<span data-game-board-target="turnTeam">{{ initial.turnTeam }}</span>
 				</div>
 				{% if currentPlayer and game.status == 'live' %}
-				<div>C'est au tour de:
-					<strong>{{ currentPlayer.user.username ?? 'Joueur' }}</strong>
-					(Équipe {{ currentPlayer.team.name }})
-					{% if userMembership and userMembership.id == currentPlayer.id %}
-						<span style="color: green;">← C'est votre tour !</span>
-					{% endif %}
+				<div class="chess-status-item" style="background-color: #e3f2fd;">
+					<span>Joueur actuel:</span>
+					<span>
+						{{ currentPlayer.user.username ?? 'Joueur' }} (Équipe {{ currentPlayer.team.name }})
+						{% if userMembership and userMembership.id == currentPlayer.id %}
+							<i class="material-icons" style="color: var(--chess-success);">star</i>
+						{% endif %}
+					</span>
 				</div>
 				{% endif %}
-				<div>Timer:
-					<span data-game-board-target="timer"></span>
+				<div class="chess-status-item">
+					<span>Temps restant:</span>
+					<span class="chess-timer" data-game-board-target="timer">-</span>
 				</div>
-				<div>Status:
-					<span data-game-board-target="status"></span>
+				<div class="chess-status-item">
+					<span>Statut:</span>
+					<span data-game-board-target="status">{{ initial.status }}</span>
 					<span data-game-board-target="result"></span>
 				</div>
 			</div>
 		</div>
 
-		<div class="panel" style="flex:1">
-			<h3>Coups</h3>
-			<ol class="moves" id="moves-list">
+		<div class="moves-panel">
+			<h3><i class="material-icons">list</i>Historique des coups</h3>
+			<ol class="moves-list" id="moves-list">
 				{% for m in moves %}
-					<li>#{{ m.ply }}:
-						{{ m.san ?? m.uci }}
-						<small>({{ m.team.name }})</small>
+					<li class="move-item">
+						<span class="move-notation">#{{ m.ply }}: {{ m.san ?? m.uci }}</span>
+						<span class="move-team team-{{ m.team.name|lower }}">{{ m.team.name }}</span>
 					</li>
 				{% endfor %}
 			</ol>
 		</div>
 
-		<div class="panel" style="width:260px">
-			<h3>Équipes</h3>
+		<div class="teams-panel">
+			<h3><i class="material-icons">groups</i>Équipes</h3>
 
-			<p>A:
-				{{ teamA.members|length }}
-				joueurs</p>
-			{% if teamA and teamA.members|length > 0 %}
-				<ul style="font-size: 0.9em; margin: 0.25rem 0;">
-				{% for member in teamA.members %}
-					<li>
-						{{ member.user.username ?? 'Joueur' }}
-						{% if member.isReadyToStart %}<span style="color: green;">✓</span>{% else %}<span style="color: orange;">⏳</span>{% endif %}
-					</li>
-				{% endfor %}
-				</ul>
-			{% endif %}
-			{% if is_granted('IS_AUTHENTICATED_FULLY') and not userMembership and game.status == 'lobby' %}
-				<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" style="margin:.25rem 0;">
-					<input type="hidden" name="_token" value="{{ csrf_token('join-team-' ~ game.id ~ '-A') }}">
-					<input type="hidden" name="team" value="A">
-					<button type="submit" class="btn blue waves-effect waves-light">
-						<i class="material-icons left">group_add</i>
-						Rejoindre l'équipe A
-					</button>
-				</form>
-			{% elseif userMembership and userMembership.team.name == 'TeamA' %}
-				<div class="card-panel green lighten-4 green-text text-darken-4" style="margin:.25rem 0;">
-					<i class="material-icons left">check_circle</i>
-					Vous êtes dans cette équipe
+			<div class="team-section team-a">
+				<div class="team-header">
+					<span class="team-badge">Équipe A</span>
+					<span>{{ teamA.members|length }} joueur{{ teamA.members|length > 1 ? 's' : '' }}</span>
 				</div>
-			{% endif %}
+				{% if teamA and teamA.members|length > 0 %}
+					<ul class="player-list">
+					{% for member in teamA.members %}
+						<li class="player-item{% if currentPlayer and currentPlayer.id == member.id %} current-player{% endif %}">
+							<span class="player-name">
+								<i class="material-icons tiny">person</i>
+								{{ member.user.username ?? 'Joueur' }}
+							</span>
+							<span class="player-status">
+								{% if member.isReadyToStart %}
+									<span class="status-ready">✓ Prêt</span>
+								{% else %}
+									<span class="status-waiting">⏳ En attente</span>
+								{% endif %}
+							</span>
+						</li>
+					{% endfor %}
+					</ul>
+				{% endif %}
+				{% if is_granted('IS_AUTHENTICATED_FULLY') and not userMembership and game.status == 'lobby' %}
+					<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" class="slide-up">
+						<input type="hidden" name="_token" value="{{ csrf_token('join-team-' ~ game.id ~ '-A') }}">
+						<input type="hidden" name="team" value="A">
+						<button type="submit" class="btn blue waves-effect waves-light">
+							<i class="material-icons left">group_add</i>
+							Rejoindre l'équipe A
+						</button>
+					</form>
+				{% elseif userMembership and userMembership.team.name == 'TeamA' %}
+					<div class="notification-card notification-success">
+						<i class="material-icons">check_circle</i>
+						<span>Vous êtes dans cette équipe</span>
+					</div>
+				{% endif %}
+			</div>
 
-			<p style="margin-top:.5rem;">B:
-				{{ teamB.members|length }}
-				joueurs</p>
-			{% if teamB and teamB.members|length > 0 %}
-				<ul style="font-size: 0.9em; margin: 0.25rem 0;">
-				{% for member in teamB.members %}
-					<li>
-						{{ member.user.username ?? 'Joueur' }}
-						{% if member.isReadyToStart %}<span style="color: green;">✓</span>{% else %}<span style="color: orange;">⏳</span>{% endif %}
-					</li>
-				{% endfor %}
-				</ul>
-			{% endif %}
-			{% if is_granted('IS_AUTHENTICATED_FULLY') and not userMembership and game.status == 'lobby' %}
-				<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" style="margin:.25rem 0;">
-					<input type="hidden" name="_token" value="{{ csrf_token('join-team-' ~ game.id ~ '-B') }}">
-					<input type="hidden" name="team" value="B">
-					<button type="submit" class="btn red waves-effect waves-light">
-						<i class="material-icons left">group_add</i>
-						Rejoindre l'équipe B
-					</button>
-				</form>
-			{% elseif userMembership and userMembership.team.name == 'TeamB' %}
-				<div class="card-panel green lighten-4 green-text text-darken-4" style="margin:.25rem 0;">
-					<i class="material-icons left">check_circle</i>
-					Vous êtes dans cette équipe
+			<div class="team-section team-b">
+				<div class="team-header">
+					<span class="team-badge">Équipe B</span>
+					<span>{{ teamB.members|length }} joueur{{ teamB.members|length > 1 ? 's' : '' }}</span>
 				</div>
-			{% endif %}
+				{% if teamB and teamB.members|length > 0 %}
+					<ul class="player-list">
+					{% for member in teamB.members %}
+						<li class="player-item{% if currentPlayer and currentPlayer.id == member.id %} current-player{% endif %}">
+							<span class="player-name">
+								<i class="material-icons tiny">person</i>
+								{{ member.user.username ?? 'Joueur' }}
+							</span>
+							<span class="player-status">
+								{% if member.isReadyToStart %}
+									<span class="status-ready">✓ Prêt</span>
+								{% else %}
+									<span class="status-waiting">⏳ En attente</span>
+								{% endif %}
+							</span>
+						</li>
+					{% endfor %}
+					</ul>
+				{% endif %}
+				{% if is_granted('IS_AUTHENTICATED_FULLY') and not userMembership and game.status == 'lobby' %}
+					<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" class="slide-up">
+						<input type="hidden" name="_token" value="{{ csrf_token('join-team-' ~ game.id ~ '-B') }}">
+						<input type="hidden" name="team" value="B">
+						<button type="submit" class="btn red waves-effect waves-light">
+							<i class="material-icons left">group_add</i>
+							Rejoindre l'équipe B
+						</button>
+					</form>
+				{% elseif userMembership and userMembership.team.name == 'TeamB' %}
+					<div class="notification-card notification-success">
+						<i class="material-icons">check_circle</i>
+						<span>Vous êtes dans cette équipe</span>
+					</div>
+				{% endif %}
+			</div>
 
 			{% if game.invite %}
-				<p style="margin-top:.75rem;">Code d'invitation :
-					<code>{{ game.invite.code }}</code>
-				</p>
+				<div class="info-panel" style="margin-top: 1rem;">
+					<h3><i class="material-icons">share</i>Partage</h3>
+					<div class="status-item">
+						<span class="status-label">Code d'invitation:</span>
+						<code style="background: #f5f5f5; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: bold;">{{ game.invite.code }}</code>
+					</div>
+					<a href="{{ path('app_game_show_page', {'id': game.id}) }}" class="btn blue waves-effect waves-light" style="margin-top: 0.5rem;">
+						<i class="material-icons left">link</i>
+						Partager la page
+					</a>
+				</div>
 			{% endif %}
 
-			<p>
-				<a href="{{ path('app_game_show_page', {'id': game.id}) }}">Partager la page</a>
-			</p>
+			{# Actions utilisateur #}
+			<div style="margin-top: 1rem;">
+				{# Bouton Prêt/Pas prêt #}
+				{% if is_granted('IS_AUTHENTICATED_FULLY') and userMembership and game.status == 'lobby' %}
+					<form method="post" action="{{ path('app_game_ready', {id: game.id}) }}" class="slide-up">
+						<input type="hidden" name="_token" value="{{ csrf_token('toggle-ready-' ~ game.id) }}">
+						{% if userMembership.isReadyToStart %}
+							<button type="submit" class="btn btn-warning waves-effect waves-light">
+								<i class="material-icons left">pause</i>
+								Je ne suis plus prêt
+							</button>
+						{% else %}
+							<button type="submit" class="btn btn-success waves-effect waves-light pulse">
+								<i class="material-icons left">check</i>
+								Je suis prêt !
+							</button>
+						{% endif %}
+					</form>
+				{% endif %}
 
-			{# Bouton Prêt/Pas prêt #}
-			{% if is_granted('IS_AUTHENTICATED_FULLY') and userMembership and game.status == 'lobby' %}
-				<form method="post" action="{{ path('app_game_ready', {id: game.id}) }}" style="margin:.5rem 0;">
-					<input type="hidden" name="_token" value="{{ csrf_token('toggle-ready-' ~ game.id) }}">
-					{% if userMembership.isReadyToStart %}
-						<button type="submit" class="btn orange waves-effect waves-light">
-							<i class="material-icons left">pause</i>
-							Je ne suis plus prêt
+				{# Bouton Démarrer la partie (pour le créateur) #}
+				{% if is_granted('IS_AUTHENTICATED_FULLY') and isCreator and canStart %}
+					<form method="post" action="{{ path('app_game_start_game', {id: game.id}) }}" class="slide-up" style="margin-top: 0.5rem;">
+						<input type="hidden" name="_token" value="{{ csrf_token('start-game-' ~ game.id) }}">
+						<button type="submit" class="btn green darken-2 waves-effect waves-light pulse">
+							<i class="material-icons left">play_arrow</i>
+							Démarrer la partie
 						</button>
-					{% else %}
-						<button type="submit" class="btn green waves-effect waves-light">
-							<i class="material-icons left">check</i>
-							Je suis prêt !
-						</button>
-					{% endif %}
-				</form>
-			{% endif %}
+					</form>
+				{% endif %}
+			</div>
 
-			{# Bouton Démarrer la partie (pour le créateur) #}
-			{% if is_granted('IS_AUTHENTICATED_FULLY') and isCreator and canStart %}
-				<form method="post" action="{{ path('app_game_start_game', {id: game.id}) }}" style="margin:.5rem 0;">
-					<input type="hidden" name="_token" value="{{ csrf_token('start-game-' ~ game.id) }}">
-					<button type="submit" class="btn green darken-2 waves-effect waves-light pulse">
-						<i class="material-icons left">play_arrow</i>
-						Démarrer la partie
-					</button>
-				</form>
-			{% endif %}
-
-			{# Message d'attente #}
+			{# Messages d'état #}
 			{% if game.status == 'lobby' and not allReady %}
-				<div class="card-panel blue lighten-4 blue-text text-darken-2" style="margin:.5rem 0; font-size: 0.9em;">
-					<i class="material-icons left">info</i>
-					En attente que tous les joueurs soient prêts
+				<div class="notification-card notification-info" style="margin-top: 1rem;">
+					<i class="material-icons">info</i>
+					<span>En attente que tous les joueurs soient prêts</span>
 				</div>
 			{% elseif game.status == 'waiting' and not isCreator %}
-				<div class="card-panel orange lighten-4 orange-text text-darken-2" style="margin:.5rem 0; font-size: 0.9em;">
-					<i class="material-icons left">hourglass_empty</i>
-					En attente que le créateur démarre la partie
+				<div class="notification-card notification-warning" style="margin-top: 1rem;">
+					<i class="material-icons">hourglass_empty</i>
+					<span>En attente que le créateur démarre la partie</span>
 				</div>
 			{% endif %}
 
