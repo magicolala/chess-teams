@@ -107,6 +107,27 @@
   background: linear-gradient(90deg, transparent 0%, var(--neo-glass-highlight) 50%, transparent 100%);
 }
 
+/* ===== CODE ET TEXTE MONOSPACE ===== */
+
+.neo-code {
+  background: var(--neo-bg-secondary);
+  border: 1px solid var(--neo-border-light);
+  padding: var(--neo-spacing-xs) var(--neo-spacing-sm);
+  border-radius: var(--neo-radius-sm);
+  font-family: var(--neo-font-mono);
+  font-size: var(--neo-font-size-sm);
+  font-weight: var(--neo-font-weight-medium);
+  color: var(--neo-accent-primary);
+  display: inline-flex;
+  align-items: center;
+  user-select: all;
+  transition: all var(--neo-transition-fast);
+}
+
+.neo-code:hover {
+  background: var(--neo-bg-active);
+}
+
 /* ===== BOUTONS ===== */
 
 .neo-btn {

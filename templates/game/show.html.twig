@@ -321,16 +321,23 @@
 			</div>
 
 			{% if game.invite %}
-				<div class="info-panel" style="margin-top: 1rem;">
-					<h3><i class="material-icons">share</i>Partage</h3>
-					<div class="status-item">
-						<span class="status-label">Code d'invitation:</span>
-						<code style="background: #f5f5f5; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: bold;">{{ game.invite.code }}</code>
+				<div class="neo-card neo-mt-lg">
+					<div class="neo-card-header">
+						<h3 class="neo-card-title">
+							<i class="material-icons" style="margin-right: 0.5rem;">share</i>
+							Partage
+						</h3>
 					</div>
-					<a href="{{ path('app_game_show_page', {'id': game.id}) }}" class="btn blue waves-effect waves-light" style="margin-top: 0.5rem;">
-						<i class="material-icons left">link</i>
-						Partager la page
-					</a>
+					<div class="neo-card-content">
+						<div class="neo-flex neo-justify-between neo-items-center neo-mb-sm neo-p-sm neo-bg-secondary neo-rounded">
+							<span class="neo-text-sm neo-font-medium">Code d'invitation:</span>
+							<code class="neo-code">{{ game.invite.code }}</code>
+						</div>
+						<a href="{{ path('app_game_show_page', {'id': game.id}) }}" class="neo-btn neo-btn-primary neo-btn-sm neo-mt-sm">
+							<i class="material-icons" style="margin-right: 0.25rem;">link</i>
+							Partager la page
+						</a>
+					</div>
 				</div>
 			{% endif %}
 
