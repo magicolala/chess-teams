@@ -21,8 +21,11 @@
 		}
 		/* Centrage et dimensionnement de l'échiquier */
 		#board {
-			width: 480px !important;
-			height: 480px !important;
+			/* Échiquier plus grand qui s'adapte à l'espace */
+			width: min(70vw, 600px) !important;
+			height: min(70vw, 600px) !important;
+			min-width: 400px;
+			min-height: 400px;
 			max-width: 90vw;
 			max-height: 90vw;
 			margin: 0 auto;
