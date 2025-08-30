@@ -227,17 +227,17 @@
 					</div>
 				{% endif %}
 				{% if is_granted('IS_AUTHENTICATED_FULLY') and not userMembership and game.status == 'lobby' %}
-					<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" class="slide-up">
+					<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" class="neo-animate-slideIn">
 						<input type="hidden" name="_token" value="{{ csrf_token('join-team-' ~ game.id ~ '-A') }}">
 						<input type="hidden" name="team" value="A">
-						<button type="submit" class="btn blue waves-effect waves-light">
-							<i class="material-icons left">group_add</i>
+						<button type="submit" class="neo-btn neo-btn-primary neo-btn-full neo-mt-sm">
+							<i class="material-icons" style="margin-right: 0.5rem;">group_add</i>
 							Rejoindre l'équipe A
 						</button>
 					</form>
 				{% elseif userMembership and userMembership.team.name == 'TeamA' %}
-					<div class="notification-card notification-success">
-						<i class="material-icons">check_circle</i>
+					<div class="neo-alert neo-alert-success neo-mt-sm">
+						<i class="material-icons" style="margin-right: 0.5rem;">check_circle</i>
 						<span>Vous êtes dans cette équipe</span>
 					</div>
 				{% endif %}
@@ -304,17 +304,17 @@
 					</div>
 				{% endif %}
 				{% if is_granted('IS_AUTHENTICATED_FULLY') and not userMembership and game.status == 'lobby' %}
-					<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" class="slide-up">
+					<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" class="neo-animate-slideIn">
 						<input type="hidden" name="_token" value="{{ csrf_token('join-team-' ~ game.id ~ '-B') }}">
 						<input type="hidden" name="team" value="B">
-						<button type="submit" class="btn red waves-effect waves-light">
-							<i class="material-icons left">group_add</i>
+						<button type="submit" class="neo-btn neo-btn-error neo-btn-full neo-mt-sm">
+							<i class="material-icons" style="margin-right: 0.5rem;">group_add</i>
 							Rejoindre l'équipe B
 						</button>
 					</form>
 				{% elseif userMembership and userMembership.team.name == 'TeamB' %}
-					<div class="notification-card notification-success">
-						<i class="material-icons">check_circle</i>
+					<div class="neo-alert neo-alert-success neo-mt-sm">
+						<i class="material-icons" style="margin-right: 0.5rem;">check_circle</i>
 						<span>Vous êtes dans cette équipe</span>
 					</div>
 				{% endif %}
@@ -345,16 +345,16 @@
 			<div style="margin-top: 1rem;">
 				{# Bouton Prêt/Pas prêt #}
 				{% if is_granted('IS_AUTHENTICATED_FULLY') and userMembership and game.status == 'lobby' %}
-					<form method="post" action="{{ path('app_game_ready', {id: game.id}) }}" class="slide-up">
+					<form method="post" action="{{ path('app_game_ready', {id: game.id}) }}" class="neo-animate-slideIn">
 						<input type="hidden" name="_token" value="{{ csrf_token('toggle-ready-' ~ game.id) }}">
 						{% if userMembership.isReadyToStart %}
-							<button type="submit" class="btn btn-warning waves-effect waves-light">
-								<i class="material-icons left">pause</i>
+							<button type="submit" class="neo-btn neo-btn-warning neo-btn-lg neo-btn-full">
+								<i class="material-icons" style="margin-right: 0.5rem;">pause</i>
 								Je ne suis plus prêt
 							</button>
 						{% else %}
-							<button type="submit" class="btn btn-success waves-effect waves-light pulse">
-								<i class="material-icons left">check</i>
+							<button type="submit" class="neo-btn neo-btn-success neo-btn-lg neo-btn-full neo-btn-pulse">
+								<i class="material-icons" style="margin-right: 0.5rem;">check</i>
 								Je suis prêt !
 							</button>
 						{% endif %}
@@ -363,10 +363,10 @@
 
 				{# Bouton Démarrer la partie (pour le créateur) #}
 				{% if is_granted('IS_AUTHENTICATED_FULLY') and isCreator and canStart %}
-					<form method="post" action="{{ path('app_game_start_game', {id: game.id}) }}" class="slide-up" style="margin-top: 0.5rem;">
+					<form method="post" action="{{ path('app_game_start_game', {id: game.id}) }}" class="neo-animate-slideIn" style="margin-top: 0.5rem;">
 						<input type="hidden" name="_token" value="{{ csrf_token('start-game-' ~ game.id) }}">
-						<button type="submit" class="btn green darken-2 waves-effect waves-light pulse">
-							<i class="material-icons left">play_arrow</i>
+						<button type="submit" class="neo-btn neo-btn-primary neo-btn-lg neo-btn-full neo-btn-pulse">
+							<i class="material-icons" style="margin-right: 0.5rem;">play_arrow</i>
 							Démarrer la partie
 						</button>
 					</form>
@@ -375,13 +375,13 @@
 
 			{# Messages d'état #}
 			{% if game.status == 'lobby' and not allReady %}
-				<div class="notification-card notification-info" style="margin-top: 1rem;">
-					<i class="material-icons">info</i>
+				<div class="neo-alert neo-alert-info neo-mt-lg">
+					<i class="material-icons" style="margin-right: 0.5rem;">info</i>
 					<span>En attente que tous les joueurs soient prêts</span>
 				</div>
 			{% elseif game.status == 'waiting' and not isCreator %}
-				<div class="notification-card notification-warning" style="margin-top: 1rem;">
-					<i class="material-icons">hourglass_empty</i>
+				<div class="neo-alert neo-alert-warning neo-mt-lg">
+					<i class="material-icons" style="margin-right: 0.5rem;">hourglass_empty</i>
 					<span>En attente que le créateur démarre la partie</span>
 				</div>
 			{% endif %}

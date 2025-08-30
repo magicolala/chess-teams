@@ -266,6 +266,55 @@
   justify-content: center;
 }
 
+/* Animation pulse pour les boutons d'action importantes */
+.neo-btn-pulse {
+  animation: neo-pulse 2s infinite;
+}
+
+@keyframes neo-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--neo-success-rgb, 76, 175, 80), 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(var(--neo-success-rgb, 76, 175, 80), 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--neo-success-rgb, 76, 175, 80), 0);
+  }
+}
+
+.neo-btn-success.neo-btn-pulse {
+  animation: neo-pulse-success 2s infinite;
+}
+
+@keyframes neo-pulse-success {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
+}
+
+.neo-btn-primary.neo-btn-pulse {
+  animation: neo-pulse-primary 2s infinite;
+}
+
+@keyframes neo-pulse-primary {
+  0% {
+    box-shadow: 0 0 0 0 rgba(25, 118, 210, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(25, 118, 210, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(25, 118, 210, 0);
+  }
+}
+
 /* Boutons avec icônes (utilise les emojis comme dans la démo) */
 .neo-btn-copy::before { content: "📋"; margin-right: var(--neo-spacing-xs); }
 .neo-btn-reset::before { content: "🔄"; margin-right: var(--neo-spacing-xs); }
