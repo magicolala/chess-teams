@@ -150,6 +150,11 @@ body {
     z-index: 5;
 }
 
+/* Curseur pointer pour les éléments interactifs */
+.square-55d63:hover {
+    cursor: pointer;
+}
+
 /* Actions de jeu */
 .game-actions {
     display: flex;
@@ -309,6 +314,10 @@ body {
     margin-bottom: 0.5rem;
 }
 
+.player-item {
+    cursor: pointer;
+}
+
 .player-item:hover {
     background-color: #f8f9fa;
     transform: translateY(-1px);
@@ -447,6 +456,10 @@ body {
     justify-content: space-between;
     align-items: center;
     transition: background-color var(--transition-fast);
+}
+
+.move-item {
+    cursor: pointer;
 }
 
 .move-item:hover {

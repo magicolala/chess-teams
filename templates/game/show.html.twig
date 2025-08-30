@@ -67,10 +67,10 @@
 		/* Ces styles s'appliquent aux éventuels éléments DOM de debug ou fallback */
 		
 		/* Style global de l'échiquier NeoChessBoard */
-		#board canvas {
+#board canvas {
 			border-radius: 8px;
 			box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-			cursor: crosshair;
+			cursor: pointer;
 		}
 		
 		#board canvas:hover {
@@ -90,11 +90,17 @@
 			padding: 0;
 			margin: 0;
 		}
-		.move-item {
+.move-item {
 			display: flex;
 			justify-content: space-between;
 			padding: 0.25rem 0.5rem;
 			border-bottom: 1px solid var(--neo-border-light);
+			cursor: pointer;
+			transition: background-color 0.1s ease-in-out;
+		}
+		
+		.move-item:hover {
+			background-color: var(--neo-bg-hover);
 		}
 		.player-list {
 			list-style: none;
@@ -104,7 +110,7 @@
 			display: flex;
 			flex-direction: column;
 		}
-		.player-item {
+.player-item {
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
@@ -112,6 +118,13 @@
 			background: var(--neo-bg-secondary);
 			border-radius: 8px;
 			border: 1px solid var(--neo-border-light);
+			cursor: pointer;
+			transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+		}
+		
+		.player-item:hover {
+			transform: translateY(-2px);
+			box-shadow: var(--neo-shadow-sm);
 		}
 		.player-item.current-player {
 			border-color: var(--neo-accent-primary);
