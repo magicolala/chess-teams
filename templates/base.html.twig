@@ -42,19 +42,40 @@
 				</div>
 			</header>
 
-			<!-- Flash Messages avec design NeoChess -->
-			{% for label, messages in app.flashes %}
-				{% for message in messages %}
-					<div class="neo-alert neo-alert-{{ label == 'error' or label == 'danger' ? 'error' : (label == 'success' ? 'success' : (label == 'warning' ? 'warning' : 'info')) }} neo-animate-fadeIn">
-						<strong>{{ label|capitalize }}:</strong> {{ message }}
-					</div>
-				{% endfor %}
-			{% endfor %}
 
 			<!-- Main Content -->
 			<main> 
 				{% block body %}{% endblock %}
 			</main>
+		</div>
+
+		<!-- Messages Flash Flottants -->
+		<div id="neo-flash-container" class="neo-flash-container">
+			{% for label, messages in app.flashes %}
+				{% for message in messages %}
+					<div class="neo-flash neo-flash-{{ label == 'error' or label == 'danger' ? 'error' : (label == 'success' ? 'success' : (label == 'warning' ? 'warning' : 'info')) }} neo-flash-show" data-flash-type="{{ label }}">
+						<div class="neo-flash-content">
+							<div class="neo-flash-icon">
+								{% if label == 'success' %}
+									✅
+								{% elseif label == 'error' or label == 'danger' %}
+									❌
+								{% elseif label == 'warning' %}
+									⚠️
+								{% else %}
+									ℹ️
+								{% endif %}
+							</div>
+							<div class="neo-flash-message">
+								{{ message }}
+							</div>
+							<button class="neo-flash-close" onclick="this.parentElement.parentElement.remove()">
+								×
+							</button>
+						</div>
+					</div>
+				{% endfor %}
+			{% endfor %}
 		</div>
 
 			{# JavaScript NeoChess Framework #}
@@ -64,15 +85,68 @@
 						// NeoChess Framework JavaScript helpers
 						console.log('🎯 NeoChess Framework chargé - Chess Teams');
 						
-						// Auto-hide flash messages après 5 secondes
-						const alerts = document.querySelectorAll('.neo-alert');
-						alerts.forEach(alert => {
+						// Gestion des messages flash flottants
+						const flashMessages = document.querySelectorAll('.neo-flash');
+						
+						// Animation d'entrée pour les messages flash
+						flashMessages.forEach((flash, index) => {
+							// Délai progressif pour l'affichage des messages multiples
 							setTimeout(() => {
-								alert.style.opacity = '0';
-								alert.style.transform = 'translateY(-10px)';
-								setTimeout(() => alert.remove(), 300);
-							}, 5000);
+								flash.classList.add('neo-flash-visible');
+							}, index * 100);
+							
+							// Auto-hide après 5 secondes
+							setTimeout(() => {
+								hideFlashMessage(flash);
+							}, 5000 + (index * 100));
 						});
+						
+						// Fonction pour masquer un message flash
+						function hideFlashMessage(flash) {
+							flash.classList.remove('neo-flash-visible');
+							flash.classList.add('neo-flash-hide');
+							
+							setTimeout(() => {
+								if (flash.parentElement) {
+									flash.remove();
+								}
+							}, 300);
+						}
+						
+						// Fonction globale pour ajouter des messages flash via JavaScript
+						window.addFlashMessage = function(type, message) {
+							const container = document.getElementById('neo-flash-container');
+							if (!container) return;
+							
+							const icons = {
+								success: '✅',
+								error: '❌',
+								warning: '⚠️',
+								info: 'ℹ️'
+							};
+							
+							const flashElement = document.createElement('div');
+							flashElement.className = `neo-flash neo-flash-${type} neo-flash-show`;
+							flashElement.innerHTML = `
+								<div class="neo-flash-content">
+									<div class="neo-flash-icon">${icons[type] || 'ℹ️'}</div>
+									<div class="neo-flash-message">${message}</div>
+									<button class="neo-flash-close" onclick="this.parentElement.parentElement.remove()">×</button>
+								</div>
+							`;
+							
+							container.appendChild(flashElement);
+							
+							// Animation d'entrée
+							setTimeout(() => {
+								flashElement.classList.add('neo-flash-visible');
+							}, 50);
+							
+							// Auto-hide après 5 secondes
+							setTimeout(() => {
+								hideFlashMessage(flashElement);
+							}, 5000);
+						};
 					});
 				</script>
 			{% endblock %}

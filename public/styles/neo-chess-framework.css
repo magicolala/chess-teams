@@ -1,0 +1,471 @@
+/**
+ * NeoChess CSS Framework
+ * Inspiré du design de la démo NeoChessBoard
+ * Framework CSS moderne et minimaliste pour Symfony
+ * 
+ * @version 1.0.0
+ * @author Framework CSS basé sur NeoChessBoard Demo
+ */
+
+/* ===== DESIGN SYSTEM - VARIABLES CSS ===== */
+
+:root {
+  /* === PALETTE DE COULEURS PRINCIPALE === */
+  /* Arrière-plans */
+  --neo-bg-primary: #0f1114;
+  --neo-bg-secondary: #15181d;
+  --neo-bg-card: #1b1f26;
+  --neo-bg-hover: #222730;
+  --neo-bg-active: #2a313a;
+  --neo-bg-input: #12151a;
+  
+  /* Effets glass/transparence */
+  --neo-glass-bg: rgba(26, 35, 50, 0.8);
+  --neo-glass-border: rgba(255, 255, 255, 0.1);
+  --neo-glass-highlight: rgba(255, 255, 255, 0.05);
+  
+  /* Bordures */
+  --neo-border-light: #262a31;
+  --neo-border-medium: #3a4048;
+  --neo-border-focus: #4f46e5;
+  
+  /* Texte - hiérarchie claire */
+  --neo-text-primary: #e6e9ee;
+  --neo-text-secondary: #c2c8d2;
+  --neo-text-muted: #8b94a3;
+  --neo-text-placeholder: #6b7280;
+  
+  /* Couleurs d'accent */
+  --neo-accent-primary: #4f46e5;
+  --neo-accent-primary-hover: #4338ca;
+  --neo-accent-primary-light: #eef2ff;
+  
+  --neo-accent-secondary: #22c55e;
+  --neo-accent-secondary-hover: #16a34a;
+  
+  /* États sémantiques */
+  --neo-success: #10b981;
+  --neo-success-hover: #059669;
+  --neo-success-light: rgba(16, 185, 129, 0.1);
+  
+  --neo-warning: #f59e0b;
+  --neo-warning-hover: #d97706;
+  --neo-warning-light: rgba(245, 158, 11, 0.1);
+  
+  --neo-error: #ef4444;
+  --neo-error-hover: #dc2626;
+  --neo-error-light: rgba(239, 68, 68, 0.1);
+  
+  --neo-info: #3b82f6;
+  --neo-info-hover: #2563eb;
+  --neo-info-light: rgba(59, 130, 246, 0.1);
+  
+  /* === GÉOMÉTRIE === */
+  --neo-radius-sm: 0px;
+  --neo-radius: 0px;
+  --neo-radius-lg: 0px;
+  --neo-radius-xl: 0px;
+  --neo-radius-full: 9999px;
+  
+  /* === ESPACEMENT COHÉRENT === */
+  --neo-spacing-xs: 4px;
+  --neo-spacing-sm: 8px;
+  --neo-spacing-md: 12px;
+  --neo-spacing-lg: 16px;
+  --neo-spacing-xl: 24px;
+  --neo-spacing-2xl: 32px;
+  --neo-spacing-3xl: 48px;
+  
+  /* === OMBRES ET EFFETS === */
+  --neo-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --neo-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --neo-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --neo-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --neo-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --neo-shadow-focus: 0 0 0 3px rgba(79, 70, 229, 0.2);
+  
+  --neo-blur-light: 8px;
+  --neo-blur-amount: 12px;
+  --neo-blur-heavy: 20px;
+  
+  /* === TYPOGRAPHIE === */
+  --neo-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  --neo-font-mono: 'JetBrains Mono', 'Fira Code', 'Monaco', monospace;
+  
+  --neo-font-size-xs: 0.75rem;
+  --neo-font-size-sm: 0.875rem;
+  --neo-font-size-base: 1rem;
+  --neo-font-size-lg: 1.125rem;
+  --neo-font-size-xl: 1.25rem;
+  --neo-font-size-2xl: 1.5rem;
+  --neo-font-size-3xl: 1.875rem;
+  --neo-font-size-4xl: 2.25rem;
+  
+  --neo-font-weight-normal: 400;
+  --neo-font-weight-medium: 500;
+  --neo-font-weight-semibold: 600;
+  --neo-font-weight-bold: 700;
+  
+  --neo-line-height-tight: 1.25;
+  --neo-line-height-normal: 1.5;
+  --neo-line-height-relaxed: 1.75;
+  
+  /* === TRANSITIONS === */
+  --neo-transition-fast: 0.15s ease;
+  --neo-transition-normal: 0.3s ease;
+  --neo-transition-slow: 0.6s ease;
+  
+  /* === Z-INDEX === */
+  --neo-z-dropdown: 100;
+  --neo-z-modal: 200;
+  --neo-z-popover: 300;
+  --neo-z-tooltip: 400;
+  --neo-z-overlay: 500;
+}
+
+/* ===== RESET ET BASE ===== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--neo-font-family);
+  font-size: var(--neo-font-size-base);
+  line-height: var(--neo-line-height-normal);
+  color: var(--neo-text-primary);
+  background: var(--neo-bg-primary);
+  overflow-x: hidden;
+}
+
+/* Améliorer le rendu du texte */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--neo-font-weight-semibold);
+  line-height: var(--neo-line-height-tight);
+  color: var(--neo-text-primary);
+}
+
+p {
+  margin-bottom: var(--neo-spacing-lg);
+  color: var(--neo-text-secondary);
+}
+
+a {
+  color: var(--neo-accent-primary);
+  text-decoration: none;
+  transition: color var(--neo-transition-fast);
+}
+
+a:hover {
+  color: var(--neo-accent-primary-hover);
+}
+
+/* Listes */
+ul, ol {
+  padding-left: var(--neo-spacing-xl);
+  margin-bottom: var(--neo-spacing-lg);
+}
+
+li {
+  margin-bottom: var(--neo-spacing-xs);
+  color: var(--neo-text-secondary);
+}
+
+/* Éléments de formulaire de base */
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Images responsives */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Boutons de base */
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* ===== LAYOUT PRINCIPAL ===== */
+
+.neo-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--neo-spacing-xl);
+  background: radial-gradient(ellipse at top, rgba(79, 70, 229, 0.08) 0%, transparent 60%),
+              linear-gradient(135deg, var(--neo-bg-primary) 0%, #0f172a 100%);
+  min-height: 100vh;
+}
+
+.neo-grid {
+  display: grid;
+  gap: var(--neo-spacing-xl);
+}
+
+.neo-grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.neo-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.neo-grid-main-sidebar {
+  grid-template-columns: minmax(520px, 2fr) 420px;
+}
+
+.neo-flex {
+  display: flex;
+}
+
+.neo-flex-col {
+  flex-direction: column;
+}
+
+.neo-flex-center {
+  align-items: center;
+  justify-content: center;
+}
+
+.neo-flex-between {
+  justify-content: space-between;
+}
+
+.neo-flex-end {
+  justify-content: flex-end;
+}
+
+.neo-items-center {
+  align-items: center;
+}
+
+.neo-gap-xs { gap: var(--neo-spacing-xs); }
+.neo-gap-sm { gap: var(--neo-spacing-sm); }
+.neo-gap-md { gap: var(--neo-spacing-md); }
+.neo-gap-lg { gap: var(--neo-spacing-lg); }
+.neo-gap-xl { gap: var(--neo-spacing-xl); }
+.neo-gap-2xl { gap: var(--neo-spacing-2xl); }
+
+/* ===== SCROLLBARS PERSONNALISÉES ===== */
+
+/* Webkit */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--neo-bg-secondary);
+  border-radius: var(--neo-radius);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--neo-border-light);
+  border-radius: var(--neo-radius);
+  transition: background var(--neo-transition-fast);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neo-text-muted);
+}
+
+/* Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--neo-border-light) var(--neo-bg-secondary);
+}
+
+/* ===== ANIMATIONS GLOBALES ===== */
+
+@keyframes neo-fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes neo-slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes neo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes neo-pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes neo-bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+/* Classes d'animation */
+.neo-animate-fadeIn {
+  animation: neo-fadeIn 0.6s ease-out;
+}
+
+.neo-animate-slideIn {
+  animation: neo-slideIn 0.6s ease-out;
+}
+
+.neo-animate-spin {
+  animation: neo-spin 1s linear infinite;
+}
+
+.neo-animate-pulse {
+  animation: neo-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.neo-animate-bounce {
+  animation: neo-bounce 1s infinite;
+}
+
+/* ===== CLASSES DE BASE ===== */
+
+.neo-text-xs { font-size: var(--neo-font-size-xs); }
+.neo-text-sm { font-size: var(--neo-font-size-sm); }
+.neo-text-base { font-size: var(--neo-font-size-base); }
+.neo-text-lg { font-size: var(--neo-font-size-lg); }
+.neo-text-xl { font-size: var(--neo-font-size-xl); }
+.neo-text-2xl { font-size: var(--neo-font-size-2xl); }
+.neo-text-3xl { font-size: var(--neo-font-size-3xl); }
+.neo-text-4xl { font-size: var(--neo-font-size-4xl); }
+
+.neo-font-normal { font-weight: var(--neo-font-weight-normal); }
+.neo-font-medium { font-weight: var(--neo-font-weight-medium); }
+.neo-font-semibold { font-weight: var(--neo-font-weight-semibold); }
+.neo-font-bold { font-weight: var(--neo-font-weight-bold); }
+
+.neo-text-primary { color: var(--neo-text-primary); }
+.neo-text-secondary { color: var(--neo-text-secondary); }
+.neo-text-muted { color: var(--neo-text-muted); }
+
+.neo-text-center { text-align: center; }
+.neo-text-left { text-align: left; }
+.neo-text-right { text-align: right; }
+
+/* Espacements */
+.neo-p-0 { padding: 0; }
+.neo-p-xs { padding: var(--neo-spacing-xs); }
+.neo-p-sm { padding: var(--neo-spacing-sm); }
+.neo-p-md { padding: var(--neo-spacing-md); }
+.neo-p-lg { padding: var(--neo-spacing-lg); }
+.neo-p-xl { padding: var(--neo-spacing-xl); }
+.neo-p-2xl { padding: var(--neo-spacing-2xl); }
+
+.neo-m-0 { margin: 0; }
+.neo-m-xs { margin: var(--neo-spacing-xs); }
+.neo-m-sm { margin: var(--neo-spacing-sm); }
+.neo-m-md { margin: var(--neo-spacing-md); }
+.neo-m-lg { margin: var(--neo-spacing-lg); }
+.neo-m-xl { margin: var(--neo-spacing-xl); }
+.neo-m-2xl { margin: var(--neo-spacing-2xl); }
+
+.neo-mb-0 { margin-bottom: 0; }
+.neo-mb-xs { margin-bottom: var(--neo-spacing-xs); }
+.neo-mb-sm { margin-bottom: var(--neo-spacing-sm); }
+.neo-mb-md { margin-bottom: var(--neo-spacing-md); }
+.neo-mb-lg { margin-bottom: var(--neo-spacing-lg); }
+.neo-mb-xl { margin-bottom: var(--neo-spacing-xl); }
+.neo-mb-2xl { margin-bottom: var(--neo-spacing-2xl); }
+
+.neo-mt-0 { margin-top: 0; }
+.neo-mt-xs { margin-top: var(--neo-spacing-xs); }
+.neo-mt-sm { margin-top: var(--neo-spacing-sm); }
+.neo-mt-md { margin-top: var(--neo-spacing-md); }
+.neo-mt-lg { margin-top: var(--neo-spacing-lg); }
+.neo-mt-xl { margin-top: var(--neo-spacing-xl); }
+.neo-mt-2xl { margin-top: var(--neo-spacing-2xl); }
+
+/* Utilitaires d'affichage */
+.neo-hidden { display: none !important; }
+.neo-block { display: block; }
+.neo-inline-block { display: inline-block; }
+.neo-inline { display: inline; }
+
+/* Position */
+.neo-relative { position: relative; }
+.neo-absolute { position: absolute; }
+.neo-fixed { position: fixed; }
+.neo-sticky { position: sticky; }
+
+/* Débordement */
+.neo-overflow-hidden { overflow: hidden; }
+.neo-overflow-auto { overflow: auto; }
+.neo-overflow-x-auto { overflow-x: auto; }
+.neo-overflow-y-auto { overflow-y: auto; }
+
+/* Largeurs et hauteurs */
+.neo-w-full { width: 100%; }
+.neo-h-full { height: 100%; }
+.neo-min-h-screen { min-height: 100vh; }
+.neo-max-w-full { max-width: 100%; }
+
+/* Opacité */
+.neo-opacity-0 { opacity: 0; }
+.neo-opacity-50 { opacity: 0.5; }
+.neo-opacity-75 { opacity: 0.75; }
+.neo-opacity-100 { opacity: 1; }
+
+/* Transitions */
+.neo-transition { transition: all var(--neo-transition-normal); }
+.neo-transition-fast { transition: all var(--neo-transition-fast); }
+.neo-transition-slow { transition: all var(--neo-transition-slow); }
+
+/* Transformations */
+.neo-transform { transform: translateZ(0); }
+.neo-hover-lift:hover { transform: translateY(-2px); }
+.neo-hover-scale:hover { transform: scale(1.02); }
+
+/* Curseurs */
+.neo-cursor-pointer { cursor: pointer; }
+.neo-cursor-not-allowed { cursor: not-allowed; }
+
+/* Sélection utilisateur */
+.neo-select-none { user-select: none; }
+.neo-select-text { user-select: text; }
+.neo-select-all { user-select: all; }

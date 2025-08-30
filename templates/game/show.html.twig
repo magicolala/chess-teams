@@ -35,7 +35,7 @@
 			display: flex;
 			justify-content: space-between;
 			padding: 0.25rem 0.5rem;
-			border-bottom: 1px solid var(--neo-border-color);
+			border-bottom: 1px solid var(--neo-border-light);
 		}
 		.player-list {
 			list-style: none;
@@ -52,11 +52,11 @@
 			padding: 0.75rem;
 			background: var(--neo-bg-secondary);
 			border-radius: 8px;
-			border: 1px solid var(--neo-border-color);
+			border: 1px solid var(--neo-border-light);
 		}
 		.player-item.current-player {
-			border-color: var(--neo-primary);
-			background: var(--neo-primary-light);
+			border-color: var(--neo-accent-primary);
+			background: var(--neo-accent-primary-light);
 		}
 		.player-info {
 			display: flex;
@@ -81,12 +81,144 @@
 			gap: 0.5rem;
 			align-items: center;
 		}
+		/* Styles pour les équipes et statuts */
+		.team-section {
+			margin-bottom: var(--neo-spacing-xl);
+		}
+		.team-header {
+			display: flex;
+			align-items: center;
+			gap: var(--neo-spacing-sm);
+			margin-bottom: var(--neo-spacing-md);
+			padding-bottom: var(--neo-spacing-sm);
+			border-bottom: 1px solid var(--neo-border-light);
+		}
+		.team-badge {
+			font-weight: var(--neo-font-weight-semibold);
+			color: var(--neo-text-primary);
+		}
+		.team-count {
+			font-size: var(--neo-font-size-sm);
+			color: var(--neo-text-muted);
+		}
+		.empty-team {
+			text-align: center;
+			padding: var(--neo-spacing-xl);
+			color: var(--neo-text-muted);
+		}
+		.empty-team i {
+			font-size: 2rem;
+			margin-bottom: var(--neo-spacing-sm);
+			display: block;
+		}
+		.status-current {
+			color: var(--neo-success);
+			font-weight: var(--neo-font-weight-medium);
+		}
+		.status-ready {
+			color: var(--neo-info);
+			font-weight: var(--neo-font-weight-medium);
+		}
+		.status-waiting {
+			color: var(--neo-text-muted);
+		}
+		.status-you {
+			color: var(--neo-accent-primary);
+			font-weight: var(--neo-font-weight-semibold);
+		}
+		.material-icons.tiny {
+			font-size: 0.875rem;
+		}
 		@media (max-width: 768px) {
 			.game-container {
 				grid-template-columns: 1fr;
 				gap: 1rem;
 			}
 		}
+	}
+	/* Force les styles de boutons pour s'assurer qu'ils s'appliquent */
+	.neo-btn {
+		padding: var(--neo-spacing-sm, 8px) var(--neo-spacing-md, 12px);
+		background: var(--neo-bg-hover, #222730);
+		border: none;
+		color: var(--neo-text-secondary, #c2c8d2);
+		border-radius: var(--neo-radius, 0px);
+		transition: all 0.15s ease;
+		font-size: var(--neo-font-size-sm, 0.875rem);
+		font-weight: var(--neo-font-weight-medium, 500);
+		cursor: pointer;
+		display: inline-flex;
+		align-items: center;
+		gap: var(--neo-spacing-sm, 8px);
+		text-decoration: none;
+		font-family: inherit;
+	}
+	.neo-btn:hover {
+		background: var(--neo-bg-active, #2a313a);
+		color: var(--neo-text-primary, #e6e9ee);
+	}
+	.neo-btn-sm {
+		padding: var(--neo-spacing-sm, 8px) var(--neo-spacing-md, 12px);
+		font-size: var(--neo-font-size-sm, 0.875rem);
+	}
+	.neo-btn-lg {
+		padding: var(--neo-spacing-md, 12px) var(--neo-spacing-xl, 24px);
+		font-size: var(--neo-font-size-lg, 1.125rem);
+	}
+	.neo-btn-full {
+		width: 100%;
+		justify-content: center;
+	}
+	.neo-btn-secondary {
+		background: var(--neo-bg-secondary, #15181d);
+		color: var(--neo-text-secondary, #c2c8d2);
+		border: 1px solid var(--neo-border-light, #262a31);
+	}
+	.neo-btn-secondary:hover {
+		background: var(--neo-bg-active, #2a313a);
+		color: var(--neo-text-primary, #e6e9ee);
+		border-color: var(--neo-border-medium, #3a4048);
+	}
+	.neo-btn-success {
+		background: var(--neo-bg-active, #2a313a);
+		color: var(--neo-text-primary, #e6e9ee);
+	}
+	.neo-btn-success:hover {
+		background: var(--neo-success, #10b981);
+		color: white;
+	}
+	.neo-btn-warning {
+		background: var(--neo-bg-active, #2a313a);
+		color: var(--neo-text-primary, #e6e9ee);
+	}
+	.neo-btn-warning:hover {
+		background: var(--neo-warning, #f59e0b);
+		color: white;
+	}
+	.neo-btn-primary {
+		background: var(--neo-bg-active, #2a313a);
+		color: var(--neo-text-primary, #e6e9ee);
+	}
+	.neo-btn-primary:hover {
+		background: var(--neo-accent-primary, #4f46e5);
+		color: white;
+	}
+	.neo-btn-error {
+		background: var(--neo-bg-active, #2a313a);
+		color: var(--neo-text-primary, #e6e9ee);
+	}
+	.neo-btn-error:hover {
+		background: var(--neo-error, #ef4444);
+		color: white;
+	}
+	.neo-btn-pulse {
+		animation: neo-pulse-success 2s infinite;
+	}
+	@keyframes neo-pulse-success {
+		0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+		70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+		100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+	}
 	</style>
 {% endblock %}
 
@@ -390,14 +522,6 @@
 						</div>
 					{% endif %}
 
-					{# Petits messages flash #}
-					{% for label, messages in app.flashes %}
-						{% for message in messages %}
-							<div class="flash-{{ label }}" style="margin-top:.5rem;font-size:.9rem;opacity:.85;">
-								{{ message }}
-							</div>
-						{% endfor %}
-					{% endfor %}
 
 					</div>
 				</div>

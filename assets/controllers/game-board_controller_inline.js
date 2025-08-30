@@ -250,9 +250,7 @@ class SimpleNeoChessBoard {
     const ctx = this.ctx;
     const squareSize = this.squareSize;
     
-    // Améliorer le rendu des pièces
-    ctx.save();
-    ctx.font = `${Math.floor(squareSize * 0.8)}px serif`;
+    ctx.font = `${squareSize * 0.75}px Arial`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
@@ -265,39 +263,33 @@ class SimpleNeoChessBoard {
         if (this.dragging && this.dragging.from === square) continue;
         
         const pos = this.squareToXY(square);
-        // Centrage parfait au milieu de la case
-        const centerX = pos.x + squareSize * 0.5;
-        const centerY = pos.y + squareSize * 0.5;
+        const centerX = pos.x + squareSize / 2;
+        const centerY = pos.y + squareSize / 2;
         
-        // Ombre de la pièce (légèrement décalée)
         ctx.fillStyle = this.theme.pieceShadow;
-        ctx.fillText(PIECE_UNICODE[piece], centerX + 1.5, centerY + 1.5);
+        ctx.fillText(PIECE_UNICODE[piece], centerX + 2, centerY + 2);
         
-        // Pièce principale
         ctx.fillStyle = isWhitePiece(piece) ? this.theme.whitePiece : this.theme.blackPiece;
         ctx.fillText(PIECE_UNICODE[piece], centerX, centerY);
       }
     }
     
-    // Pièce en cours de drag
     if (this.dragging) {
       const centerX = this.dragging.x;
       const centerY = this.dragging.y;
       const piece = this.dragging.piece;
       
-      // Légèrement plus grande pour le drag
-      ctx.font = `${Math.floor(squareSize * 0.9)}px serif`;
+      ctx.save();
+      ctx.font = `${squareSize * 0.85}px Arial`;
       
-      // Ombre
       ctx.fillStyle = this.theme.pieceShadow;
-      ctx.fillText(PIECE_UNICODE[piece], centerX + 2, centerY + 2);
+      ctx.fillText(PIECE_UNICODE[piece], centerX + 3, centerY + 3);
       
-      // Pièce
       ctx.fillStyle = isWhitePiece(piece) ? this.theme.whitePiece : this.theme.blackPiece;
       ctx.fillText(PIECE_UNICODE[piece], centerX, centerY);
+      
+      ctx.restore();
     }
-    
-    ctx.restore();
   }
 
   squareToXY(square) {
@@ -386,9 +378,14 @@ class SimpleNeoChessBoard {
       return;
     }
     
-    // NE PAS modifier l'état du board ici - laisser le contrôleur Stimulus valider d'abord
-    // L'état sera mis à jour par setPosition() si le coup est accepté par le serveur
+    const toPos = sqToFR(to);
+    this.state.board[toPos.r][toPos.f] = piece;
+    this.state.board[fromPos.r][fromPos.f] = null;
+    this.lastMove = { from, to };
+    
+    this.gamePosition = this.generateFEN();
     this.emit('move', { from, to, fen: this.gamePosition });
+    this.render();
   }
 
   generateFEN() {
@@ -435,16 +432,6 @@ class SimpleNeoChessBoard {
     return this.gamePosition;
   }
 
-  setInteractive(interactive) {
-    this.interactive = interactive;
-    // Retirer les anciens event listeners
-    this.canvas.removeEventListener('pointerdown', this.onPointerDown);
-    this.canvas.removeEventListener('pointermove', this.onPointerMove);
-    this.canvas.removeEventListener('pointerup', this.onPointerUp);
-    // Remettre les event listeners si interactif
-    this.attachEvents();
-  }
-
   destroy() {
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
@@ -477,7 +464,7 @@ export default class extends Controller {
             this.board = new SimpleNeoChessBoard(boardEl, {
                 fen: this.fenValue === 'startpos' ? undefined : this.fenValue,
                 theme: 'midnight',
-                interactive: this.statusValue === 'live', // Seulement interactif si la partie est en cours
+                interactive: true,
                 showCoordinates: true,
                 orientation: 'white'
             })
@@ -551,18 +538,17 @@ export default class extends Controller {
     }
 
     // Gestionnaire pour les coups Neo Chess Board
-    async onNeoMove(from, to) {
+    onNeoMove(from, to) {
         // Ne permettre de bouger que si la partie est en cours
-        if (this.statusValue !== 'live') {
-            this.printDebug(`❌ Partie pas en cours (${this.statusValue}), coup rejeté`)
+        if (this.statusValue === 'finished') {
+            this.printDebug('❌ Partie terminée, coup rejeté')
             return
         }
 
-        // Sauvegarder les positions originales
-        const originalPos = this.chessJs.fen()
-        const originalBoardPos = this.board.getPosition()
-        
         // Vérifier si c'est un coup légal avec chess.js aussi
+        const originalPos = this.chessJs.fen()
+        
+        // Voir si le coup est légal
         const move = this.chessJs.move({
             from: from,
             to: to,
@@ -574,20 +560,12 @@ export default class extends Controller {
             console.warn('[game-board] Coup rejeté par chess.js:', from, to)
             this.printDebug(`❌ Coup rejeté par chess.js: ${from}-${to}`)
             // Remettre la position sur le board Neo
-            this.board.setPosition(originalBoardPos, true)
+            this.board.setPosition(originalPos, true)
             return
         }
 
-        // Coup légal localement - l'envoyer au serveur
-        const success = await this.sendMove(move.from + move.to + (move.promotion || ''))
-        
-        // Si le serveur refuse le coup, remettre les positions originales
-        if (!success) {
-            console.warn('[game-board] Coup refusé par le serveur:', from, to)
-            this.chessJs.load(originalPos)
-            this.board.setPosition(originalBoardPos, true)
-            this.printDebug(`❌ Coup refusé par le serveur: ${from}-${to}`)
-        }
+        // Coup légal - l'envoyer au serveur
+        this.sendMove(move.from + move.to + (move.promotion || ''))
     }
 
     async offerMove(e) {
@@ -603,11 +581,7 @@ export default class extends Controller {
 
     async sendMove(uci) {
         const ok = await this.apiPost(`/games/${this.gameIdValue}/move`, { uci })
-        if (!ok) { 
-            this.printDebug('❌ Move refusé par le serveur')
-            return false
-        }
-        
+        if (!ok) { this.printDebug('❌ Move refusé'); return }
         const g = await this.fetchGame()
         console.debug('[game-board] state after move', g)
         
@@ -622,7 +596,6 @@ export default class extends Controller {
         
         await this.reloadMoves()
         this.printDebug('✅ Move OK, FEN mise à jour')
-        return true
     }
 
     async reloadMoves() {

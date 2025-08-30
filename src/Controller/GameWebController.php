@@ -51,6 +51,24 @@ final class GameWebController extends AbstractController
         return $this->redirectToRoute('app_game_show_page', ['id' => $out->gameId]);
     }
 
+    // Route spécifique pour /app/games avec paramètre code
+    #[Route('', name: 'join_by_code', methods: ['GET'])]
+    public function joinByCode(Request $request): Response
+    {
+        $inviteCode = (string) $request->query->get('code');
+        if (!$inviteCode) {
+            throw $this->createNotFoundException('code_required');
+        }
+
+        $invite = $this->invites->findOneByCode($inviteCode);
+        $game = $invite?->getGame();
+        if (!$game) {
+            throw $this->createNotFoundException('game_not_found');
+        }
+
+        return $this->redirectToRoute('app_game_show_page', ['id' => $game->getId()]);
+    }
+
     // Affichage page partie
     #[Route('/{id}', name: 'show_page', methods: ['GET'])]
     public function showPage(Request $request, ?string $id = null): Response

@@ -28,8 +28,14 @@ return [
     'chess.js' => [
         'version' => '1.4.0',
     ],
-    'chessboardjs' => [
-        'version' => '0.0.1',
+    '../vendor/neochessboard/index.js' => [
+        'path' => './assets/vendor/neochessboard/index.js',
+    ],
+    '../vendor/neochessboard/NeoChessBoard.js' => [
+        'path' => './assets/vendor/neochessboard/NeoChessBoard.js',
+    ],
+    '../vendor/neochessboard/standalone.js' => [
+        'path' => './assets/vendor/neochessboard/standalone.js',
     ],
     'jquery' => [
         'version' => '3.7.1',
