@@ -5,36 +5,50 @@
 
 {% block styles %}
 	<style>
-		/* Styles spécifiques pour l'échiquier et la page de jeu */
-		.game-container {
+		/* Layout côte à côte avec NeoChess Framework */
+		.game-layout {
 			display: grid;
-			grid-template-columns: 1fr 350px;
-			gap: 2rem;
+			grid-template-columns: minmax(400px, 1fr) 420px;
+			gap: var(--neo-spacing-xl);
 			align-items: start;
-			margin-top: 1rem;
 		}
-		.board-container {
+
+		.board-section {
 			display: flex;
 			flex-direction: column;
-			gap: 1rem;
+			gap: var(--neo-spacing-lg);
 			align-items: center;
 		}
-		/* Centrage et dimensionnement de l'échiquier */
+
 		#board {
-			/* Échiquier plus grand qui s'adapte à l'espace */
-			width: min(70vw, 600px) !important;
-			height: min(70vw, 600px) !important;
+			/* Échiquier qui prend l'espace disponible */
+			width: min(100%, calc(100vw - 520px)) !important;
+			max-width: 700px;
 			min-width: 400px;
-			min-height: 400px;
-			max-width: 90vw;
-			max-height: 90vw;
+			aspect-ratio: 1;
 			margin: 0 auto;
-			border: 2px solid var(--neo-border-medium);
-			border-radius: 8px;
-			box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 			position: relative;
+			border-radius: var(--neo-radius, 0px);
+			box-shadow: var(--neo-shadow-lg);
 			overflow: hidden;
+			border: 1px solid var(--neo-border-light);
 		}
+
+		.sidebar-section {
+			display: flex;
+			flex-direction: column;
+			gap: var(--neo-spacing-lg);
+			height: fit-content;
+		}
+
+		/* Responsive pour mobile */
+		@media (max-width: 1024px) {
+			.game-layout {
+				grid-template-columns: 1fr;
+				gap: var(--neo-spacing-lg);
+			}
+		}
+
 		/* Forcer les dimensions pour tous les éléments internes de l'échiquier */
 		#board .cg-wrap,
 		#board cg-container,
@@ -180,7 +194,6 @@
 				gap: 1rem;
 			}
 		}
-	}
 	/* Force les styles de boutons pour s'assurer qu'ils s'appliquent */
 	.neo-btn {
 		padding: var(--neo-spacing-sm, 8px) var(--neo-spacing-md, 12px);
@@ -275,9 +288,9 @@
 			</h1>
 		</div>
 
-		<div class="game-container neo-animate-slideIn" data-controller="game-board game-poll" data-game-board-fen-value="{{ initial.fen }}" data-game-board-game-id-value="{{ initial.gameId }}" data-game-board-turn-team-value="{{ initial.turnTeam }}" data-game-board-status-value="{{ initial.status }}" data-game-board-deadline-ts-value="{{ initial.turnDeadline ?: 0 }}" data-game-poll-game-id-value="{{ initial.gameId }}">
-			<!-- Colonne de gauche: Échiquier + État -->
-			<div class="board-container">
+		<div class="game-layout neo-animate-slideIn" data-controller="game-board game-poll" data-game-board-fen-value="{{ initial.fen }}" data-game-board-game-id-value="{{ initial.gameId }}" data-game-board-turn-team-value="{{ initial.turnTeam }}" data-game-board-status-value="{{ initial.status }}" data-game-board-deadline-ts-value="{{ initial.turnDeadline ?: 0 }}" data-game-poll-game-id-value="{{ initial.gameId }}">
+			<!-- Section de gauche: Échiquier + Actions -->
+			<div class="board-section">
 				<div id="board" class="cg-wrap coordinates"></div>
 				<div class="game-actions">
 					<button class="neo-btn neo-btn-secondary neo-btn-sm" data-action="game-board#offerMove" data-uci="e2e4">
@@ -289,8 +302,8 @@
 				</div>
 			</div>
 
-			<!-- Colonne de droite: Historique + Équipes -->
-			<div class="sidebar-container">
+			<!-- Section de droite: État + Historique + Équipes -->
+			<div class="sidebar-section">
 				<div class="neo-card neo-mb-lg">
 					<div class="neo-card-header">
 						<h3 class="neo-card-title">ℹ️ État de la partie</h3>

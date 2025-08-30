@@ -16,14 +16,8 @@
 		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-		{# NeoChess CSS Framework #}
+		{# CSS inclus via AssetMapper dans app.js #}
 		{% block stylesheets %}
-			<link rel="stylesheet" href="{{ asset('styles/neo-chess-framework.css') }}">
-			<link rel="stylesheet" href="{{ asset('styles/neo-components.css') }}">
-			<link rel="stylesheet" href="{{ asset('styles/neo-utilities.css') }}">
-			<link rel="stylesheet" href="{{ asset('styles/neo-responsive.css') }}">
-			<link rel="stylesheet" href="{{ asset('styles/vendor/chessground.css') }}">
-			<link rel="stylesheet" href="{{ asset('styles/app.css') }}">
 			{% block styles %}{% endblock %}
 		{% endblock %}
 	</head>

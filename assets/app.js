@@ -5,6 +5,13 @@ import './bootstrap.js';
  * This file will be included onto the page via the importmap() Twig function,
  * which should already be in your base.html.twig.
  */
+
+// Import all CSS files - v2.0
+import './styles/neo-chess-framework.css';
+import './styles/neo-components.css';
+import './styles/neo-utilities.css';
+import './styles/neo-responsive.css';
+import './styles/vendor/chessground.css';
 import './styles/app.css';
 
-console.log('This log comes from assets/app.js - welcome to AssetMapper! 🎉');
+console.log('Chess Teams App loaded successfully! v2.0 🏆');

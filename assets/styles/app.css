@@ -68,10 +68,11 @@ body {
 /* Container principal du jeu */
 .game-container {
     display: grid;
-    grid-template-columns: 1fr 300px 280px;
+    grid-template-columns: 1fr 350px;
     gap: 1.5rem;
     max-width: 1400px;
     margin: 0 auto;
+    height: calc(100vh - 120px); /* Utilise toute la hauteur disponible moins l'en-tête */
 }
 
 /* Échiquier responsive */
@@ -80,17 +81,24 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 1rem;
+    height: 100%; /* Prend toute la hauteur du container parent */
+    width: 100%;
 }
 
 #board {
-    width: min(90vmin, 560px);
+    width: 100% !important;
+    flex: 1; /* Prend tout l'espace disponible en hauteur */
+    min-width: 300px;
+    min-height: 300px;
     aspect-ratio: 1;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-elevated);
     overflow: hidden;
-    margin: 0 auto;
+    margin: 0;
     position: relative;
     contain: layout style paint;
+    /* S'assurer que l'échiquier reste carré même avec flex: 1 */
+    max-height: calc(100vw - 450px); /* Limite la hauteur pour garder le ratio carré */
 }
 
 /* Styles pour chessboard.js */
