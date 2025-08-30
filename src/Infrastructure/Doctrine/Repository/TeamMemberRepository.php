@@ -60,4 +60,37 @@ final class TeamMemberRepository extends ServiceEntityRepository implements Team
     {
         return $this->findBy(['team' => $team, 'active' => true], ['position' => 'ASC']);
     }
+
+    public function countReadyByGame(Game $game): int
+    {
+        return (int) $this->createQueryBuilder('m')
+            ->select('COUNT(m.id)')
+            ->join('m.team', 't')
+            ->where('t.game = :game')
+            ->andWhere('m.active = true')
+            ->andWhere('m.readyToStart = true')
+            ->setParameter('game', $game)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countActiveByGame(Game $game): int
+    {
+        return (int) $this->createQueryBuilder('m')
+            ->select('COUNT(m.id)')
+            ->join('m.team', 't')
+            ->where('t.game = :game')
+            ->andWhere('m.active = true')
+            ->setParameter('game', $game)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function areAllActivePlayersReady(Game $game): bool
+    {
+        $totalActive = $this->countActiveByGame($game);
+        $readyPlayers = $this->countReadyByGame($game);
+        
+        return $totalActive > 0 && $totalActive === $readyPlayers;
+    }
 }

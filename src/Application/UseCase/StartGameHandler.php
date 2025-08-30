@@ -53,6 +53,11 @@ final class StartGameHandler
             throw new ConflictHttpException('each_team_must_have_at_least_one_member');
         }
 
+        // Vérifier que tous les joueurs actifs sont prêts
+        if (!$this->members->areAllActivePlayersReady($game)) {
+            throw new ConflictHttpException('all_players_must_be_ready');
+        }
+
         $now      = new \DateTimeImmutable();
         $deadline = $now->modify('+'.$game->getTurnDurationSec().' seconds');
 

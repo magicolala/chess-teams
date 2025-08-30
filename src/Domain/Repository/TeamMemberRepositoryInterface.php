@@ -20,4 +20,10 @@ interface TeamMemberRepositoryInterface
     public function findOneByGameAndUser(Game $game, User $user): ?TeamMember;
 
     public function findActiveOrderedByTeam(Team $team): array; // TeamMember[]
+
+    public function countReadyByGame(Game $game): int;
+
+    public function countActiveByGame(Game $game): int;
+
+    public function areAllActivePlayersReady(Game $game): bool;
 }

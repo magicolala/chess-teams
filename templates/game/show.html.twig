@@ -550,22 +550,21 @@
 
 					{# Actions utilisateur #}
 					<div style="margin-top: 1rem;">
-						{# Bouton Prêt/Pas prêt #}
+						{# Boutons Prêt/Pas prêt avec AJAX #}
 						{% if is_granted('IS_AUTHENTICATED_FULLY') and userMembership and game.status == 'lobby' %}
-							<form method="post" action="{{ path('app_game_ready', {id: game.id}) }}" class="neo-animate-slideIn">
-								<input type="hidden" name="_token" value="{{ csrf_token('toggle-ready-' ~ game.id) }}">
+							<div class="neo-animate-slideIn">
 								{% if userMembership.isReadyToStart %}
-									<button type="submit" class="neo-btn neo-btn-warning neo-btn-lg neo-btn-full">
+									<button data-action="game-board#markNotReady" class="neo-btn neo-btn-warning neo-btn-lg neo-btn-full">
 										<i class="material-icons" style="margin-right: 0.5rem;">pause</i>
 										Je ne suis plus prêt
 									</button>
 								{% else %}
-									<button type="submit" class="neo-btn neo-btn-success neo-btn-lg neo-btn-full neo-btn-pulse">
+									<button data-action="game-board#markReady" class="neo-btn neo-btn-success neo-btn-lg neo-btn-full neo-btn-pulse">
 										<i class="material-icons" style="margin-right: 0.5rem;">check</i>
 										Je suis prêt !
 									</button>
 								{% endif %}
-							</form>
+							</div>
 						{% endif %}
 
 						{# Bouton Démarrer la partie (pour le créateur) #}

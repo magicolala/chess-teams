@@ -843,6 +843,30 @@ export default class extends Controller {
         return 'white'
     }
 
+    async markReady() {
+        console.debug('[game-board] markReady()')
+        const ok = await this.apiPost(`/games/${this.gameIdValue}/ready`, { ready: true })
+        if (ok) {
+            this.printDebug('✅ Marqué comme prêt')
+            // Recharger la page pour voir les changements
+            window.location.reload()
+        } else {
+            this.printDebug('❌ Erreur lors du marquage comme prêt')
+        }
+    }
+
+    async markNotReady() {
+        console.debug('[game-board] markNotReady()')
+        const ok = await this.apiPost(`/games/${this.gameIdValue}/ready`, { ready: false })
+        if (ok) {
+            this.printDebug('✅ Marqué comme pas prêt')
+            // Recharger la page pour voir les changements
+            window.location.reload()
+        } else {
+            this.printDebug('❌ Erreur lors du marquage comme pas prêt')
+        }
+    }
+
     async apiPost(path, body) {
         const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
         console.debug('[game-board] POST', path, '→', res.status)

@@ -112,8 +112,8 @@ final class GameWebController extends AbstractController
         }
 
         // Vérifie si tous les joueurs sont prêts
-        $allReady = $this->allPlayersReady($game);
-        $canStart = $allReady && $game->getStatus() === \App\Entity\Game::STATUS_WAITING;
+        $allReady = $this->members->areAllActivePlayersReady($game);
+        $canStart = $allReady && $game->getStatus() === \App\Entity\Game::STATUS_LOBBY;
 
         return $this->render('game/show.html.twig', [
             'game'           => $game,
@@ -230,10 +230,8 @@ final class GameWebController extends AbstractController
         $readyStatus = $membership->isReadyToStart() ? 'prêt' : 'pas prêt';
         $this->addFlash('success', 'Vous êtes maintenant '.$readyStatus);
 
-        // Vérifier si tout le monde est prêt pour changer le statut
-        if ($this->allPlayersReady($game)) {
-            $game->setStatus(\App\Entity\Game::STATUS_WAITING);
-            $em->flush();
+        // Vérifier si tout le monde est prêt
+        if ($this->members->areAllActivePlayersReady($game)) {
             $this->addFlash('info', 'Tous les joueurs sont prêts ! Le créateur peut maintenant démarrer la partie.');
         }
 
@@ -257,7 +255,7 @@ final class GameWebController extends AbstractController
         }
 
         $game = $this->games->get($id);
-        if (!$game || $game->getStatus() !== \App\Entity\Game::STATUS_WAITING) {
+        if (!$game || $game->getStatus() !== \App\Entity\Game::STATUS_LOBBY) {
             throw new NotFoundHttpException('game_not_found_or_not_ready');
         }
 
@@ -283,39 +281,9 @@ final class GameWebController extends AbstractController
         return $this->redirectToRoute('app_game_show_page', ['id' => $id]);
     }
 
-    private function allPlayersReady(\App\Entity\Game $game): bool
-    {
-        $teamA = $this->teams->findOneByGameAndName($game, Team::NAME_A);
-        $teamB = $this->teams->findOneByGameAndName($game, Team::NAME_B);
-
-        if (!$teamA || !$teamB) {
-            return false;
-        }
-
-        $membersA = $this->members->findActiveOrderedByTeam($teamA);
-        $membersB = $this->members->findActiveOrderedByTeam($teamB);
-
-        if (empty($membersA) || empty($membersB)) {
-            return false;
-        }
-
-        foreach ($membersA as $member) {
-            if (!$member->isReadyToStart()) {
-                return false;
-            }
-        }
-
-        foreach ($membersB as $member) {
-            if (!$member->isReadyToStart()) {
-                return false;
-            }
-        }
-
-        return true;
-    }
 
     private function canStartGame(\App\Entity\Game $game): bool
     {
-        return $this->allPlayersReady($game);
+        return $this->members->areAllActivePlayersReady($game);
     }
 }

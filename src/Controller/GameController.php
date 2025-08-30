@@ -6,6 +6,7 @@ use App\Application\DTO\CreateGameInput;
 use App\Application\DTO\JoinByCodeInput;
 use App\Application\DTO\ListMovesInput;
 use App\Application\DTO\MakeMoveInput;
+use App\Application\DTO\MarkPlayerReadyInput;
 use App\Application\DTO\ShowGameInput;
 use App\Application\DTO\StartGameInput;
 use App\Application\DTO\TimeoutTickInput;
@@ -13,6 +14,7 @@ use App\Application\UseCase\CreateGameHandler;
 use App\Application\UseCase\JoinByCodeHandler;
 use App\Application\UseCase\ListMovesHandler;
 use App\Application\UseCase\MakeMoveHandler;
+use App\Application\UseCase\MarkPlayerReadyHandler;
 use App\Application\UseCase\ShowGameHandler;
 use App\Application\UseCase\StartGameHandler;
 use App\Application\UseCase\TimeoutTickHandler;
@@ -34,6 +36,7 @@ final class GameController extends AbstractController
         private MakeMoveHandler $makeMove,
         private TimeoutTickHandler $timeoutTick,
         private ListMovesHandler $listMoves,
+        private MarkPlayerReadyHandler $markPlayerReady,
     ) {
     }
 
@@ -167,6 +170,30 @@ final class GameController extends AbstractController
         return $this->json([
             'gameId' => $out->gameId,
             'moves'  => $out->moves,
+        ]);
+    }
+
+    // POST /games/{id}/ready
+    #[Route('/{id}/ready', name: 'mark_ready', methods: ['POST'])]
+    public function markReady(string $id, Request $r): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $payload = $r->toArray();
+        $ready = isset($payload['ready']) ? (bool) $payload['ready'] : true;
+        
+        $in = new MarkPlayerReadyInput($id, $user->getId() ?? '', $ready);
+        $out = ($this->markPlayerReady)($in, $user);
+
+        return $this->json([
+            'gameId' => $out->gameId,
+            'userId' => $out->userId,
+            'ready' => $out->ready,
+            'allPlayersReady' => $out->allPlayersReady,
+            'readyPlayersCount' => $out->readyPlayersCount,
+            'totalPlayersCount' => $out->totalPlayersCount,
         ]);
     }
 }
