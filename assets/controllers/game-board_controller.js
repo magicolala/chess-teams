@@ -22,9 +22,9 @@ const THEMES = {
     light: "#3c3c41",
     dark: "#2a2a2e",
     boardBorder: "#1e1e22",
-    whitePiece: "#ffffff",
-    blackPiece: "#000000",
-    pieceShadow: "rgba(0,0,0,0.5)",
+    whitePiece: "#f8f9fa",       // Blanc légèrement crème pour plus de douceur
+    blackPiece: "#1a1a1a",       // Noir profond mais pas pur
+    pieceShadow: "rgba(0,0,0,0.6)", // Ombre plus prononcée
     moveFrom: "#4a90e280",
     moveTo: "#4a90e280",
     lastMove: "#4a90e240",
@@ -79,7 +79,9 @@ function parseFEN(fen) {
 }
 
 const PIECE_UNICODE = {
+  // Pièces blanches (style moderne)
   'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙',
+  // Pièces noires (style contrasté) 
   'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟'
 };
 
