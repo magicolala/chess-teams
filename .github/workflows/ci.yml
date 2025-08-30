@@ -1,0 +1,236 @@
+name: 🧪 CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  tests:
+    name: 🧪 Tests & Quality
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        php-version: ['8.1', '8.2', '8.3']
+        
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: chess_teams_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+          
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐘 Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: ctype, iconv, json, pdo, pdo_pgsql, tokenizer, redis
+        coverage: xdebug
+        tools: composer:v2
+
+    - name: 📋 Validate composer.json
+      run: composer validate --strict
+
+    - name: 💾 Cache Composer dependencies
+      uses: actions/cache@v3
+      with:
+        path: /tmp/composer-cache
+        key: ${{ runner.os }}-php${{ matrix.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php${{ matrix.php-version }}-composer-
+
+    - name: 📦 Install PHP dependencies
+      run: composer install --prefer-dist --no-progress --optimize-autoloader
+
+    - name: 🔧 Setup environment
+      run: |
+        cp .env.test .env.test.local
+        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/chess_teams_test" >> .env.test.local
+        echo "REDIS_URL=redis://localhost:6379/1" >> .env.test.local
+
+    - name: 🗄️ Setup database
+      run: |
+        php bin/console doctrine:database:create --env=test
+        php bin/console doctrine:migrations:migrate --no-interaction --env=test
+
+    - name: 🧪 Run unit tests
+      run: ./vendor/bin/phpunit --testsuite=unit --coverage-clover=coverage.xml
+
+    - name: 🔗 Run functional tests
+      run: ./vendor/bin/phpunit --testsuite=functional
+
+    - name: 📊 Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  code-quality:
+    name: 📏 Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐘 Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: ctype, iconv, json
+        tools: composer:v2
+
+    - name: 📦 Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: 🎨 Check code style
+      run: composer cs:check
+
+    - name: 🔍 Run PHPStan
+      run: |
+        if [ -f phpstan.neon ]; then
+          ./vendor/bin/phpstan analyze
+        else
+          echo "PHPStan not configured, skipping..."
+        fi
+
+  assets:
+    name: 🎨 Assets & Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐘 Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        tools: composer:v2
+
+    - name: 📦 Install PHP dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: 🎨 Compile assets
+      run: php bin/console asset-map:compile --env=prod
+
+    - name: ✅ Verify asset compilation
+      run: |
+        if [ ! -f public/assets/manifest.json ]; then
+          echo "❌ Asset compilation failed - manifest.json not found"
+          exit 1
+        fi
+        echo "✅ Assets compiled successfully"
+
+  security:
+    name: 🔒 Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐘 Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        tools: composer:v2
+
+    - name: 📦 Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: 🛡️ Security audit
+      run: |
+        # Composer audit pour les vulnérabilités connues
+        composer audit
+        
+        # Vérifier les permissions des fichiers sensibles
+        find . -name "*.env*" -type f -perm /o+r && echo "❌ Environment files are world-readable" && exit 1 || echo "✅ Environment files permissions OK"
+
+  deployment:
+    name: 🚀 Deployment
+    runs-on: ubuntu-latest
+    needs: [tests, code-quality, assets, security]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐘 Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        tools: composer:v2
+
+    - name: 📦 Install production dependencies
+      run: composer install --no-dev --optimize-autoloader --prefer-dist --no-progress
+
+    - name: 🎨 Compile production assets
+      run: php bin/console asset-map:compile --env=prod
+
+    - name: 📋 Create deployment artifact
+      run: |
+        tar -czf chess-teams-${{ github.sha }}.tar.gz \
+          --exclude='.git' \
+          --exclude='node_modules' \
+          --exclude='tests' \
+          --exclude='var/cache' \
+          --exclude='var/log' \
+          .
+
+    - name: 📤 Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: chess-teams-${{ github.sha }}
+        path: chess-teams-${{ github.sha }}.tar.gz
+        retention-days: 30
+
+    # Exemple de déploiement (à adapter selon votre infrastructure)
+    # - name: 🚀 Deploy to production
+    #   run: |
+    #     # Vos commandes de déploiement ici
+    #     echo "Deploying to production..."
+
+  notification:
+    name: 📢 Notifications
+    runs-on: ubuntu-latest
+    needs: [tests, code-quality, assets, security]
+    if: always()
+
+    steps:
+    - name: 📢 Notify Discord
+      if: failure()
+      run: |
+        # Envoyer une notification Discord en cas d'échec
+        echo "Build failed - would send Discord notification"
+        
+    - name: 📧 Notify Email
+      if: failure() && github.ref == 'refs/heads/main'
+      run: |
+        # Envoyer email en cas d'échec sur main
+        echo "Critical build failure on main - would send email"
