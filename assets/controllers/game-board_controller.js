@@ -736,11 +736,25 @@ export default class extends Controller {
         const originalBoardPos = this.board.getPosition()
         
         // Vérifier si c'est un coup légal avec chess.js aussi
-        const move = this.chessJs.move({
+        // Détecter si c'est un coup de promotion (pion à la 7e rangée qui va à la 8e)
+        const isPotentialPromotion = () => {
+            const piece = this.chessJs.get(from);
+            return piece && piece.type === 'p' && 
+                   ((piece.color === 'w' && from[1] === '7' && to[1] === '8') ||
+                    (piece.color === 'b' && from[1] === '2' && to[1] === '1'));
+        };
+
+        // N'ajouter la promotion que si c'est nécessaire
+        const moveOptions = {
             from: from,
-            to: to,
-            promotion: 'q' // Toujours promouvoir en dame pour simplifier
-        })
+            to: to
+        };
+        
+        if (isPotentialPromotion()) {
+            moveOptions.promotion = 'q'; // Promouvoir en dame si c'est une promotion
+        }
+        
+        const move = this.chessJs.move(moveOptions)
 
         // Coup illégal - revenir à la position d'origine
         if (move === null) {
