@@ -1,0 +1,875 @@
+/**
+ * NeoChess Components CSS
+ * Composants UI basés sur le design de la démo NeoChessBoard
+ * 
+ * @version 1.0.0
+ * @dependencies neo-chess-framework.css
+ */
+
+/* ===== HEADERS ET NAVIGATION ===== */
+
+.neo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--neo-spacing-md) var(--neo-spacing-lg);
+  background: transparent;
+  border: none;
+  border-radius: var(--neo-radius);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.neo-header-title {
+  font-size: var(--neo-font-size-lg);
+  font-weight: var(--neo-font-weight-semibold);
+  color: var(--neo-text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--neo-spacing-md);
+}
+
+.neo-header-title::before {
+  content: "♟";
+  font-size: var(--neo-font-size-xl);
+  color: currentColor;
+}
+
+.neo-header-info {
+  background: var(--neo-bg-card);
+  border: none;
+  color: var(--neo-text-muted);
+  padding: var(--neo-spacing-xs) var(--neo-spacing-sm);
+  font-size: var(--neo-font-size-sm);
+  border-radius: var(--neo-radius-full);
+}
+
+/* ===== CARTES ET PANELS ===== */
+
+.neo-card {
+  background: var(--neo-bg-card);
+  border: none;
+  border-radius: var(--neo-radius);
+  box-shadow: none;
+  backdrop-filter: none;
+  overflow: hidden;
+  position: relative;
+  transition: all var(--neo-transition-normal);
+}
+
+.neo-card:hover {
+  background: var(--neo-bg-hover);
+}
+
+.neo-card-header {
+  background: transparent;
+  border-bottom: none;
+  padding: var(--neo-spacing-md);
+}
+
+.neo-card-title {
+  color: var(--neo-text-primary);
+  font-size: var(--neo-font-size-base);
+  font-weight: var(--neo-font-weight-semibold);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--neo-spacing-sm);
+}
+
+.neo-card-content {
+  padding: var(--neo-spacing-md);
+}
+
+.neo-card-footer {
+  padding: var(--neo-spacing-md);
+  background: transparent;
+  border-top: 1px solid var(--neo-border-light);
+}
+
+/* Variants de cartes */
+.neo-card-glass {
+  background: var(--neo-glass-bg);
+  border: 1px solid var(--neo-glass-border);
+  backdrop-filter: blur(var(--neo-blur-amount));
+  -webkit-backdrop-filter: blur(var(--neo-blur-amount));
+  box-shadow: var(--neo-shadow), inset 0 1px 0 var(--neo-glass-highlight);
+}
+
+.neo-card-glass::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--neo-glass-highlight) 50%, transparent 100%);
+}
+
+/* ===== BOUTONS ===== */
+
+.neo-btn {
+  padding: var(--neo-spacing-sm) var(--neo-spacing-md);
+  background: var(--neo-bg-hover);
+  border: none;
+  color: var(--neo-text-secondary);
+  border-radius: var(--neo-radius);
+  box-shadow: none;
+  transition: all var(--neo-transition-fast);
+  font-size: var(--neo-font-size-sm);
+  font-weight: var(--neo-font-weight-medium);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--neo-spacing-sm);
+  text-decoration: none;
+  font-family: inherit;
+}
+
+.neo-btn:hover {
+  background: var(--neo-bg-active);
+  color: var(--neo-text-primary);
+  transform: none;
+}
+
+.neo-btn:active {
+  transform: translateY(0);
+}
+
+.neo-btn:focus {
+  outline: none;
+  box-shadow: var(--neo-shadow-focus);
+}
+
+.neo-btn:disabled,
+.neo-btn.neo-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Tailles de boutons */
+.neo-btn-xs {
+  padding: var(--neo-spacing-xs) var(--neo-spacing-sm);
+  font-size: var(--neo-font-size-xs);
+}
+
+.neo-btn-sm {
+  padding: var(--neo-spacing-sm) var(--neo-spacing-md);
+  font-size: var(--neo-font-size-sm);
+}
+
+.neo-btn-lg {
+  padding: var(--neo-spacing-md) var(--neo-spacing-xl);
+  font-size: var(--neo-font-size-lg);
+}
+
+.neo-btn-xl {
+  padding: var(--neo-spacing-lg) var(--neo-spacing-2xl);
+  font-size: var(--neo-font-size-xl);
+}
+
+/* Variants de boutons */
+.neo-btn-primary {
+  background: var(--neo-bg-active);
+  color: var(--neo-text-primary);
+}
+
+.neo-btn-primary:hover {
+  background: var(--neo-accent-primary);
+  color: white;
+}
+
+.neo-btn-success {
+  background: var(--neo-bg-active);
+  color: var(--neo-text-primary);
+}
+
+.neo-btn-success:hover {
+  background: var(--neo-success);
+  color: white;
+}
+
+.neo-btn-warning {
+  background: var(--neo-bg-active);
+  color: var(--neo-text-primary);
+}
+
+.neo-btn-warning:hover {
+  background: var(--neo-warning);
+  color: white;
+}
+
+.neo-btn-error {
+  background: var(--neo-bg-active);
+  color: var(--neo-text-primary);
+}
+
+.neo-btn-error:hover {
+  background: var(--neo-error);
+  color: white;
+}
+
+.neo-btn-ghost {
+  background: transparent;
+  color: var(--neo-text-muted);
+  border: 1px solid var(--neo-border-light);
+}
+
+.neo-btn-ghost:hover {
+  background: var(--neo-bg-hover);
+  color: var(--neo-text-primary);
+  border-color: var(--neo-border-medium);
+}
+
+/* Bouton pleine largeur */
+.neo-btn-full {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Groupe de boutons */
+.neo-btn-group {
+  display: flex;
+  gap: var(--neo-spacing-sm);
+  flex-wrap: wrap;
+  margin-top: var(--neo-spacing-md);
+}
+
+.neo-btn-group-vertical {
+  flex-direction: column;
+}
+
+.neo-btn-group-center {
+  justify-content: center;
+}
+
+/* Boutons avec icônes (utilise les emojis comme dans la démo) */
+.neo-btn-copy::before { content: "📋"; margin-right: var(--neo-spacing-xs); }
+.neo-btn-reset::before { content: "🔄"; margin-right: var(--neo-spacing-xs); }
+.neo-btn-export::before { content: "📥"; margin-right: var(--neo-spacing-xs); }
+.neo-btn-save::before { content: "💾"; margin-right: var(--neo-spacing-xs); }
+.neo-btn-edit::before { content: "✏️"; margin-right: var(--neo-spacing-xs); }
+.neo-btn-delete::before { content: "🗑️"; margin-right: var(--neo-spacing-xs); }
+.neo-btn-add::before { content: "➕"; margin-right: var(--neo-spacing-xs); }
+.neo-btn-settings::before { content: "⚙️"; margin-right: var(--neo-spacing-xs); }
+
+/* ===== SEGMENTS (Toggle buttons) ===== */
+
+.neo-segment {
+  display: flex;
+  gap: var(--neo-spacing-sm);
+  background: var(--neo-bg-card);
+  border: none;
+  backdrop-filter: blur(var(--neo-blur-light));
+  -webkit-backdrop-filter: blur(var(--neo-blur-light));
+  padding: var(--neo-spacing-xs);
+  border-radius: var(--neo-radius-sm);
+}
+
+.neo-segment-btn {
+  padding: var(--neo-spacing-sm) var(--neo-spacing-md);
+  border: 1px solid transparent;
+  border-radius: var(--neo-radius-sm);
+  background: transparent;
+  color: var(--neo-text-secondary);
+  font-weight: var(--neo-font-weight-medium);
+  font-size: var(--neo-font-size-sm);
+  cursor: pointer;
+  transition: all var(--neo-transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.neo-segment-btn:hover {
+  background: var(--neo-bg-hover);
+  border-color: var(--neo-glass-border);
+  color: var(--neo-text-primary);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.neo-segment-btn.neo-active {
+  background: var(--neo-bg-active);
+  border: none;
+  color: var(--neo-text-primary);
+  box-shadow: none;
+}
+
+/* ===== FORMULAIRES ===== */
+
+.neo-form-group {
+  margin-bottom: var(--neo-spacing-lg);
+}
+
+.neo-label {
+  display: block;
+  font-weight: var(--neo-font-weight-medium);
+  color: var(--neo-text-primary);
+  margin-bottom: var(--neo-spacing-xs);
+  font-size: var(--neo-font-size-sm);
+}
+
+.neo-input,
+.neo-textarea,
+.neo-select {
+  width: 100%;
+  padding: var(--neo-spacing-md);
+  border: 1px solid var(--neo-border-light);
+  border-radius: var(--neo-radius);
+  background: var(--neo-bg-input);
+  backdrop-filter: blur(var(--neo-blur-light));
+  -webkit-backdrop-filter: blur(var(--neo-blur-light));
+  color: var(--neo-text-primary);
+  font-family: inherit;
+  font-size: var(--neo-font-size-sm);
+  line-height: var(--neo-line-height-normal);
+  transition: all var(--neo-transition-normal);
+  resize: vertical;
+}
+
+.neo-input:focus,
+.neo-textarea:focus,
+.neo-select:focus {
+  outline: none;
+  border-color: var(--neo-accent-primary);
+  box-shadow: var(--neo-shadow-focus);
+  background: var(--neo-bg-input);
+}
+
+.neo-input::placeholder,
+.neo-textarea::placeholder {
+  color: var(--neo-text-muted);
+}
+
+.neo-textarea {
+  min-height: 120px;
+  font-family: var(--neo-font-mono);
+  line-height: 1.5;
+}
+
+.neo-textarea-sm {
+  min-height: 80px;
+}
+
+.neo-textarea-lg {
+  min-height: 200px;
+}
+
+.neo-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right var(--neo-spacing-md) center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: var(--neo-spacing-2xl);
+}
+
+/* États de validation */
+.neo-input-error,
+.neo-textarea-error,
+.neo-select-error {
+  border-color: var(--neo-error);
+}
+
+.neo-input-error:focus,
+.neo-textarea-error:focus,
+.neo-select-error:focus {
+  box-shadow: 0 0 0 3px var(--neo-error-light);
+}
+
+.neo-input-success,
+.neo-textarea-success,
+.neo-select-success {
+  border-color: var(--neo-success);
+}
+
+.neo-input-success:focus,
+.neo-textarea-success:focus,
+.neo-select-success:focus {
+  box-shadow: 0 0 0 3px var(--neo-success-light);
+}
+
+.neo-form-error {
+  color: var(--neo-error);
+  font-size: var(--neo-font-size-sm);
+  margin-top: var(--neo-spacing-xs);
+}
+
+.neo-form-help {
+  color: var(--neo-text-muted);
+  font-size: var(--neo-font-size-sm);
+  margin-top: var(--neo-spacing-xs);
+}
+
+/* ===== CHECKBOX ET RADIO ===== */
+
+.neo-checkbox,
+.neo-radio {
+  display: flex;
+  align-items: center;
+  gap: var(--neo-spacing-sm);
+  margin-bottom: var(--neo-spacing-sm);
+  cursor: pointer;
+}
+
+.neo-checkbox input,
+.neo-radio input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.neo-checkbox label,
+.neo-radio label {
+  margin: 0;
+  cursor: pointer;
+  color: var(--neo-text-secondary);
+  font-size: var(--neo-font-size-sm);
+}
+
+/* ===== INFO BOXES ET ALERTES ===== */
+
+.neo-info-box {
+  background: var(--neo-bg-input);
+  border: 1px solid var(--neo-border-light);
+  border-radius: var(--neo-radius);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: var(--neo-spacing-lg);
+  margin-bottom: var(--neo-spacing-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.neo-info-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--neo-glass-highlight) 50%, transparent 100%);
+}
+
+.neo-info-box p {
+  color: var(--neo-text-primary);
+  font-weight: var(--neo-font-weight-semibold);
+  margin: 0 0 var(--neo-spacing-md) 0;
+  font-size: var(--neo-font-size-sm);
+}
+
+.neo-info-box ul {
+  margin: 0;
+  padding-left: var(--neo-spacing-xl);
+  color: var(--neo-text-secondary);
+  font-size: var(--neo-font-size-sm);
+  line-height: 1.6;
+}
+
+.neo-info-box li {
+  margin-bottom: var(--neo-spacing-sm);
+}
+
+.neo-info-box li:last-child {
+  margin-bottom: 0;
+}
+
+/* Alertes colorées */
+.neo-alert {
+  padding: var(--neo-spacing-lg);
+  border-radius: var(--neo-radius);
+  margin-bottom: var(--neo-spacing-lg);
+  border: none;
+  font-size: var(--neo-font-size-sm);
+}
+
+.neo-alert-success {
+  background: var(--neo-success-light);
+  color: var(--neo-success);
+  border-left: 4px solid var(--neo-success);
+}
+
+.neo-alert-warning {
+  background: var(--neo-warning-light);
+  color: var(--neo-warning);
+  border-left: 4px solid var(--neo-warning);
+}
+
+.neo-alert-error {
+  background: var(--neo-error-light);
+  color: var(--neo-error);
+  border-left: 4px solid var(--neo-error);
+}
+
+.neo-alert-info {
+  background: var(--neo-info-light);
+  color: var(--neo-info);
+  border-left: 4px solid var(--neo-info);
+}
+
+/* ===== LOADERS ET ANIMATIONS ===== */
+
+.neo-loader {
+  display: inline-block;
+  position: relative;
+  width: 20px;
+  height: 20px;
+  margin-right: var(--neo-spacing-sm);
+}
+
+.neo-loader::after {
+  content: " ";
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-color: currentColor transparent currentColor transparent;
+  animation: neo-spin 1.2s linear infinite;
+}
+
+.neo-loader-lg {
+  width: 40px;
+  height: 40px;
+  margin: var(--neo-spacing-xl) auto;
+}
+
+.neo-loader-lg::after {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--neo-accent-primary);
+  border-color: var(--neo-accent-primary) transparent var(--neo-accent-primary) transparent;
+}
+
+.neo-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(11, 20, 38, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--neo-radius);
+  backdrop-filter: blur(4px);
+  z-index: var(--neo-z-overlay);
+}
+
+.neo-loading-text {
+  color: var(--neo-text-primary);
+  font-size: var(--neo-font-size-sm);
+  margin-top: var(--neo-spacing-md);
+  text-align: center;
+}
+
+.neo-skeleton {
+  background: linear-gradient(90deg,
+      var(--neo-bg-secondary) 25%,
+      var(--neo-border-light) 50%,
+      var(--neo-bg-secondary) 75%);
+  background-size: 200% 100%;
+  animation: neo-shimmer 1.5s infinite;
+  border-radius: var(--neo-radius);
+}
+
+.neo-skeleton-text {
+  height: 16px;
+  margin-bottom: var(--neo-spacing-sm);
+}
+
+.neo-skeleton-btn {
+  height: 40px;
+  width: 80px;
+  display: inline-block;
+  margin-right: var(--neo-spacing-sm);
+}
+
+@keyframes neo-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.neo-btn-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.neo-btn-loading .neo-loader {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+}
+
+/* ===== DOT LOADER (comme dans la démo) ===== */
+
+.neo-dot-loader {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.neo-dot-loader div {
+  position: absolute;
+  top: 33px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--neo-accent-primary);
+  animation-timing-function: cubic-bezier(0, 1, 1, 0);
+}
+
+.neo-dot-loader div:nth-child(1) {
+  left: 8px;
+  animation: neo-dot1 0.6s infinite;
+}
+
+.neo-dot-loader div:nth-child(2) {
+  left: 8px;
+  animation: neo-dot2 0.6s infinite;
+}
+
+.neo-dot-loader div:nth-child(3) {
+  left: 32px;
+  animation: neo-dot2 0.6s infinite;
+}
+
+.neo-dot-loader div:nth-child(4) {
+  left: 56px;
+  animation: neo-dot3 0.6s infinite;
+}
+
+@keyframes neo-dot1 {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+@keyframes neo-dot3 {
+  0% { transform: scale(1); }
+  100% { transform: scale(0); }
+}
+
+@keyframes neo-dot2 {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(24px, 0); }
+}
+
+.neo-pulse-loader {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-color: var(--neo-accent-primary);
+  border-radius: 100%;
+  animation: neo-pulse-scale 1.0s infinite ease-in-out;
+}
+
+@keyframes neo-pulse-scale {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1.0);
+    opacity: 0;
+  }
+}
+
+/* ===== BADGES ET TAGS ===== */
+
+.neo-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--neo-spacing-xs) var(--neo-spacing-sm);
+  font-size: var(--neo-font-size-xs);
+  font-weight: var(--neo-font-weight-medium);
+  border-radius: var(--neo-radius-full);
+  background: var(--neo-bg-hover);
+  color: var(--neo-text-secondary);
+}
+
+.neo-badge-primary {
+  background: var(--neo-accent-primary);
+  color: white;
+}
+
+.neo-badge-success {
+  background: var(--neo-success);
+  color: white;
+}
+
+.neo-badge-warning {
+  background: var(--neo-warning);
+  color: white;
+}
+
+.neo-badge-error {
+  background: var(--neo-error);
+  color: white;
+}
+
+/* ===== PROGRESS BARS ===== */
+
+.neo-progress {
+  width: 100%;
+  height: 8px;
+  background: var(--neo-bg-secondary);
+  border-radius: var(--neo-radius-full);
+  overflow: hidden;
+}
+
+.neo-progress-bar {
+  height: 100%;
+  background: var(--neo-accent-primary);
+  border-radius: var(--neo-radius-full);
+  transition: width var(--neo-transition-normal);
+}
+
+.neo-progress-success .neo-progress-bar {
+  background: var(--neo-success);
+}
+
+.neo-progress-warning .neo-progress-bar {
+  background: var(--neo-warning);
+}
+
+.neo-progress-error .neo-progress-bar {
+  background: var(--neo-error);
+}
+
+/* ===== TABS ===== */
+
+.neo-tabs {
+  border-bottom: 1px solid var(--neo-border-light);
+}
+
+.neo-tabs-list {
+  display: flex;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.neo-tabs-trigger {
+  padding: var(--neo-spacing-md) var(--neo-spacing-lg);
+  background: transparent;
+  border: none;
+  color: var(--neo-text-muted);
+  cursor: pointer;
+  font-size: var(--neo-font-size-sm);
+  font-weight: var(--neo-font-weight-medium);
+  transition: all var(--neo-transition-fast);
+  border-bottom: 2px solid transparent;
+}
+
+.neo-tabs-trigger:hover {
+  color: var(--neo-text-primary);
+  background: var(--neo-bg-hover);
+}
+
+.neo-tabs-trigger.neo-active {
+  color: var(--neo-accent-primary);
+  border-bottom-color: var(--neo-accent-primary);
+}
+
+.neo-tabs-content {
+  padding: var(--neo-spacing-lg) 0;
+}
+
+/* ===== TOOLTIP ===== */
+
+.neo-tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.neo-tooltip-content {
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--neo-bg-secondary);
+  color: var(--neo-text-primary);
+  padding: var(--neo-spacing-sm);
+  border-radius: var(--neo-radius);
+  font-size: var(--neo-font-size-xs);
+  white-space: nowrap;
+  z-index: var(--neo-z-tooltip);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--neo-transition-fast);
+}
+
+.neo-tooltip:hover .neo-tooltip-content {
+  opacity: 1;
+}
+
+.neo-tooltip-content::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--neo-bg-secondary);
+}
+
+/* ===== DROPDOWNS ===== */
+
+.neo-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.neo-dropdown-content {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: var(--neo-bg-card);
+  border: 1px solid var(--neo-border-light);
+  border-radius: var(--neo-radius);
+  box-shadow: var(--neo-shadow-lg);
+  min-width: 200px;
+  z-index: var(--neo-z-dropdown);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all var(--neo-transition-fast);
+}
+
+.neo-dropdown.neo-active .neo-dropdown-content {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.neo-dropdown-item {
+  padding: var(--neo-spacing-sm) var(--neo-spacing-md);
+  color: var(--neo-text-secondary);
+  text-decoration: none;
+  display: block;
+  transition: all var(--neo-transition-fast);
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-size: var(--neo-font-size-sm);
+}
+
+.neo-dropdown-item:hover {
+  background: var(--neo-bg-hover);
+  color: var(--neo-text-primary);
+}

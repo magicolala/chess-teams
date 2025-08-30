@@ -5,84 +5,166 @@
 
 {% block styles %}
 	<style>
-		/* Styles spécifiques à la page de jeu - les styles principaux sont dans app.css */
-		.legacy-panel {
-			border: 1px solid #eee;
-			padding: 0.75rem;
-			border-radius: 0.5rem;
+		/* Styles spécifiques pour l'échiquier et la page de jeu */
+		.game-container {
+			display: grid;
+			grid-template-columns: 1fr 350px;
+			gap: 2rem;
+			align-items: start;
+			margin-top: 1rem;
 		}
-		.moves {
-			font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-			font-size: 0.95rem;
-		}
-		/* Override pour la compatibilité avec l'ancien layout */
-		.row {
+		.board-container {
 			display: flex;
+			flex-direction: column;
 			gap: 1rem;
-			align-items: flex-start;
+		}
+		.game-actions {
+			display: flex;
+			gap: 0.5rem;
+			flex-wrap: wrap;
+		}
+		.moves-list {
+			font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+			font-size: 0.9rem;
+			max-height: 200px;
+			overflow-y: auto;
+			padding: 0;
+			margin: 0;
+		}
+		.move-item {
+			display: flex;
+			justify-content: space-between;
+			padding: 0.25rem 0.5rem;
+			border-bottom: 1px solid var(--neo-border-color);
+		}
+		.player-list {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+			gap: 0.5rem;
+			display: flex;
+			flex-direction: column;
+		}
+		.player-item {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 0.75rem;
+			background: var(--neo-bg-secondary);
+			border-radius: 8px;
+			border: 1px solid var(--neo-border-color);
+		}
+		.player-item.current-player {
+			border-color: var(--neo-primary);
+			background: var(--neo-primary-light);
+		}
+		.player-info {
+			display: flex;
+			align-items: center;
+			gap: 0.75rem;
+		}
+		.player-details {
+			display: flex;
+			flex-direction: column;
+			gap: 0.25rem;
+		}
+		.player-name {
+			font-weight: 600;
+			color: var(--neo-text-primary);
+		}
+		.player-meta {
+			font-size: 0.8rem;
+			color: var(--neo-text-secondary);
+		}
+		.player-status {
+			display: flex;
+			gap: 0.5rem;
+			align-items: center;
+		}
+		@media (max-width: 768px) {
+			.game-container {
+				grid-template-columns: 1fr;
+				gap: 1rem;
+			}
 		}
 	</style>
 {% endblock %}
 
 {% block body %}
-	<h1>Partie</h1>
+	<div class="neo-animate-fadeIn">
+		<div class="neo-text-center neo-mb-xl">
+			<h1 class="neo-text-2xl neo-font-bold neo-text-primary">
+				♟️ Partie {{ game.id }}
+			</h1>
+		</div>
 
-	<div class="game-container chess-fade-in" data-controller="game-board game-poll" data-game-board-fen-value="{{ initial.fen }}" data-game-board-game-id-value="{{ initial.gameId }}" data-game-board-turn-team-value="{{ initial.turnTeam }}" data-game-board-status-value="{{ initial.status }}" data-game-board-deadline-ts-value="{{ initial.turnDeadline ?: 0 }}" data-game-poll-game-id-value="{{ initial.gameId }}">
-		<div class="board-container">
-			<div id="board" class="cg-wrap coordinates"></div>
-			<div class="game-actions">
-				<button class="btn demo-btn waves-effect waves-light" data-action="game-board#offerMove" data-uci="e2e4">
-					<i class="material-icons left">play_arrow</i>
-					Jouer e2e4 (démo)
-				</button>
-				<button class="btn demo-btn waves-effect waves-light" data-action="game-board#tick">
-					<i class="material-icons left">schedule</i>
-					Tick (timeout)
-				</button>
-			</div>
-			<div class="chess-panel">
-				<h3><i class="material-icons">info</i>État de la partie</h3>
-				<div class="chess-status-item">
-					<span>Tour actuel:</span>
-					<span data-game-board-target="turnTeam">{{ initial.turnTeam }}</span>
+		<div class="game-container neo-animate-slideIn" data-controller="game-board game-poll" data-game-board-fen-value="{{ initial.fen }}" data-game-board-game-id-value="{{ initial.gameId }}" data-game-board-turn-team-value="{{ initial.turnTeam }}" data-game-board-status-value="{{ initial.status }}" data-game-board-deadline-ts-value="{{ initial.turnDeadline ?: 0 }}" data-game-poll-game-id-value="{{ initial.gameId }}">
+			<div class="board-container">
+				<div id="board" class="cg-wrap coordinates"></div>
+				<div class="game-actions">
+					<button class="neo-btn neo-btn-secondary neo-btn-sm" data-action="game-board#offerMove" data-uci="e2e4">
+						▶️ Jouer e2e4 (démo)
+					</button>
+					<button class="neo-btn neo-btn-warning neo-btn-sm" data-action="game-board#tick">
+						⏰ Tick (timeout)
+					</button>
 				</div>
-				{% if currentPlayer and game.status == 'live' %}
-				<div class="chess-status-item" style="background-color: #e3f2fd;">
-					<span>Joueur actuel:</span>
-					<span>
-						{{ currentPlayer.user.displayName ?? 'Joueur' }} (Équipe {{ currentPlayer.team.name }})
-						{% if userMembership and userMembership.id == currentPlayer.id %}
-							<i class="material-icons" style="color: var(--chess-success);">star</i>
+				<div class="neo-card neo-mb-lg">
+					<div class="neo-card-header">
+						<h3 class="neo-card-title">ℹ️ État de la partie</h3>
+					</div>
+					<div class="neo-card-content">
+						<div class="neo-flex neo-justify-between neo-items-center neo-mb-sm neo-p-sm neo-bg-secondary neo-rounded">
+							<span class="neo-text-sm neo-font-medium">Tour actuel:</span>
+							<span class="neo-badge neo-badge-primary" data-game-board-target="turnTeam">{{ initial.turnTeam }}</span>
+						</div>
+						{% if currentPlayer and game.status == 'live' %}
+						<div class="neo-flex neo-justify-between neo-items-center neo-mb-sm neo-p-sm neo-bg-info neo-rounded">
+							<span class="neo-text-sm neo-font-medium">Joueur actuel:</span>
+							<span class="neo-text-sm">
+								{{ currentPlayer.user.displayName ?? 'Joueur' }} (Équipe {{ currentPlayer.team.name }})
+								{% if userMembership and userMembership.id == currentPlayer.id %}
+									⭐ 
+								{% endif %}
+							</span>
+						</div>
 						{% endif %}
-					</span>
-				</div>
-				{% endif %}
-				<div class="chess-status-item">
-					<span>Temps restant:</span>
-					<span class="chess-timer" data-game-board-target="timer">-</span>
-				</div>
-				<div class="chess-status-item">
-					<span>Statut:</span>
-					<span data-game-board-target="status">{{ initial.status }}</span>
-					<span data-game-board-target="result"></span>
+						<div class="neo-flex neo-justify-between neo-items-center neo-mb-sm neo-p-sm neo-bg-secondary neo-rounded">
+							<span class="neo-text-sm neo-font-medium">Temps restant:</span>
+							<span class="neo-text-sm neo-font-mono neo-text-warning" data-game-board-target="timer">-</span>
+						</div>
+						<div class="neo-flex neo-justify-between neo-items-center neo-p-sm neo-bg-secondary neo-rounded">
+							<span class="neo-text-sm neo-font-medium">Statut:</span>
+							<div>
+								<span class="neo-badge neo-badge-secondary" data-game-board-target="status">{{ initial.status }}</span>
+								<span data-game-board-target="result"></span>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
-		</div>
 
-		<div class="moves-panel">
-			<h3><i class="material-icons">list</i>Historique des coups</h3>
-			<ol class="moves-list" id="moves-list">
-				{% for m in moves %}
-					<li class="move-item">
-						<span class="move-notation">#{{ m.ply }}: {{ m.san ?? m.uci }}</span>
-						<span class="move-team team-{{ m.team.name|lower }}">{{ m.team.name }}</span>
-					</li>
-				{% endfor %}
-			</ol>
-		</div>
+			<div class="neo-card neo-mb-lg">
+				<div class="neo-card-header">
+					<h3 class="neo-card-title">📋 Historique des coups</h3>
+				</div>
+				<div class="neo-card-content">
+					<ol class="moves-list" id="moves-list">
+						{% for m in moves %}
+							<li class="move-item">
+								<span class="move-notation">#{{ m.ply }}: {{ m.san ?? m.uci }}</span>
+								<span class="neo-badge neo-badge-sm team-{{ m.team.name|lower }}">{{ m.team.name }}</span>
+							</li>
+						{% endfor %}
+					</ol>
+				</div>
+			</div>
 
-		<div class="teams-panel">
-			<h3><i class="material-icons">groups</i>Équipes</h3>
+			<div class="neo-card">
+				<div class="neo-card-header">
+					<h3 class="neo-card-title">👥 Équipes</h3>
+				</div>
+				<div class="neo-card-content">
 
 			<div class="team-section team-a">
 				<div class="team-header">

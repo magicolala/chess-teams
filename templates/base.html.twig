@@ -10,53 +10,69 @@
 
 		{{ importmap('app') }}
 
-		{# Materialize CSS + Material Icons #}
+		{# Google Fonts pour NeoChess Framework #}
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+		{# NeoChess CSS Framework #}
 		{% block stylesheets %}
-			<link rel="stylesheet" href="{{ asset('styles/app.css') }}">
+			<link rel="stylesheet" href="{{ asset('styles/neo-chess-framework.css') }}">
+			<link rel="stylesheet" href="{{ asset('styles/neo-components.css') }}">
+			<link rel="stylesheet" href="{{ asset('styles/neo-utilities.css') }}">
+			<link rel="stylesheet" href="{{ asset('styles/neo-responsive.css') }}">
 			<link rel="stylesheet" href="{{ asset('styles/vendor/chessground.css') }}">
-			<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-			<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+			<link rel="stylesheet" href="{{ asset('styles/app.css') }}">
 			{% block styles %}{% endblock %}
 		{% endblock %}
 	</head>
 
 	<body>
-		<header class="blue darken-2">
-			<nav class="blue darken-2">
-				<div class="nav-wrapper container">
-					<a href="{{ path('app_home') }}" class="brand-logo">Chess Teams</a>
+		<!-- Header avec design NeoChess -->
+		<div class="neo-container">
+			<header class="neo-header neo-mb-xl">
+				<div>
+					<h1 class="neo-header-title">
+						<a href="{{ path('app_home') }}" class="neo-text-primary" style="text-decoration: none;">
+							Chess Teams
+						</a>
+					</h1>
+					<span class="neo-header-info">Jeu d'échecs en équipe</span>
 				</div>
-			</nav>
-		</header>
-		<div class="container">
+			</header>
+
+			<!-- Flash Messages avec design NeoChess -->
 			{% for label, messages in app.flashes %}
 				{% for message in messages %}
-					<div class="card-panel {{ label == 'error' or label == 'danger' ? 'red lighten-4 red-text text-darken-4' : (label == 'success' ? 'green lighten-4 green-text text-darken-4' : (label == 'warning' ? 'orange lighten-4 orange-text text-darken-4' : 'blue lighten-4 blue-text text-darken-4')) }}" style="margin-top: 20px;">
-						<i class="material-icons left">
-							{%- if label == 'error' or label == 'danger' -%}error
-							{%- elseif label == 'success' -%}check_circle
-							{%- elseif label == 'warning' -%}warning
-							{%- else -%}info
-							{%- endif -%}
-						</i>
-						{{ message }}
+					<div class="neo-alert neo-alert-{{ label == 'error' or label == 'danger' ? 'error' : (label == 'success' ? 'success' : (label == 'warning' ? 'warning' : 'info')) }} neo-animate-fadeIn">
+						<strong>{{ label|capitalize }}:</strong> {{ message }}
 					</div>
 				{% endfor %}
 			{% endfor %}
-		</div>
-		<main class="container section"> {% block body %}{% endblock %}
-			</main>
 
-			{# Materialize JS #}
+			<!-- Main Content -->
+			<main> 
+				{% block body %}{% endblock %}
+			</main>
+		</div>
+
+			{# JavaScript NeoChess Framework #}
 			{% block javascripts %}
-				<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 				<script>
 					document.addEventListener('DOMContentLoaded', function () {
-const selects = document.querySelectorAll('select');
-M.FormSelect.init(selects);
-const tooltips = document.querySelectorAll('.tooltipped');
-M.Tooltip.init(tooltips);
-});
+						// NeoChess Framework JavaScript helpers
+						console.log('🎯 NeoChess Framework chargé - Chess Teams');
+						
+						// Auto-hide flash messages après 5 secondes
+						const alerts = document.querySelectorAll('.neo-alert');
+						alerts.forEach(alert => {
+							setTimeout(() => {
+								alert.style.opacity = '0';
+								alert.style.transform = 'translateY(-10px)';
+								setTimeout(() => alert.remove(), 300);
+							}, 5000);
+						});
+					});
 				</script>
 			{% endblock %}
 		</body>
