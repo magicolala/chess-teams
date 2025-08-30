@@ -78,12 +78,183 @@ function parseFEN(fen) {
   return { board, turn, castling, ep, halfmove, fullmove };
 }
 
-const PIECE_UNICODE = {
-  // Pièces blanches (style moderne)
-  'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙',
-  // Pièces noires (style contrasté) 
-  'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟'
-};
+// FlatSprites class - identical to Neo Chess Board Ts Library
+class FlatSprites {
+  constructor(size, colors) {
+    this.size = size;
+    this.colors = colors;
+    this.sheet = this.build(size);
+  }
+  
+  getSheet() {
+    return this.sheet;
+  }
+  
+  // Rounded rectangle helper
+  rr(ctx, x, y, w, h, r) {
+    const rr = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + rr, y);
+    ctx.lineTo(x + w - rr, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+    ctx.lineTo(x + w, y + h - rr);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+    ctx.lineTo(x + rr, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+    ctx.lineTo(x, y + rr);
+    ctx.quadraticCurveTo(x, y, x + rr, y);
+    ctx.closePath();
+  }
+  
+  build(px) {
+    const c = document.createElement('canvas');
+    c.width = px * 6;
+    c.height = px * 2;
+    const ctx = c.getContext('2d');
+    const order = ['k', 'q', 'r', 'b', 'n', 'p'];
+    order.forEach((t, i) => {
+      this.draw(ctx, i * px, 0, px, t, 'black');
+      this.draw(ctx, i * px, px, px, t, 'white');
+    });
+    return c;
+  }
+  
+  draw(ctx, x, y, s, type, color) {
+    const C = color === 'white' ? this.colors.whitePiece : this.colors.blackPiece;
+    const S = this.colors.pieceShadow;
+    
+    ctx.save();
+    ctx.translate(x, y);
+    
+    // Draw shadow
+    ctx.fillStyle = S;
+    ctx.beginPath();
+    ctx.ellipse(s * 0.5, s * 0.68, s * 0.28, s * 0.1, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = C;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    
+    // Base for most pieces
+    const base = () => {
+      ctx.beginPath();
+      ctx.moveTo(s * 0.2, s * 0.7);
+      ctx.quadraticCurveTo(s * 0.5, s * 0.6, s * 0.8, s * 0.7);
+      ctx.lineTo(s * 0.8, s * 0.8);
+      ctx.quadraticCurveTo(s * 0.5, s * 0.85, s * 0.2, s * 0.8);
+      ctx.closePath();
+      ctx.fill();
+    };
+    
+    // Draw pieces based on type
+    if (type === 'p') {
+      // Pawn - head
+      ctx.beginPath();
+      ctx.arc(s * 0.5, s * 0.38, s * 0.12, 0, Math.PI * 2);
+      ctx.fill();
+      // Pawn - body
+      ctx.beginPath();
+      ctx.moveTo(s * 0.38, s * 0.52);
+      ctx.quadraticCurveTo(s * 0.5, s * 0.42, s * 0.62, s * 0.52);
+      ctx.quadraticCurveTo(s * 0.64, s * 0.6, s * 0.5, s * 0.62);
+      ctx.quadraticCurveTo(s * 0.36, s * 0.6, s * 0.38, s * 0.52);
+      ctx.closePath();
+      ctx.fill();
+      base();
+    }
+    
+    if (type === 'r') {
+      // Rook - tower
+      ctx.beginPath();
+      this.rr(ctx, s * 0.32, s * 0.3, s * 0.36, s * 0.34, s * 0.04);
+      ctx.fill();
+      // Rook - crenellations
+      ctx.beginPath();
+      this.rr(ctx, s * 0.3, s * 0.22, s * 0.12, s * 0.1, s * 0.02);
+      ctx.fill();
+      ctx.beginPath();
+      this.rr(ctx, s * 0.44, s * 0.2, s * 0.12, s * 0.12, s * 0.02);
+      ctx.fill();
+      ctx.beginPath();
+      this.rr(ctx, s * 0.58, s * 0.22, s * 0.12, s * 0.1, s * 0.02);
+      ctx.fill();
+      base();
+    }
+    
+    if (type === 'n') {
+      // Knight - horse head
+      ctx.beginPath();
+      ctx.moveTo(s * 0.64, s * 0.6);
+      ctx.quadraticCurveTo(s * 0.7, s * 0.35, s * 0.54, s * 0.28);
+      ctx.quadraticCurveTo(s * 0.46, s * 0.24, s * 0.44, s * 0.3);
+      ctx.quadraticCurveTo(s * 0.42, s * 0.42, s * 0.34, s * 0.44);
+      ctx.quadraticCurveTo(s * 0.3, s * 0.46, s * 0.28, s * 0.5);
+      ctx.quadraticCurveTo(s * 0.26, s * 0.6, s * 0.38, s * 0.62);
+      ctx.closePath();
+      ctx.fill();
+      // Knight - eye
+      const C = ctx.fillStyle;
+      ctx.fillStyle = 'rgba(0,0,0,0.15)';
+      ctx.beginPath();
+      ctx.arc(s * 0.5, s * 0.36, s * 0.02, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = C;
+      base();
+    }
+    
+    if (type === 'b') {
+      // Bishop - mitre
+      ctx.beginPath();
+      ctx.ellipse(s * 0.5, s * 0.42, s * 0.12, s * 0.18, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Bishop - slit
+      const C = ctx.globalCompositeOperation;
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath();
+      ctx.moveTo(s * 0.5, s * 0.28);
+      ctx.lineTo(s * 0.5, s * 0.52);
+      ctx.lineWidth = s * 0.04;
+      ctx.stroke();
+      ctx.globalCompositeOperation = C;
+      base();
+    }
+    
+    if (type === 'q') {
+      // Queen - crown
+      ctx.beginPath();
+      ctx.moveTo(s * 0.3, s * 0.3);
+      ctx.lineTo(s * 0.4, s * 0.18);
+      ctx.lineTo(s * 0.5, s * 0.3);
+      ctx.lineTo(s * 0.6, s * 0.18);
+      ctx.lineTo(s * 0.7, s * 0.3);
+      ctx.closePath();
+      ctx.fill();
+      // Queen - body
+      ctx.beginPath();
+      ctx.ellipse(s * 0.5, s * 0.5, s * 0.16, s * 0.16, 0, 0, Math.PI * 2);
+      ctx.fill();
+      base();
+    }
+    
+    if (type === 'k') {
+      // King - cross
+      ctx.beginPath();
+      this.rr(ctx, s * 0.47, s * 0.16, s * 0.06, s * 0.16, s * 0.02);
+      ctx.fill();
+      ctx.beginPath();
+      this.rr(ctx, s * 0.4, s * 0.22, s * 0.2, s * 0.06, s * 0.02);
+      ctx.fill();
+      // King - crown
+      ctx.beginPath();
+      this.rr(ctx, s * 0.36, s * 0.34, s * 0.28, s * 0.26, s * 0.08);
+      ctx.fill();
+      base();
+    }
+    
+    ctx.restore();
+  }
+}
 
 class SimpleNeoChessBoard {
   constructor(element, options = {}) {
@@ -103,6 +274,9 @@ class SimpleNeoChessBoard {
     this.lastMove = null;
     this.dragging = null;
     this.hoverSquare = null;
+    
+    // Initialize piece sprites like in Neo Chess Board Ts Library
+    this.sprites = new FlatSprites(128, this.theme);
     
     this.initBoard();
     this.attachEvents();
@@ -252,12 +426,7 @@ class SimpleNeoChessBoard {
     const ctx = this.ctx;
     const squareSize = this.squareSize;
     
-    // Améliorer le rendu des pièces
-    ctx.save();
-    ctx.font = `${Math.floor(squareSize * 0.8)}px serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    
+    // Draw pieces using geometric sprites like Neo Chess Board Ts Library
     for (let rank = 0; rank < 8; rank++) {
       for (let file = 0; file < 8; file++) {
         const piece = this.state.board[rank][file];
@@ -267,39 +436,41 @@ class SimpleNeoChessBoard {
         if (this.dragging && this.dragging.from === square) continue;
         
         const pos = this.squareToXY(square);
-        // Centrage parfait au milieu de la case
-        const centerX = pos.x + squareSize * 0.5;
-        const centerY = pos.y + squareSize * 0.5;
-        
-        // Ombre de la pièce (légèrement décalée)
-        ctx.fillStyle = this.theme.pieceShadow;
-        ctx.fillText(PIECE_UNICODE[piece], centerX + 1.5, centerY + 1.5);
-        
-        // Pièce principale
-        ctx.fillStyle = isWhitePiece(piece) ? this.theme.whitePiece : this.theme.blackPiece;
-        ctx.fillText(PIECE_UNICODE[piece], centerX, centerY);
+        this.drawPieceSprite(piece, pos.x, pos.y, 1);
       }
     }
     
-    // Pièce en cours de drag
+    // Draw dragging piece with slightly larger scale
     if (this.dragging) {
-      const centerX = this.dragging.x;
-      const centerY = this.dragging.y;
       const piece = this.dragging.piece;
-      
-      // Légèrement plus grande pour le drag
-      ctx.font = `${Math.floor(squareSize * 0.9)}px serif`;
-      
-      // Ombre
-      ctx.fillStyle = this.theme.pieceShadow;
-      ctx.fillText(PIECE_UNICODE[piece], centerX + 2, centerY + 2);
-      
-      // Pièce
-      ctx.fillStyle = isWhitePiece(piece) ? this.theme.whitePiece : this.theme.blackPiece;
-      ctx.fillText(PIECE_UNICODE[piece], centerX, centerY);
+      const x = this.dragging.x - squareSize / 2;
+      const y = this.dragging.y - squareSize / 2;
+      this.drawPieceSprite(piece, x, y, 1.05);
     }
+  }
+  
+  drawPieceSprite(piece, x, y, scale = 1) {
+    // Piece mapping: k=0, q=1, r=2, b=3, n=4, p=5
+    const map = { k: 0, q: 1, r: 2, b: 3, n: 4, p: 5 };
+    const isWhite = isWhitePiece(piece);
+    const pieceIndex = map[piece.toLowerCase()];
     
-    ctx.restore();
+    if (pieceIndex === undefined) return;
+    
+    const spriteSize = 128; // Size used in sprite sheet
+    const sourceX = pieceIndex * spriteSize;
+    const sourceY = isWhite ? spriteSize : 0; // White pieces in bottom row, black in top
+    
+    const destSize = this.squareSize * scale;
+    const destX = x + (this.squareSize - destSize) / 2;
+    const destY = y + (this.squareSize - destSize) / 2;
+    
+    // Draw the piece sprite from the sprite sheet
+    this.ctx.drawImage(
+      this.sprites.getSheet(),
+      sourceX, sourceY, spriteSize, spriteSize, // Source rectangle
+      destX, destY, destSize, destSize // Destination rectangle
+    );
   }
 
   squareToXY(square) {
