@@ -196,4 +196,50 @@ final class GameController extends AbstractController
             'totalPlayersCount' => $out->totalPlayersCount,
         ]);
     }
+
+    // GET /games/{id}/state - Endpoint pour l'actualisation automatique
+    #[Route('/{id}/state', name: 'state', methods: ['GET'])]
+    public function state(string $id, GameRepositoryInterface $gameRepo): JsonResponse
+    {
+        try {
+            // Récupérer l'état complet de la partie
+            $gameOut = ($this->showGame)(new ShowGameInput($id));
+            $movesOut = ($this->listMoves)(new ListMovesInput($id));
+            $game = $gameRepo->get($id);
+
+            // Déterminer le joueur actuel
+            $currentPlayer = null;
+            if ('live' === $gameOut->status && $game->getCurrentMembership()) {
+                $membership = $game->getCurrentMembership();
+                $currentPlayer = [
+                    'id' => $membership->getId(),
+                    'userId' => $membership->getUser()->getId(),
+                    'displayName' => $membership->getUser()->getDisplayName(),
+                    'teamName' => $membership->getTeam()->getName(),
+                ];
+            }
+
+            return $this->json([
+                'gameId' => $gameOut->id,
+                'status' => $gameOut->status,
+                'result' => $game->getResult(),
+                'fen' => $gameOut->fen,
+                'ply' => $gameOut->ply,
+                'turnTeam' => $gameOut->turnTeam,
+                'turnDeadline' => $gameOut->turnDeadlineTs,
+                'currentPlayer' => $currentPlayer,
+                'moves' => $movesOut->moves,
+                'teams' => [
+                    'A' => $gameOut->teamA,
+                    'B' => $gameOut->teamB,
+                ],
+                'lastUpdate' => time(),
+            ]);
+        } catch (\Exception $e) {
+            return $this->json([
+                'error' => 'Impossible de récupérer l\'état de la partie',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

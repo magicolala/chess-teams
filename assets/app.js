@@ -11,6 +11,7 @@ import './styles/neo-chess-framework.css';
 import './styles/neo-components.css';
 import './styles/neo-utilities.css';
 import './styles/neo-responsive.css';
+import './styles/flash-messages.css';
 import './styles/vendor/chessground.css';
 import './styles/app.css';
 

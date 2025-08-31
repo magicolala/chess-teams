@@ -6,7 +6,6 @@ use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -27,21 +26,13 @@ class CreateTestUsersCommand extends Command
 
     protected function configure(): void
     {
-        $this
-            ->addArgument('count', InputArgument::OPTIONAL, 'How many users to create?', 10)
-        ;
+        // Pas d'argument count car on génère toujours 4 utilisateurs
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $count = (int) $input->getArgument('count');
-
-        if ($count <= 0) {
-            $io->error('The count must be a positive integer.');
-
-            return Command::INVALID;
-        }
+        $count = 4; // Toujours 4 utilisateurs
 
         // Arrays pour générer des noms variés
         $firstNames = [
@@ -61,8 +52,7 @@ class CreateTestUsersCommand extends Command
 
         for ($i = 1; $i <= $count; ++$i) {
             $user = new User();
-            $randomId = $i + random_int(1000, 9999);
-            $email = sprintf('user%d@test.io', $randomId);
+            $email = sprintf('user%d@test.com', $i); // user1@test.com, user2@test.com, etc.
 
             // Génération de noms variés
             $displayName = $this->generateDisplayName($firstNames, $chessTerms, $i);

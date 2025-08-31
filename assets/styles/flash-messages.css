@@ -1,0 +1,293 @@
+/* ============================= */
+/* MESSAGES FLASH MODERNES       */
+/* ============================= */
+
+.neo-flash-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 400px;
+    width: 100%;
+    pointer-events: none;
+}
+
+.neo-flash {
+    background: linear-gradient(135deg, rgba(30, 30, 34, 0.95), rgba(42, 42, 46, 0.95));
+    backdrop-filter: blur(16px);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+    color: #e6e9ee;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 64px;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    pointer-events: auto;
+    transform: translateX(100%) scale(0.8);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neo-flash.neo-flash-visible {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+}
+
+.neo-flash.neo-flash-hide {
+    transform: translateX(100%) scale(0.8);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.6, 0, 0.8, 1);
+}
+
+/* Types de messages */
+.neo-flash-success {
+    border-left: 4px solid #10b981;
+    background: linear-gradient(135deg, 
+        rgba(16, 185, 129, 0.1), 
+        rgba(30, 30, 34, 0.95)
+    );
+}
+
+.neo-flash-error {
+    border-left: 4px solid #ef4444;
+    background: linear-gradient(135deg, 
+        rgba(239, 68, 68, 0.1), 
+        rgba(30, 30, 34, 0.95)
+    );
+}
+
+.neo-flash-warning {
+    border-left: 4px solid #f59e0b;
+    background: linear-gradient(135deg, 
+        rgba(245, 158, 11, 0.1), 
+        rgba(30, 30, 34, 0.95)
+    );
+}
+
+.neo-flash-info {
+    border-left: 4px solid #3b82f6;
+    background: linear-gradient(135deg, 
+        rgba(59, 130, 246, 0.1), 
+        rgba(30, 30, 34, 0.95)
+    );
+}
+
+/* Contenu du message */
+.neo-flash-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    position: relative;
+    z-index: 2;
+}
+
+.neo-flash-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.neo-flash-message {
+    flex: 1;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.5;
+    color: #e6e9ee;
+    word-wrap: break-word;
+}
+
+.neo-flash-close {
+    background: none;
+    border: none;
+    color: rgba(230, 233, 238, 0.6);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    margin-top: -0.125rem;
+}
+
+.neo-flash-close:hover {
+    color: #e6e9ee;
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+.neo-flash-close:active {
+    transform: scale(0.95);
+}
+
+/* Barre de progression */
+.neo-flash-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    background: transparent;
+    z-index: 1;
+}
+
+.neo-flash-progress.neo-flash-progress-active {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3));
+    animation: flash-progress linear forwards;
+}
+
+@keyframes flash-progress {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+/* Animations d'entrée spécialisées */
+.neo-flash-success.neo-flash-visible {
+    animation: flash-bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.neo-flash-error.neo-flash-visible {
+    animation: flash-shake-in 0.6s ease-out;
+}
+
+.neo-flash-warning.neo-flash-visible {
+    animation: flash-slide-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.neo-flash-info.neo-flash-visible {
+    animation: flash-fade-in 0.4s ease-out;
+}
+
+@keyframes flash-bounce-in {
+    0% {
+        transform: translateX(100%) scale(0.3);
+        opacity: 0;
+    }
+    50% {
+        transform: translateX(-10%) scale(1.05);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes flash-shake-in {
+    0% {
+        transform: translateX(100%) rotateZ(0deg);
+        opacity: 0;
+    }
+    25% {
+        transform: translateX(0) rotateZ(-2deg);
+        opacity: 0.7;
+    }
+    50% {
+        transform: translateX(0) rotateZ(2deg);
+        opacity: 0.9;
+    }
+    75% {
+        transform: translateX(0) rotateZ(-1deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(0) rotateZ(0deg);
+        opacity: 1;
+    }
+}
+
+@keyframes flash-slide-in {
+    0% {
+        transform: translateX(100%) translateY(-10px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0) translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes flash-fade-in {
+    0% {
+        transform: translateX(50%) scale(0.8);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Effets hover globaux */
+.neo-flash:hover {
+    transform: scale(1.02) translateX(0);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.neo-flash:hover .neo-flash-progress {
+    animation-play-state: paused;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .neo-flash-container {
+        top: 0.5rem;
+        right: 0.5rem;
+        left: 0.5rem;
+        max-width: none;
+    }
+    
+    .neo-flash-content {
+        padding: 0.875rem 1rem;
+        gap: 0.75rem;
+    }
+    
+    .neo-flash-message {
+        font-size: 0.8125rem;
+    }
+    
+    .neo-flash-icon {
+        font-size: 1.125rem;
+    }
+}
+
+/* Accessibilité */
+@media (prefers-reduced-motion: reduce) {
+    .neo-flash {
+        transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    
+    .neo-flash-visible {
+        animation: none;
+    }
+    
+    .neo-flash-progress {
+        animation: none;
+    }
+}
+
+/* Mode sombre forcé */
+@media (prefers-color-scheme: dark) {
+    .neo-flash {
+        background: linear-gradient(135deg, rgba(15, 15, 19, 0.95), rgba(22, 22, 26, 0.95));
+        border-color: rgba(255, 255, 255, 0.15);
+    }
+}
+
+/* Focus states pour l'accessibilité */
+.neo-flash-close:focus {
+    outline: 2px solid rgba(79, 70, 229, 0.6);
+    outline-offset: 2px;
+}

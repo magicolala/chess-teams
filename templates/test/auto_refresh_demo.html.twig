@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Auto-Refresh</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1d23;
+            color: #e6e9ee;
+        }
+        .test-container {
+            background: #2a313a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #3a4048;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            background: #4f46e5;
+            color: white;
+        }
+        .btn:hover {
+            background: #3730a3;
+        }
+        .btn-secondary {
+            background: #6b7280;
+        }
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        .select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #3a4048;
+            background: #1a1d23;
+            color: #e6e9ee;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background: #065f46;
+            color: #34d399;
+        }
+        .content-area {
+            background: #15181d;
+            padding: 20px;
+            border-radius: 4px;
+            border: 1px solid #262a31;
+            min-height: 200px;
+        }
+        .timestamp {
+            color: #9ca3af;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .demo-content {
+            line-height: 1.6;
+        }
+        .error {
+            background: #7f1d1d;
+            color: #fca5a5;
+        }
+        .warning {
+            background: #78350f;
+            color: #fbbf24;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔄 Test Auto-Refresh Controllers</h1>
+    
+    <!-- Test du contrôleur auto-refresh général -->
+    <div class="test-container" 
+         data-controller="auto-refresh"
+         data-auto-refresh-interval-value="3000"
+         data-auto-refresh-url-value="/test/auto-refresh-content">
+        
+        <h2>1. Auto-Refresh Générique (3s)</h2>
+        
+        <div class="controls">
+            <button class="btn" data-action="auto-refresh#forceRefresh">🔄 Actualiser maintenant</button>
+            <button class="btn btn-secondary" data-action="auto-refresh#togglePause">⏸️ Pause/Reprendre</button>
+            <select class="select" data-action="auto-refresh#changeInterval">
+                <option value="1">1s</option>
+                <option value="2">2s</option>
+                <option value="3" selected>3s</option>
+                <option value="5">5s</option>
+                <option value="10">10s</option>
+            </select>
+        </div>
+        
+        <div class="status">
+            Status: <span id="auto-refresh-status">🟢 Actif</span>
+        </div>
+        
+        <div class="content-area">
+            <div class="timestamp">Dernière mise à jour: {{ "now"|date("d/m/Y H:i:s") }}</div>
+            <div class="demo-content">
+                <h3>Contenu de test</h3>
+                <p>Timestamp actuel: <strong>{{ "now"|date("H:i:s") }}</strong></p>
+                <p>Nombre aléatoire: <strong>{{ random(1, 1000) }}</strong></p>
+                <p>Ce contenu devrait être actualisé automatiquement toutes les 3 secondes.</p>
+                
+                <div style="margin-top: 15px;">
+                    <strong>Fonctionnalités testées:</strong>
+                    <ul>
+                        <li>✅ Actualisation automatique</li>
+                        <li>✅ Contrôles manuels</li>
+                        <li>✅ Changement d'intervalle</li>
+                        <li>✅ Pause/Reprendre</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Test statique pour comparaison -->
+    <div class="test-container">
+        <h2>2. Contenu Statique (pour comparaison)</h2>
+        <div class="content-area">
+            <div class="timestamp">Contenu fixe généré à: {{ "now"|date("d/m/Y H:i:s") }}</div>
+            <div class="demo-content">
+                <p>Ce contenu ne change pas. Il sert de référence pour voir la différence avec le contenu actualisé automatiquement.</p>
+                <p>Timestamp fixe: <strong>{{ "now"|date("H:i:s") }}</strong></p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Console de debug -->
+    <div class="test-container">
+        <h2>3. Console de Debug</h2>
+        <div class="content-area">
+            <p>Ouvrez les DevTools (F12) pour voir les logs de l'actualisation automatique :</p>
+            <ul>
+                <li><code>🔄 Auto-refresh générique activé</code></li>
+                <li><code>⏱️ Auto-refresh démarré toutes les 3000ms</code></li>
+                <li><code>auto-refresh:refreshed</code> (événements)</li>
+            </ul>
+            
+            <div style="margin-top: 15px;">
+                <strong>Instructions:</strong>
+                <ol>
+                    <li>Observez le timestamp qui change automatiquement</li>
+                    <li>Testez les boutons de contrôle</li>
+                    <li>Changez l'intervalle avec le sélecteur</li>
+                    <li>Mettez en pause et reprenez</li>
+                    <li>Changez d'onglet puis revenez (pause automatique)</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import des assets Symfony -->
+    {{ importmap() }}
+    
+    <script>
+        // Écouter les événements d'actualisation
+        document.addEventListener('auto-refresh:refreshed', (event) => {
+            console.log('✅ Contenu actualisé:', event.detail)
+            const status = document.getElementById('auto-refresh-status')
+            if (status) {
+                status.textContent = '🟢 Mis à jour à ' + new Date().toLocaleTimeString()
+                
+                // Réinitialiser après 2 secondes
+                setTimeout(() => {
+                    status.textContent = '🟢 Actif'
+                }, 2000)
+            }
+        })
+        
+        // Log de démarrage
+        console.log('🧪 Page de test Auto-Refresh chargée')
+        console.log('👀 Observez les logs pour suivre l\\'activité d\\'actualisation')
+    </script>
+</body>
+</html>

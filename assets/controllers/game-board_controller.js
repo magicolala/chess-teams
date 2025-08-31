@@ -647,13 +647,20 @@ export default class extends Controller {
 
         try {
             // Configuration du Neo Chess Board
+            // Déterminer l'orientation de l'échiquier selon la couleur du joueur
+            const playerColor = this.getPlayerColor()
+            const isPlayerTurn = this.isCurrentPlayerTurn()
+            
             this.board = new SimpleNeoChessBoard(boardEl, {
                 fen: this.fenValue === 'startpos' ? undefined : this.fenValue,
                 theme: 'midnight',
-                interactive: this.statusValue === 'live', // Seulement interactif si la partie est en cours
+                interactive: this.statusValue === 'live' && isPlayerTurn, // Interactif seulement si c'est le tour du joueur
                 showCoordinates: true,
-                orientation: 'white'
+                orientation: playerColor
             })
+            
+            // Ajouter overlay de grille si ce n'est pas le tour du joueur
+            this.setupBoardOverlay(isPlayerTurn)
 
             // Écouteurs d'événements Neo Chess Board
             this.board.on('move', ({ from, to, fen }) => {
@@ -840,7 +847,13 @@ export default class extends Controller {
     }
 
     getPlayerColor() {
-        return 'white'
+        // Détermine la couleur du joueur connecté basé sur son équipe
+        const userTeamElement = document.querySelector('[data-user-team]')
+        if (userTeamElement) {
+            const userTeam = userTeamElement.dataset.userTeam
+            return userTeam === 'A' ? 'white' : 'black'
+        }
+        return 'white' // Par défaut
     }
 
     async markReady() {
@@ -864,6 +877,262 @@ export default class extends Controller {
             window.location.reload()
         } else {
             this.printDebug('❌ Erreur lors du marquage comme pas prêt')
+        }
+    }
+
+    isCurrentPlayerTurn() {
+        // Vérifier si c'est le tour du joueur actuel
+        const userTeamElement = document.querySelector('[data-user-team]')
+        if (!userTeamElement) return false
+        
+        const userTeam = userTeamElement.dataset.userTeam
+        const currentTurnTeam = this.turnTeamValue
+        
+        return userTeam === currentTurnTeam
+    }
+    
+    setupBoardOverlay(isPlayerTurn) {
+        const boardEl = this.element.querySelector('#board')
+        if (!boardEl) return
+        
+        // Supprimer l'overlay existant s'il y en a un
+        const existingOverlay = boardEl.querySelector('.board-overlay')
+        if (existingOverlay) {
+            existingOverlay.remove()
+        }
+        
+        if (!isPlayerTurn && this.statusValue === 'live') {
+            // Créer l'overlay quand ce n'est pas le tour du joueur
+            const overlay = document.createElement('div')
+            overlay.className = 'board-overlay'
+            overlay.innerHTML = `
+                <div class="overlay-content">
+                    <div class="waiting-message">
+                        <i class="material-icons">hourglass_empty</i>
+                        <h3>En attente...</h3>
+                        <p>C'est au tour de l'adversaire</p>
+                    </div>
+                </div>
+            `
+            
+            // Styles pour l'overlay
+            overlay.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10;
+                border-radius: 8px;
+                backdrop-filter: blur(2px);
+            `
+            
+            const content = overlay.querySelector('.overlay-content')
+            content.style.cssText = `
+                text-align: center;
+                color: white;
+                padding: 2rem;
+            `
+            
+            const icon = overlay.querySelector('.material-icons')
+            icon.style.cssText = `
+                font-size: 3rem;
+                margin-bottom: 1rem;
+                opacity: 0.8;
+                animation: spin 2s linear infinite;
+            `
+            
+            // Ajouter l'animation de rotation
+            if (!document.querySelector('#board-overlay-styles')) {
+                const style = document.createElement('style')
+                style.id = 'board-overlay-styles'
+                style.textContent = `
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                `
+                document.head.appendChild(style)
+            }
+            
+            boardEl.appendChild(overlay)
+        } else if (isPlayerTurn && this.statusValue === 'live') {
+            // Afficher le bouton "Prêt" pour commencer le chrono rapide si nécessaire
+            this.setupReadyButton()
+        }
+    }
+    
+    setupReadyButton() {
+        const boardEl = this.element.querySelector('#board')
+        if (!boardEl) return
+        
+        // Chercher s'il y a déjà un bouton prêt
+        const existingButton = boardEl.querySelector('.center-ready-button')
+        if (existingButton) {
+            existingButton.remove()
+        }
+        
+        // Créer le bouton "Prêt" au centre de l'échiquier
+        const readyButton = document.createElement('div')
+        readyButton.className = 'center-ready-button'
+        readyButton.innerHTML = `
+            <button class="ready-center-btn" data-action="click->game-board#activateFastMode">
+                <div class="btn-content">
+                    <span class="btn-icon">⚡</span>
+                    <span class="btn-text">Prêt</span>
+                    <span class="btn-subtext">1min chrono</span>
+                </div>
+            </button>
+        `
+        
+        // Styles pour le bouton central
+        readyButton.style.cssText = `
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            pointer-events: auto;
+        `
+        
+        const button = readyButton.querySelector('.ready-center-btn')
+        button.style.cssText = `
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            border: none;
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(79, 70, 229, 0.4), 0 0 0 4px rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        `
+        
+        const content = readyButton.querySelector('.btn-content')
+        content.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            position: relative;
+            z-index: 2;
+        `
+        
+        const icon = readyButton.querySelector('.btn-icon')
+        icon.style.cssText = `
+            font-size: 2rem;
+            margin-bottom: 0.25rem;
+            animation: glow 2s ease-in-out infinite alternate;
+        `
+        
+        const text = readyButton.querySelector('.btn-text')
+        text.style.cssText = `
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 0.125rem;
+        `
+        
+        const subtext = readyButton.querySelector('.btn-subtext')
+        subtext.style.cssText = `
+            font-size: 0.7rem;
+            opacity: 0.9;
+            font-weight: 500;
+        `
+        
+        // Ajouter les animations CSS si nécessaire
+        if (!document.querySelector('#ready-button-styles')) {
+            const style = document.createElement('style')
+            style.id = 'ready-button-styles'
+            style.textContent = `
+                @keyframes glow {
+                    from { text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); }
+                    to { text-shadow: 0 0 20px rgba(255, 255, 255, 1), 0 0 30px rgba(79, 70, 229, 0.8); }
+                }
+                
+                .ready-center-btn:hover {
+                    transform: scale(1.1) rotate(5deg);
+                    box-shadow: 0 12px 40px rgba(79, 70, 229, 0.6), 0 0 0 6px rgba(255, 255, 255, 0.2);
+                }
+                
+                .ready-center-btn:active {
+                    transform: scale(0.95);
+                    transition: transform 0.1s ease;
+                }
+                
+                .ready-center-btn::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+                    animation: shine 3s infinite;
+                }
+                
+                @keyframes shine {
+                    0% { left: -100%; }
+                    100% { left: 100%; }
+                }
+            `
+            document.head.appendChild(style)
+        }
+        
+        boardEl.appendChild(readyButton)
+    }
+    
+    activateFastMode() {
+        console.debug('[game-board] Activation du mode rapide')
+        
+        // Communiquer avec le timer controller
+        const timerController = this.application.getControllerForElementAndIdentifier(
+            document.querySelector('[data-controller*="chess-timer"]'), 
+            'chess-timer'
+        )
+        
+        if (timerController) {
+            timerController.startFastMode()
+        }
+        
+        // Supprimer le bouton "Prêt" et activer l'échiquier
+        const readyButton = this.element.querySelector('.center-ready-button')
+        if (readyButton) {
+            readyButton.style.animation = 'fadeOut 0.5s ease-out forwards'
+            setTimeout(() => readyButton.remove(), 500)
+        }
+        
+        // Activer l'échiquier
+        if (this.board) {
+            this.board.setInteractive(true)
+        }
+        
+        // Notification visuelle
+        if (window.addFlashMessage) {
+            window.addFlashMessage('success', 'Mode rapide activé ! Vous avez 1 minute pour jouer.', {
+                duration: 3000
+            })
+        }
+        
+        // Ajouter animation fadeOut si nécessaire
+        if (!document.querySelector('#fade-out-animation')) {
+            const style = document.createElement('style')
+            style.id = 'fade-out-animation'
+            style.textContent = `
+                @keyframes fadeOut {
+                    from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                    to { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
+                }
+            `
+            document.head.appendChild(style)
         }
     }
 

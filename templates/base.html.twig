@@ -79,67 +79,123 @@
 						// NeoChess Framework JavaScript helpers
 						console.log('🎯 NeoChess Framework chargé - Chess Teams');
 						
-						// Gestion des messages flash flottants
+						// Gestion des messages flash flottants améliorée
 						const flashMessages = document.querySelectorAll('.neo-flash');
 						
-						// Animation d'entrée pour les messages flash
+						// Animation d'entrée pour les messages flash avec effets modernes
 						flashMessages.forEach((flash, index) => {
-							// Délai progressif pour l'affichage des messages multiples
+							// Délai progressif avec animation en cascade
 							setTimeout(() => {
 								flash.classList.add('neo-flash-visible');
-							}, index * 100);
+								flash.style.transform = 'translateX(0) scale(1)';
+								flash.style.opacity = '1';
+							}, index * 120);
 							
-							// Auto-hide après 5 secondes
+							// Auto-hide après durée variable selon le type
+							const duration = flash.classList.contains('neo-flash-error') ? 7000 : 5000;
 							setTimeout(() => {
 								hideFlashMessage(flash);
-							}, 5000 + (index * 100));
+							}, duration + (index * 120));
+							
+							// Ajouter interaction hover pour pause/resume
+							flash.addEventListener('mouseenter', () => {
+								flash.style.animationPlayState = 'paused';
+							});
+							
+							flash.addEventListener('mouseleave', () => {
+								flash.style.animationPlayState = 'running';
+							});
 						});
 						
-						// Fonction pour masquer un message flash
+						// Fonction pour masquer un message flash avec animation fluide
 						function hideFlashMessage(flash) {
 							flash.classList.remove('neo-flash-visible');
 							flash.classList.add('neo-flash-hide');
 							
+							// Animation de sortie fluide
+							flash.style.transform = 'translateX(100%) scale(0.8)';
+							flash.style.opacity = '0';
+							
 							setTimeout(() => {
 								if (flash.parentElement) {
-									flash.remove();
+									// Animation de collapse pour éviter le saut
+									flash.style.height = '0';
+									flash.style.margin = '0';
+									flash.style.padding = '0';
+									
+									setTimeout(() => flash.remove(), 200);
 								}
-							}, 300);
+							}, 400);
 						}
 						
-						// Fonction globale pour ajouter des messages flash via JavaScript
-						window.addFlashMessage = function(type, message) {
+						// Fonction globale améliorée pour ajouter des messages flash via JavaScript
+						window.addFlashMessage = function(type, message, options = {}) {
 							const container = document.getElementById('neo-flash-container');
 							if (!container) return;
 							
 							const icons = {
-								success: '✅',
-								error: '❌',
-								warning: '⚠️',
-								info: 'ℹ️'
+								success: '🎉',
+								error: '⚠️',
+								warning: '💡',
+								info: '📢'
 							};
 							
 							const flashElement = document.createElement('div');
 							flashElement.className = `neo-flash neo-flash-${type} neo-flash-show`;
+							flashElement.style.transform = 'translateX(100%) scale(0.8)';
+							flashElement.style.opacity = '0';
+							
 							flashElement.innerHTML = `
 								<div class="neo-flash-content">
-									<div class="neo-flash-icon">${icons[type] || 'ℹ️'}</div>
+									<div class="neo-flash-icon">${icons[type] || '📢'}</div>
 									<div class="neo-flash-message">${message}</div>
-									<button class="neo-flash-close" onclick="this.parentElement.parentElement.remove()">×</button>
+									<button class="neo-flash-close" onclick="hideFlashMessage(this.closest('.neo-flash'))">
+										<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+											<line x1="18" y1="6" x2="6" y2="18"></line>
+											<line x1="6" y1="6" x2="18" y2="18"></line>
+										</svg>
+									</button>
 								</div>
+								<div class="neo-flash-progress"></div>
 							`;
 							
 							container.appendChild(flashElement);
 							
-							// Animation d'entrée
+							// Animation d'entrée fluide
 							setTimeout(() => {
 								flashElement.classList.add('neo-flash-visible');
+								flashElement.style.transform = 'translateX(0) scale(1)';
+								flashElement.style.opacity = '1';
 							}, 50);
 							
-							// Auto-hide après 5 secondes
-							setTimeout(() => {
-								hideFlashMessage(flashElement);
-							}, 5000);
+							// Barre de progression automatique
+							const progressBar = flashElement.querySelector('.neo-flash-progress');
+							const duration = options.duration || (type === 'error' ? 7000 : 5000);
+							
+							if (progressBar) {
+								setTimeout(() => {
+									progressBar.style.animationDuration = `${duration}ms`;
+									progressBar.classList.add('neo-flash-progress-active');
+								}, 100);
+							}
+							
+							// Interactions
+							flashElement.addEventListener('mouseenter', () => {
+								if (progressBar) progressBar.style.animationPlayState = 'paused';
+							});
+							
+							flashElement.addEventListener('mouseleave', () => {
+								if (progressBar) progressBar.style.animationPlayState = 'running';
+							});
+							
+							// Auto-hide
+							if (!options.persistent) {
+								setTimeout(() => {
+									hideFlashMessage(flashElement);
+								}, duration);
+							}
+							
+							return flashElement;
 						};
 					});
 				</script>

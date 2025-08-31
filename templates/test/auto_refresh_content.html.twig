@@ -1,0 +1,18 @@
+<div class="timestamp">Dernière mise à jour: {{ last_update ?? "now"|date("d/m/Y H:i:s") }}</div>
+<div class="demo-content">
+    <h3>Contenu de test</h3>
+    <p>Timestamp actuel: <strong>{{ timestamp ?? "now"|date("H:i:s") }}</strong></p>
+    <p>Nombre aléatoire: <strong>{{ random_number ?? random(1, 1000) }}</strong></p>
+    <p>Compteur: <strong>{{ counter ?? 0 }}</strong></p>
+    <p>Ce contenu devrait être actualisé automatiquement toutes les 3 secondes.</p>
+    
+    <div style="margin-top: 15px;">
+        <strong>Fonctionnalités testées:</strong>
+        <ul>
+            <li>✅ Actualisation automatique</li>
+            <li>✅ Contrôles manuels</li>
+            <li>✅ Changement d'intervalle</li>
+            <li>✅ Pause/Reprendre</li>
+        </ul>
+    </div>
+</div>
