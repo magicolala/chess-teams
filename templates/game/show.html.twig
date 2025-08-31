@@ -42,7 +42,7 @@
 		}
 
 		/* Responsive pour mobile */
-		@media (max-width: 1024px) {
+		@media(max-width: 1024px) {
 			.game-layout {
 				grid-template-columns: 1fr;
 				gap: var(--neo-spacing-lg);
@@ -58,21 +58,21 @@
 			max-width: none !important;
 			max-height: none !important;
 		}
-		
+
 		/* =========================== */
 		/* STYLES PERSONNALISÉS POUR NEOCHESSBOARD */
 		/* =========================== */
-		
+
 		/* Note: NeoChessBoard utilise un Canvas, les pièces sont déjà centrées dans le code JS */
 		/* Ces styles s'appliquent aux éventuels éléments DOM de debug ou fallback */
-		
+
 		/* Style global de l'échiquier NeoChessBoard */
-#board canvas {
+		#board canvas {
 			border-radius: 8px;
 			box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 			cursor: pointer;
 		}
-		
+
 		#board canvas:hover {
 			box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
 		}
@@ -90,7 +90,7 @@
 			padding: 0;
 			margin: 0;
 		}
-.move-item {
+		.move-item {
 			display: flex;
 			justify-content: space-between;
 			padding: 0.25rem 0.5rem;
@@ -98,7 +98,7 @@
 			cursor: pointer;
 			transition: background-color 0.1s ease-in-out;
 		}
-		
+
 		.move-item:hover {
 			background-color: var(--neo-bg-hover);
 		}
@@ -110,7 +110,7 @@
 			display: flex;
 			flex-direction: column;
 		}
-.player-item {
+		.player-item {
 			display: flex;
 			justify-content: space-between;
 			align-items: center;
@@ -121,7 +121,7 @@
 			cursor: pointer;
 			transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
 		}
-		
+
 		.player-item:hover {
 			transform: translateY(-2px);
 			box-shadow: var(--neo-shadow-sm);
@@ -201,95 +201,101 @@
 		.material-icons.tiny {
 			font-size: 0.875rem;
 		}
-		@media (max-width: 768px) {
+		@media(max-width: 768px) {
 			.game-container {
 				grid-template-columns: 1fr;
 				gap: 1rem;
 			}
 		}
-	/* Force les styles de boutons pour s'assurer qu'ils s'appliquent */
-	.neo-btn {
-		padding: var(--neo-spacing-sm, 8px) var(--neo-spacing-md, 12px);
-		background: var(--neo-bg-hover, #222730);
-		border: none;
-		color: var(--neo-text-secondary, #c2c8d2);
-		border-radius: var(--neo-radius, 0px);
-		transition: all 0.15s ease;
-		font-size: var(--neo-font-size-sm, 0.875rem);
-		font-weight: var(--neo-font-weight-medium, 500);
-		cursor: pointer;
-		display: inline-flex;
-		align-items: center;
-		gap: var(--neo-spacing-sm, 8px);
-		text-decoration: none;
-		font-family: inherit;
-	}
-	.neo-btn:hover {
-		background: var(--neo-bg-active, #2a313a);
-		color: var(--neo-text-primary, #e6e9ee);
-	}
-	.neo-btn-sm {
-		padding: var(--neo-spacing-sm, 8px) var(--neo-spacing-md, 12px);
-		font-size: var(--neo-font-size-sm, 0.875rem);
-	}
-	.neo-btn-lg {
-		padding: var(--neo-spacing-md, 12px) var(--neo-spacing-xl, 24px);
-		font-size: var(--neo-font-size-lg, 1.125rem);
-	}
-	.neo-btn-full {
-		width: 100%;
-		justify-content: center;
-	}
-	.neo-btn-secondary {
-		background: var(--neo-bg-secondary, #15181d);
-		color: var(--neo-text-secondary, #c2c8d2);
-		border: 1px solid var(--neo-border-light, #262a31);
-	}
-	.neo-btn-secondary:hover {
-		background: var(--neo-bg-active, #2a313a);
-		color: var(--neo-text-primary, #e6e9ee);
-		border-color: var(--neo-border-medium, #3a4048);
-	}
-	.neo-btn-success {
-		background: var(--neo-bg-active, #2a313a);
-		color: var(--neo-text-primary, #e6e9ee);
-	}
-	.neo-btn-success:hover {
-		background: var(--neo-success, #10b981);
-		color: white;
-	}
-	.neo-btn-warning {
-		background: var(--neo-bg-active, #2a313a);
-		color: var(--neo-text-primary, #e6e9ee);
-	}
-	.neo-btn-warning:hover {
-		background: var(--neo-warning, #f59e0b);
-		color: white;
-	}
-	.neo-btn-primary {
-		background: var(--neo-bg-active, #2a313a);
-		color: var(--neo-text-primary, #e6e9ee);
-	}
-	.neo-btn-primary:hover {
-		background: var(--neo-accent-primary, #4f46e5);
-		color: white;
-	}
-	.neo-btn-error {
-		background: var(--neo-bg-active, #2a313a);
-		color: var(--neo-text-primary, #e6e9ee);
-	}
-	.neo-btn-error:hover {
-		background: var(--neo-error, #ef4444);
-		color: white;
-	}
-	.neo-btn-pulse {
-		animation: neo-pulse-success 2s infinite;
-	}
-	@keyframes neo-pulse-success {
-		0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-		70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-		100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-	}
+		/* Force les styles de boutons pour s'assurer qu'ils s'appliquent */
+		.neo-btn {
+			padding: var(--neo-spacing-sm, 8px) var(--neo-spacing-md, 12px);
+			background: var(--neo-bg-hover, #222730);
+			border: none;
+			color: var(--neo-text-secondary, #c2c8d2);
+			border-radius: var(--neo-radius, 0px);
+			transition: all 0.15s ease;
+			font-size: var(--neo-font-size-sm, 0.875rem);
+			font-weight: var(--neo-font-weight-medium, 500);
+			cursor: pointer;
+			display: inline-flex;
+			align-items: center;
+			gap: var(--neo-spacing-sm, 8px);
+			text-decoration: none;
+			font-family: inherit;
+		}
+		.neo-btn:hover {
+			background: var(--neo-bg-active, #2a313a);
+			color: var(--neo-text-primary, #e6e9ee);
+		}
+		.neo-btn-sm {
+			padding: var(--neo-spacing-sm, 8px) var(--neo-spacing-md, 12px);
+			font-size: var(--neo-font-size-sm, 0.875rem);
+		}
+		.neo-btn-lg {
+			padding: var(--neo-spacing-md, 12px) var(--neo-spacing-xl, 24px);
+			font-size: var(--neo-font-size-lg, 1.125rem);
+		}
+		.neo-btn-full {
+			width: 100%;
+			justify-content: center;
+		}
+		.neo-btn-secondary {
+			background: var(--neo-bg-secondary, #15181d);
+			color: var(--neo-text-secondary, #c2c8d2);
+			border: 1px solid var(--neo-border-light, #262a31);
+		}
+		.neo-btn-secondary:hover {
+			background: var(--neo-bg-active, #2a313a);
+			color: var(--neo-text-primary, #e6e9ee);
+			border-color: var(--neo-border-medium, #3a4048);
+		}
+		.neo-btn-success {
+			background: var(--neo-bg-active, #2a313a);
+			color: var(--neo-text-primary, #e6e9ee);
+		}
+		.neo-btn-success:hover {
+			background: var(--neo-success, #10b981);
+			color: white;
+		}
+		.neo-btn-warning {
+			background: var(--neo-bg-active, #2a313a);
+			color: var(--neo-text-primary, #e6e9ee);
+		}
+		.neo-btn-warning:hover {
+			background: var(--neo-warning, #f59e0b);
+			color: white;
+		}
+		.neo-btn-primary {
+			background: var(--neo-bg-active, #2a313a);
+			color: var(--neo-text-primary, #e6e9ee);
+		}
+		.neo-btn-primary:hover {
+			background: var(--neo-accent-primary, #4f46e5);
+			color: white;
+		}
+		.neo-btn-error {
+			background: var(--neo-bg-active, #2a313a);
+			color: var(--neo-text-primary, #e6e9ee);
+		}
+		.neo-btn-error:hover {
+			background: var(--neo-error, #ef4444);
+			color: white;
+		}
+		.neo-btn-pulse {
+			animation: neo-pulse-success 2s infinite;
+		}
+		@keyframes neo-pulse-success {
+			0% {
+				box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+			}
+			70% {
+				box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+			}
+			100% {
+				box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+			}
+		}
 	</style>
 {% endblock %}
 
@@ -297,11 +303,13 @@
 	<div class="neo-animate-fadeIn">
 		<div class="neo-text-center neo-mb-xl">
 			<h1 class="neo-text-2xl neo-font-bold neo-text-primary">
-				♟️ Partie {{ game.id }}
+				♟️ Partie
+				{{ game.id }}
 			</h1>
 		</div>
 
-		<div class="game-layout neo-animate-slideIn" data-controller="game-board game-poll" data-game-board-fen-value="{{ initial.fen }}" data-game-board-game-id-value="{{ initial.gameId }}" data-game-board-turn-team-value="{{ initial.turnTeam }}" data-game-board-status-value="{{ initial.status }}" data-game-board-deadline-ts-value="{{ initial.turnDeadline ?: 0 }}" data-game-poll-game-id-value="{{ initial.gameId }}">
+		<div
+			class="game-layout neo-animate-slideIn" data-controller="game-board game-poll" data-game-board-fen-value="{{ initial.fen }}" data-game-board-game-id-value="{{ initial.gameId }}" data-game-board-turn-team-value="{{ initial.turnTeam }}" data-game-board-status-value="{{ initial.status }}" data-game-board-deadline-ts-value="{{ initial.turnDeadline ?: 0 }}" data-game-poll-game-id-value="{{ initial.gameId }}">
 			<!-- Section de gauche: Échiquier + Actions -->
 			<div class="board-section">
 				<div id="board" class="cg-wrap coordinates"></div>
@@ -327,15 +335,17 @@
 							<span class="neo-badge neo-badge-primary" data-game-board-target="turnTeam">{{ initial.turnTeam }}</span>
 						</div>
 						{% if currentPlayer and game.status == 'live' %}
-						<div class="neo-flex neo-justify-between neo-items-center neo-mb-sm neo-p-sm neo-bg-info neo-rounded">
-							<span class="neo-text-sm neo-font-medium">Joueur actuel:</span>
-							<span class="neo-text-sm">
-								{{ currentPlayer.user.displayName ?? 'Joueur' }} (Équipe {{ currentPlayer.team.name }})
-								{% if userMembership and userMembership.id == currentPlayer.id %}
-									⭐ 
-								{% endif %}
-							</span>
-						</div>
+							<div class="neo-flex neo-justify-between neo-items-center neo-mb-sm neo-p-sm neo-bg-info neo-rounded">
+								<span class="neo-text-sm neo-font-medium">Joueur actuel:</span>
+								<span class="neo-text-sm">
+									{{ currentPlayer.user.displayName ?? 'Joueur' }}
+									(Équipe
+									{{ currentPlayer.team.name }})
+									{% if userMembership and userMembership.id == currentPlayer.id %}
+										⭐
+									{% endif %}
+								</span>
+							</div>
 						{% endif %}
 						<div class="neo-flex neo-justify-between neo-items-center neo-mb-sm neo-p-sm neo-bg-secondary neo-rounded">
 							<span class="neo-text-sm neo-font-medium">Temps restant:</span>
@@ -359,7 +369,8 @@
 						<ol class="moves-list" id="moves-list">
 							{% for m in moves %}
 								<li class="move-item">
-									<span class="move-notation">#{{ m.ply }}: {{ m.san ?? m.uci }}</span>
+									<span class="move-notation">#{{ m.ply }}:
+										{{ m.san ?? m.uci }}</span>
 									<span class="neo-badge neo-badge-sm team-{{ m.team.name|lower }}">{{ m.team.name }}</span>
 								</li>
 							{% endfor %}
@@ -373,230 +384,237 @@
 					</div>
 					<div class="neo-card-content">
 
-			<div class="team-section team-a">
-				<div class="team-header">
-					<i class="material-icons">group</i>
-					<span class="team-badge">Équipe A</span>
-					<span class="team-count">{{ teamA.members|length }} joueur{{ teamA.members|length > 1 ? 's' : '' }}</span>
-				</div>
-				{% if teamA and teamA.members|length > 0 %}
-					<ul class="player-list">
-					{% for member in teamA.members %}
-						<li class="player-item{% if currentPlayer and currentPlayer.id == member.id %} current-player{% endif %}">
-							<div class="player-info">
-								<div class="player-avatar">
-									<i class="material-icons">{{ member.user.displayName ? 'account_circle' : 'person_outline' }}</i>
+						<div class="team-section team-a">
+							<div class="team-header">
+								<i class="material-icons">group</i>
+								<span class="team-badge">Équipe A</span>
+								<span class="team-count">{{ teamA.members|length }}
+									joueur{{ teamA.members|length > 1 ? 's' : '' }}</span>
+							</div>
+							{% if teamA and teamA.members|length > 0 %}
+								<ul class="player-list">
+									{% for member in teamA.members %}
+										<li class="player-item{% if currentPlayer and currentPlayer.id == member.id %} current-player{% endif %}">
+											<div class="player-info">
+												<div class="player-avatar">
+													<i class="material-icons">{{ member.user.displayName ? 'account_circle' : 'person_outline' }}</i>
+												</div>
+												<div class="player-details">
+													<span class="player-name">
+														{{ member.user.displayName ?? ('Joueur #' ~ loop.index) }}
+													</span>
+													<span class="player-meta">
+														<i class="material-icons tiny">schedule</i>
+														Rejoint
+														{{ member.joinedAt|date('d/m à H:i') }}
+														{% if member.position > 0 %}
+															• Position
+															{{ member.position }}
+														{% endif %}
+													</span>
+												</div>
+											</div>
+											<div class="player-status">
+												{% if currentPlayer and currentPlayer.id == member.id %}
+													<span class="status-current">
+														<i class="material-icons">play_arrow</i>
+														À son tour
+													</span>
+												{% elseif member.isReadyToStart %}
+													<span class="status-ready">
+														<i class="material-icons">check_circle</i>
+														Prêt
+													</span>
+												{% else %}
+													<span class="status-waiting">
+														<i class="material-icons">hourglass_empty</i>
+														En attente
+													</span>
+												{% endif %}
+												{% if userMembership and userMembership.id == member.id %}
+													<span class="status-you">
+														<i class="material-icons">star</i>
+														Vous
+													</span>
+												{% endif %}
+											</div>
+										</li>
+									{% endfor %}
+								</ul>
+							{% else %}
+								<div class="empty-team">
+									<i class="material-icons">group_add</i>
+									<p>Aucun joueur dans cette équipe</p>
 								</div>
-								<div class="player-details">
-									<span class="player-name">
-										{{ member.user.displayName ?? ('Joueur #' ~ loop.index) }}
-									</span>
-									<span class="player-meta">
-										<i class="material-icons tiny">schedule</i>
-										Rejoint {{ member.joinedAt|date('d/m à H:i') }}
-										{% if member.position > 0 %}
-											• Position {{ member.position }}
-										{% endif %}
-									</span>
+							{% endif %}
+							{% if is_granted('IS_AUTHENTICATED_FULLY') and not userMembership and game.status == 'lobby' %}
+								<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" class="neo-animate-slideIn">
+									<input type="hidden" name="_token" value="{{ csrf_token('join-team-' ~ game.id ~ '-A') }}">
+									<input type="hidden" name="team" value="A">
+									<button type="submit" class="neo-btn neo-btn-primary neo-btn-full neo-mt-sm">
+										<i class="material-icons" style="margin-right: 0.5rem;">group_add</i>
+										Rejoindre l'équipe A
+									</button>
+								</form>
+							{% elseif userMembership and userMembership.team.name == 'TeamA' %}
+								<div class="neo-alert neo-alert-success neo-mt-sm">
+									<i class="material-icons" style="margin-right: 0.5rem;">check_circle</i>
+									<span>Vous êtes dans cette équipe</span>
 								</div>
-							</div>
-							<div class="player-status">
-								{% if currentPlayer and currentPlayer.id == member.id %}
-									<span class="status-current">
-										<i class="material-icons">play_arrow</i>
-										À son tour
-									</span>
-								{% elseif member.isReadyToStart %}
-									<span class="status-ready">
-										<i class="material-icons">check_circle</i>
-										Prêt
-									</span>
-								{% else %}
-									<span class="status-waiting">
-										<i class="material-icons">hourglass_empty</i>
-										En attente
-									</span>
-								{% endif %}
-								{% if userMembership and userMembership.id == member.id %}
-									<span class="status-you">
-										<i class="material-icons">star</i>
-										Vous
-									</span>
-								{% endif %}
-							</div>
-						</li>
-					{% endfor %}
-					</ul>
-				{% else %}
-					<div class="empty-team">
-						<i class="material-icons">group_add</i>
-						<p>Aucun joueur dans cette équipe</p>
-					</div>
-				{% endif %}
-				{% if is_granted('IS_AUTHENTICATED_FULLY') and not userMembership and game.status == 'lobby' %}
-					<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" class="neo-animate-slideIn">
-						<input type="hidden" name="_token" value="{{ csrf_token('join-team-' ~ game.id ~ '-A') }}">
-						<input type="hidden" name="team" value="A">
-						<button type="submit" class="neo-btn neo-btn-primary neo-btn-full neo-mt-sm">
-							<i class="material-icons" style="margin-right: 0.5rem;">group_add</i>
-							Rejoindre l'équipe A
-						</button>
-					</form>
-				{% elseif userMembership and userMembership.team.name == 'TeamA' %}
-					<div class="neo-alert neo-alert-success neo-mt-sm">
-						<i class="material-icons" style="margin-right: 0.5rem;">check_circle</i>
-						<span>Vous êtes dans cette équipe</span>
-					</div>
-				{% endif %}
-			</div>
-
-			<div class="team-section team-b">
-				<div class="team-header">
-					<i class="material-icons">group</i>
-					<span class="team-badge">Équipe B</span>
-					<span class="team-count">{{ teamB.members|length }} joueur{{ teamB.members|length > 1 ? 's' : '' }}</span>
-				</div>
-				{% if teamB and teamB.members|length > 0 %}
-					<ul class="player-list">
-					{% for member in teamB.members %}
-						<li class="player-item{% if currentPlayer and currentPlayer.id == member.id %} current-player{% endif %}">
-							<div class="player-info">
-								<div class="player-avatar">
-									<i class="material-icons">{{ member.user.displayName ? 'account_circle' : 'person_outline' }}</i>
-								</div>
-								<div class="player-details">
-									<span class="player-name">
-										{{ member.user.displayName ?? ('Joueur #' ~ loop.index) }}
-									</span>
-									<span class="player-meta">
-										<i class="material-icons tiny">schedule</i>
-										Rejoint {{ member.joinedAt|date('d/m à H:i') }}
-										{% if member.position > 0 %}
-											• Position {{ member.position }}
-										{% endif %}
-									</span>
-								</div>
-							</div>
-							<div class="player-status">
-								{% if currentPlayer and currentPlayer.id == member.id %}
-									<span class="status-current">
-										<i class="material-icons">play_arrow</i>
-										À son tour
-									</span>
-								{% elseif member.isReadyToStart %}
-									<span class="status-ready">
-										<i class="material-icons">check_circle</i>
-										Prêt
-									</span>
-								{% else %}
-									<span class="status-waiting">
-										<i class="material-icons">hourglass_empty</i>
-										En attente
-									</span>
-								{% endif %}
-								{% if userMembership and userMembership.id == member.id %}
-									<span class="status-you">
-										<i class="material-icons">star</i>
-										Vous
-									</span>
-								{% endif %}
-							</div>
-						</li>
-					{% endfor %}
-					</ul>
-				{% else %}
-					<div class="empty-team">
-						<i class="material-icons">group_add</i>
-						<p>Aucun joueur dans cette équipe</p>
-					</div>
-				{% endif %}
-				{% if is_granted('IS_AUTHENTICATED_FULLY') and not userMembership and game.status == 'lobby' %}
-					<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" class="neo-animate-slideIn">
-						<input type="hidden" name="_token" value="{{ csrf_token('join-team-' ~ game.id ~ '-B') }}">
-						<input type="hidden" name="team" value="B">
-						<button type="submit" class="neo-btn neo-btn-error neo-btn-full neo-mt-sm">
-							<i class="material-icons" style="margin-right: 0.5rem;">group_add</i>
-							Rejoindre l'équipe B
-						</button>
-					</form>
-				{% elseif userMembership and userMembership.team.name == 'TeamB' %}
-					<div class="neo-alert neo-alert-success neo-mt-sm">
-						<i class="material-icons" style="margin-right: 0.5rem;">check_circle</i>
-						<span>Vous êtes dans cette équipe</span>
-					</div>
-				{% endif %}
-			</div>
-
-					{% if game.invite %}
-						<div class="neo-card neo-mt-lg">
-							<div class="neo-card-header">
-								<h3 class="neo-card-title">
-									<i class="material-icons" style="margin-right: 0.5rem;">share</i>
-									Partage
-								</h3>
-							</div>
-							<div class="neo-card-content">
-								<div class="neo-flex neo-justify-between neo-items-center neo-mb-sm neo-p-sm neo-bg-secondary neo-rounded">
-									<span class="neo-text-sm neo-font-medium">Code d'invitation:</span>
-									<code class="neo-code">{{ game.invite.code }}</code>
-								</div>
-								<a href="{{ path('app_game_show_page', {'id': game.id}) }}" class="neo-btn neo-btn-primary neo-btn-sm neo-mt-sm">
-									<i class="material-icons" style="margin-right: 0.25rem;">link</i>
-									Partager la page
-								</a>
-							</div>
+							{% endif %}
 						</div>
-					{% endif %}
 
-					{# Actions utilisateur #}
-					<div style="margin-top: 1rem;">
-						{# Boutons Prêt/Pas prêt avec AJAX #}
-						{% if is_granted('IS_AUTHENTICATED_FULLY') and userMembership and game.status == 'lobby' %}
-							<div class="neo-animate-slideIn">
-								{% if userMembership.isReadyToStart %}
-									<button data-action="game-board#markNotReady" class="neo-btn neo-btn-warning neo-btn-lg neo-btn-full">
-										<i class="material-icons" style="margin-right: 0.5rem;">pause</i>
-										Je ne suis plus prêt
+						<div class="team-section team-b">
+							<div class="team-header">
+								<i class="material-icons">group</i>
+								<span class="team-badge">Équipe B</span>
+								<span class="team-count">{{ teamB.members|length }}
+									joueur{{ teamB.members|length > 1 ? 's' : '' }}</span>
+							</div>
+							{% if teamB and teamB.members|length > 0 %}
+								<ul class="player-list">
+									{% for member in teamB.members %}
+										<li class="player-item{% if currentPlayer and currentPlayer.id == member.id %} current-player{% endif %}">
+											<div class="player-info">
+												<div class="player-avatar">
+													<i class="material-icons">{{ member.user.displayName ? 'account_circle' : 'person_outline' }}</i>
+												</div>
+												<div class="player-details">
+													<span class="player-name">
+														{{ member.user.displayName ?? ('Joueur #' ~ loop.index) }}
+													</span>
+													<span class="player-meta">
+														<i class="material-icons tiny">schedule</i>
+														Rejoint
+														{{ member.joinedAt|date('d/m à H:i') }}
+														{% if member.position > 0 %}
+															• Position
+															{{ member.position }}
+														{% endif %}
+													</span>
+												</div>
+											</div>
+											<div class="player-status">
+												{% if currentPlayer and currentPlayer.id == member.id %}
+													<span class="status-current">
+														<i class="material-icons">play_arrow</i>
+														À son tour
+													</span>
+												{% elseif member.isReadyToStart %}
+													<span class="status-ready">
+														<i class="material-icons">check_circle</i>
+														Prêt
+													</span>
+												{% else %}
+													<span class="status-waiting">
+														<i class="material-icons">hourglass_empty</i>
+														En attente
+													</span>
+												{% endif %}
+												{% if userMembership and userMembership.id == member.id %}
+													<span class="status-you">
+														<i class="material-icons">star</i>
+														Vous
+													</span>
+												{% endif %}
+											</div>
+										</li>
+									{% endfor %}
+								</ul>
+							{% else %}
+								<div class="empty-team">
+									<i class="material-icons">group_add</i>
+									<p>Aucun joueur dans cette équipe</p>
+								</div>
+							{% endif %}
+							{% if is_granted('IS_AUTHENTICATED_FULLY') and not userMembership and game.status == 'lobby' %}
+								<form method="post" action="{{ path('app_game_join', {id: game.id}) }}" class="neo-animate-slideIn">
+									<input type="hidden" name="_token" value="{{ csrf_token('join-team-' ~ game.id ~ '-B') }}">
+									<input type="hidden" name="team" value="B">
+									<button type="submit" class="neo-btn neo-btn-error neo-btn-full neo-mt-sm">
+										<i class="material-icons" style="margin-right: 0.5rem;">group_add</i>
+										Rejoindre l'équipe B
 									</button>
-								{% else %}
-									<button data-action="game-board#markReady" class="neo-btn neo-btn-success neo-btn-lg neo-btn-full neo-btn-pulse">
-										<i class="material-icons" style="margin-right: 0.5rem;">check</i>
-										Je suis prêt !
-									</button>
-								{% endif %}
+								</form>
+							{% elseif userMembership and userMembership.team.name == 'TeamB' %}
+								<div class="neo-alert neo-alert-success neo-mt-sm">
+									<i class="material-icons" style="margin-right: 0.5rem;">check_circle</i>
+									<span>Vous êtes dans cette équipe</span>
+								</div>
+							{% endif %}
+						</div>
+
+						{% if game.invite %}
+							<div class="neo-card neo-mt-lg">
+								<div class="neo-card-header">
+									<h3 class="neo-card-title">
+										<i class="material-icons" style="margin-right: 0.5rem;">share</i>
+										Partage
+									</h3>
+								</div>
+								<div class="neo-card-content">
+									<div class="neo-flex neo-justify-between neo-items-center neo-mb-sm neo-p-sm neo-bg-secondary neo-rounded">
+										<span class="neo-text-sm neo-font-medium">Code d'invitation:</span>
+										<code class="neo-code">{{ game.invite.code }}</code>
+									</div>
+									<a href="{{ path('app_game_show_page', {'id': game.id}) }}" class="neo-btn neo-btn-primary neo-btn-sm neo-mt-sm">
+										<i class="material-icons" style="margin-right: 0.25rem;">link</i>
+										Partager la page
+									</a>
+								</div>
 							</div>
 						{% endif %}
 
-						{# Bouton Démarrer la partie (pour le créateur) #}
-						{% if is_granted('IS_AUTHENTICATED_FULLY') and isCreator and canStart %}
-							<form method="post" action="{{ path('app_game_start_game', {id: game.id}) }}" class="neo-animate-slideIn" style="margin-top: 0.5rem;">
-								<input type="hidden" name="_token" value="{{ csrf_token('start-game-' ~ game.id) }}">
-								<button type="submit" class="neo-btn neo-btn-primary neo-btn-lg neo-btn-full neo-btn-pulse">
-									<i class="material-icons" style="margin-right: 0.5rem;">play_arrow</i>
-									Démarrer la partie
-								</button>
-							</form>
-						{% endif %}
-					</div>
+						{# Actions utilisateur #}
+						<div
+							style="margin-top: 1rem;">
+							{# Boutons Prêt/Pas prêt avec AJAX #}
+							{% if is_granted('IS_AUTHENTICATED_FULLY') and userMembership and game.status == 'lobby' %}
+								<div class="neo-animate-slideIn">
+									{% if userMembership.isReadyToStart %}
+										<button data-action="game-board#markNotReady" class="neo-btn neo-btn-warning neo-btn-lg neo-btn-full">
+											<i class="material-icons" style="margin-right: 0.5rem;">pause</i>
+											Je ne suis plus prêt
+										</button>
+									{% else %}
+										<button data-action="game-board#markReady" class="neo-btn neo-btn-success neo-btn-lg neo-btn-full neo-btn-pulse">
+											<i class="material-icons" style="margin-right: 0.5rem;">check</i>
+											Je suis prêt !
+										</button>
+									{% endif %}
+								</div>
+							{% endif %}
 
-					{# Messages d'état #}
-					{% if game.status == 'lobby' and not allReady %}
-						<div class="neo-alert neo-alert-info neo-mt-lg">
-							<i class="material-icons" style="margin-right: 0.5rem;">info</i>
-							<span>En attente que tous les joueurs soient prêts</span>
+							{# Bouton Démarrer la partie (pour le créateur) #}
+							{% if is_granted('IS_AUTHENTICATED_FULLY') and isCreator and canStart %}
+								<form method="post" action="{{ path('app_game_start_game', {id: game.id}) }}" class="neo-animate-slideIn" style="margin-top: 0.5rem;">
+									<input type="hidden" name="_token" value="{{ csrf_token('start-game-' ~ game.id) }}">
+									<button type="submit" class="neo-btn neo-btn-primary neo-btn-lg neo-btn-full neo-btn-pulse">
+										<i class="material-icons" style="margin-right: 0.5rem;">play_arrow</i>
+										Démarrer la partie
+									</button>
+								</form>
+							{% endif %}
 						</div>
-					{% elseif game.status == 'waiting' and not isCreator %}
-						<div class="neo-alert neo-alert-warning neo-mt-lg">
-							<i class="material-icons" style="margin-right: 0.5rem;">hourglass_empty</i>
-							<span>En attente que le créateur démarre la partie</span>
-						</div>
-					{% endif %}
+
+						{# Messages d'état #}
+						{% if game.status == 'lobby' and not allReady %}
+							<div class="neo-alert neo-alert-info neo-mt-lg">
+								<i class="material-icons" style="margin-right: 0.5rem;">info</i>
+								<span>En attente que tous les joueurs soient prêts</span>
+							</div>
+						{% elseif game.status == 'waiting' and not isCreator %}
+							<div class="neo-alert neo-alert-warning neo-mt-lg">
+								<i class="material-icons" style="margin-right: 0.5rem;">hourglass_empty</i>
+								<span>En attente que le créateur démarre la partie</span>
+							</div>
+						{% endif %}
 
 
 					</div>
 				</div>
 			</div>
-		</div>
 		</div>
 	</div>
-{% endblock %}
+</div>{% endblock %}
+
