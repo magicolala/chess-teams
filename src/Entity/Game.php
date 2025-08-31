@@ -8,10 +8,10 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: GameRepository::class)]
 class Game
 {
-    public const STATUS_LOBBY   = 'lobby';
+    public const STATUS_LOBBY = 'lobby';
     public const STATUS_WAITING = 'waiting';
-    public const STATUS_LIVE    = 'live';
-    public const STATUS_DONE    = 'done';
+    public const STATUS_LIVE = 'live';
+    public const STATUS_DONE = 'done';
 
     public const TEAM_A = 'A';
     public const TEAM_B = 'B';
@@ -63,7 +63,7 @@ class Game
     public function __construct()
     {
         // UUID en texte (SQLite-friendly)
-        $this->id        = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
+        $this->id = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
         $this->createdAt = new \DateTimeImmutable();
     }
 

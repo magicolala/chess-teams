@@ -16,4 +16,6 @@ return (new PhpCsFixer\Config())
         'no_unused_imports' => true,
     ])
     ->setFinder($finder)
+    ->setRiskyAllowed(true)
+    ->setCacheFile(__DIR__.'/.php-cs-fixer.cache')
 ;

@@ -23,14 +23,14 @@ final class JoinByCodeHandlerTest extends TestCase
 {
     public function testJoinAssignsToSmallerTeamAndReturnsPosition(): void
     {
-        $invRepo  = $this->createMock(InviteRepositoryInterface::class);
+        $invRepo = $this->createMock(InviteRepositoryInterface::class);
         $teamRepo = $this->createMock(TeamRepositoryInterface::class);
-        $memRepo  = $this->createMock(TeamMemberRepositoryInterface::class);
-        $em       = $this->createMock(EntityManagerInterface::class);
+        $memRepo = $this->createMock(TeamMemberRepositoryInterface::class);
+        $em = $this->createMock(EntityManagerInterface::class);
 
         $handler = new JoinByCodeHandler($invRepo, $teamRepo, $memRepo, $em);
 
-        $game  = (new Game())->setStatus(Game::STATUS_LOBBY);
+        $game = (new Game())->setStatus(Game::STATUS_LOBBY);
         $teamA = new Team($game, Team::NAME_A);
         $teamB = new Team($game, Team::NAME_B);
 

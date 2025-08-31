@@ -27,11 +27,11 @@ final class TimeoutTickHandlerTest extends TestCase
 {
     public function testAppliesTimeoutAndSwitchesTeam(): void
     {
-        $games   = $this->createMock(GameRepositoryInterface::class);
-        $teams   = $this->createMock(TeamRepositoryInterface::class);
+        $games = $this->createMock(GameRepositoryInterface::class);
+        $teams = $this->createMock(TeamRepositoryInterface::class);
         $members = $this->createMock(TeamMemberRepositoryInterface::class);
-        $moves   = $this->createMock(MoveRepositoryInterface::class);
-        $em      = $this->createMock(EntityManagerInterface::class);
+        $moves = $this->createMock(MoveRepositoryInterface::class);
+        $em = $this->createMock(EntityManagerInterface::class);
 
         $lock = $this->createMock(LockInterface::class);
         $lock->method('acquire')->willReturn(true);

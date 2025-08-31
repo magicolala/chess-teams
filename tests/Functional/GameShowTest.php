@@ -21,8 +21,8 @@ final class GameShowTest extends WebTestCase
     public function testShowGameReturnsState(): void
     {
         $client = self::createClient();
-        $c      = self::getContainer();
-        $em     = $c->get('doctrine')->getManager();
+        $c = self::getContainer();
+        $em = $c->get('doctrine')->getManager();
 
         // users
         $u1 = new User();
@@ -38,7 +38,7 @@ final class GameShowTest extends WebTestCase
         // create game
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out    = $create(new CreateGameInput($u1->getId() ?? 'x', 60, 'private'), $u1);
+        $out = $create(new CreateGameInput($u1->getId() ?? 'x', 60, 'private'), $u1);
 
         $game = $em->getRepository(\App\Entity\Game::class)->find($out->gameId);
         /** @var TeamRepositoryInterface $teams */

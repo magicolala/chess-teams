@@ -39,13 +39,13 @@ class TeamMember
 
     public function __construct(Team $team, User $user, int $position)
     {
-        $this->id       = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
-        $this->game     = $team->getGame();
-        $this->team     = $team;
-        $this->user     = $user;
+        $this->id = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
+        $this->game = $team->getGame();
+        $this->team = $team;
+        $this->user = $user;
         $this->position = $position;
         $this->joinedAt = new \DateTimeImmutable();
-        $this->active   = true;
+        $this->active = true;
     }
 
     public function getId(): string

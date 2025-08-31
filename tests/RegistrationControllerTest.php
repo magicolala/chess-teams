@@ -25,7 +25,7 @@ final class RegistrationControllerTest extends WebTestCase
         $container = self::getContainer();
 
         /** @var EntityManager $em */
-        $em                   = $container->get('doctrine')->getManager();
+        $em = $container->get('doctrine')->getManager();
         $this->userRepository = $container->get(UserRepository::class);
 
         foreach ($this->userRepository->findAll() as $user) {
@@ -43,10 +43,10 @@ final class RegistrationControllerTest extends WebTestCase
         self::assertPageTitleContains('Créer un compte');
 
         $this->client->submitForm('🎆 Créer mon compte', [
-            'registration_form[email]'         => 'me@example.com',
-            'registration_form[displayName]'   => 'TestUser123',
+            'registration_form[email]' => 'me@example.com',
+            'registration_form[displayName]' => 'TestUser123',
             'registration_form[plainPassword]' => 'password',
-            'registration_form[agreeTerms]'    => true,
+            'registration_form[agreeTerms]' => true,
         ]);
 
         // Ensure the response redirects after submitting the form, the user exists, and is not verified

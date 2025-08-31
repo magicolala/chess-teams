@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(columns: ['game_id', 'ply'])]
 class Move
 {
-    public const TYPE_NORMAL  = 'normal';
+    public const TYPE_NORMAL = 'normal';
     public const TYPE_TIMEOUT = 'timeout-pass';
 
     #[ORM\Id]
@@ -46,9 +46,9 @@ class Move
 
     public function __construct(Game $g, int $ply)
     {
-        $this->id        = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
-        $this->game      = $g;
-        $this->ply       = $ply;
+        $this->id = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
+        $this->game = $g;
+        $this->ply = $ply;
         $this->createdAt = new \DateTimeImmutable();
     }
 

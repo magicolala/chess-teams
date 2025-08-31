@@ -39,10 +39,10 @@ final class ShowGameHandler
             $u = $m->getUser();
 
             return [
-                'userId'      => method_exists($u, 'getId') ? $u->getId() : null,
+                'userId' => method_exists($u, 'getId') ? $u->getId() : null,
                 'displayName' => method_exists($u, 'getDisplayName') ? $u->getDisplayName() : null,
-                'position'    => $m->getPosition(),
-                'ready'       => $m->isReadyToStart(),
+                'position' => $m->getPosition(),
+                'ready' => $m->isReadyToStart(),
             ];
         }, $arr);
 

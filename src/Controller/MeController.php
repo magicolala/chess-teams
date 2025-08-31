@@ -16,11 +16,11 @@ final class MeController extends AbstractController
         $user = $this->getUser();
 
         return $this->json([
-            'id'          => method_exists($user, 'getId') ? $user->getId() : null,
-            'email'       => $user->getUserIdentifier(),
+            'id' => method_exists($user, 'getId') ? $user->getId() : null,
+            'email' => $user->getUserIdentifier(),
             'displayName' => method_exists($user, 'getDisplayName') ? $user->getDisplayName() : null,
-            'roles'       => $user->getRoles(),
-            'createdAt'   => method_exists($user, 'getCreatedAt') ? $user->getCreatedAt()->format(DATE_ATOM) : null,
+            'roles' => $user->getRoles(),
+            'createdAt' => method_exists($user, 'getCreatedAt') ? $user->getCreatedAt()->format(DATE_ATOM) : null,
         ]);
     }
 }

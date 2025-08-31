@@ -33,9 +33,9 @@ class Team
 
     public function __construct(Game $game, string $name)
     {
-        $this->id      = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
-        $this->game    = $game;
-        $this->name    = $name;
+        $this->id = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
+        $this->game = $game;
+        $this->name = $name;
         $this->members = new ArrayCollection();
     }
 

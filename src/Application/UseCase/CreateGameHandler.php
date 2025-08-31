@@ -45,7 +45,7 @@ final class CreateGameHandler
 
         // 3) Créer code d’invite
         $code = substr(bin2hex(random_bytes(8)), 0, 12);
-        $inv  = new Invite($g, $code);
+        $inv = new Invite($g, $code);
         $g->setInvite($inv);
         $this->invites->add($inv);
 

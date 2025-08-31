@@ -20,10 +20,10 @@ final class CreateGameHandlerTest extends TestCase
 {
     public function testCreatesGameTeamsInviteAndReturnsOutput(): void
     {
-        $games   = $this->createMock(GameRepositoryInterface::class);
-        $teams   = $this->createMock(TeamRepositoryInterface::class);
+        $games = $this->createMock(GameRepositoryInterface::class);
+        $teams = $this->createMock(TeamRepositoryInterface::class);
         $invites = $this->createMock(InviteRepositoryInterface::class);
-        $em      = $this->createMock(EntityManagerInterface::class);
+        $em = $this->createMock(EntityManagerInterface::class);
 
         $games->expects(self::once())->method('add');
         $teams->expects(self::exactly(2))->method('add');

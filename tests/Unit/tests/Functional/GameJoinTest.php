@@ -19,8 +19,8 @@ final class GameJoinTest extends WebTestCase
     public function testJoinByCodeWorks(): void
     {
         $client = self::createClient();
-        $c      = self::getContainer();
-        $em     = $c->get('doctrine')->getManager();
+        $c = self::getContainer();
+        $em = $c->get('doctrine')->getManager();
 
         $u1 = new User();
         $u1->setEmail('u1+'.bin2hex(random_bytes(4)).'@test.io');
@@ -37,7 +37,7 @@ final class GameJoinTest extends WebTestCase
         // créer une partie via use case (plus simple que passer par HTTP ici)
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out    = $create(new CreateGameInput($u1->getId() ?? 'uid', 60, 'private'), $u1);
+        $out = $create(new CreateGameInput($u1->getId() ?? 'uid', 60, 'private'), $u1);
 
         // login as u2
         $this->loginClient($client, $u2);

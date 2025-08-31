@@ -25,8 +25,8 @@ final class GameMoveTest extends WebTestCase
     public function testMakeMoveOk(): void
     {
         $client = self::createClient();
-        $c      = self::getContainer();
-        $em     = $c->get('doctrine')->getManager();
+        $c = self::getContainer();
+        $em = $c->get('doctrine')->getManager();
 
         // 2 users
         $uA = new User();
@@ -42,8 +42,8 @@ final class GameMoveTest extends WebTestCase
         // create game by uA
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out    = $create(new CreateGameInput($uA->getId() ?? 'x', 60, 'private'), $uA);
-        $game   = $em->getRepository(\App\Entity\Game::class)->find($out->gameId);
+        $out = $create(new CreateGameInput($uA->getId() ?? 'x', 60, 'private'), $uA);
+        $game = $em->getRepository(\App\Entity\Game::class)->find($out->gameId);
 
         /** @var TeamRepositoryInterface $teams */
         $teams = $c->get(TeamRepositoryInterface::class);

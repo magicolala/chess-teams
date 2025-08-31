@@ -24,8 +24,8 @@ final class GameStartTest extends WebTestCase
     public function testStartGameOk(): void
     {
         $client = self::createClient();
-        $c      = self::getContainer();
-        $em     = $c->get('doctrine')->getManager();
+        $c = self::getContainer();
+        $em = $c->get('doctrine')->getManager();
 
         // users
         $creator = new User();
@@ -41,7 +41,7 @@ final class GameStartTest extends WebTestCase
         // create game (use case direct)
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out    = $create(new CreateGameInput($creator->getId() ?? 'x', 60, 'private'), $creator);
+        $out = $create(new CreateGameInput($creator->getId() ?? 'x', 60, 'private'), $creator);
 
         // fetch game+teams
         /** @var \Doctrine\ORM\EntityManagerInterface $em */
@@ -78,8 +78,8 @@ final class GameStartTest extends WebTestCase
     public function testStartGameRequiresOneMemberEachTeam(): void
     {
         $client = self::createClient();
-        $c      = self::getContainer();
-        $em     = $c->get('doctrine')->getManager();
+        $c = self::getContainer();
+        $em = $c->get('doctrine')->getManager();
 
         $creator = new User();
         $creator->setEmail('host+'.bin2hex(random_bytes(3)).'@test.io');
@@ -89,7 +89,7 @@ final class GameStartTest extends WebTestCase
 
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out    = $create(new CreateGameInput($creator->getId() ?? 'x', 60, 'private'), $creator);
+        $out = $create(new CreateGameInput($creator->getId() ?? 'x', 60, 'private'), $creator);
 
         $game = $em->getRepository(Game::class)->find($out->gameId);
 

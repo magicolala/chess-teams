@@ -28,12 +28,12 @@ final class MakeMoveHandlerTest extends TestCase
 {
     public function testMakeMoveHappyPath(): void
     {
-        $games   = $this->createMock(GameRepositoryInterface::class);
-        $teams   = $this->createMock(TeamRepositoryInterface::class);
+        $games = $this->createMock(GameRepositoryInterface::class);
+        $teams = $this->createMock(TeamRepositoryInterface::class);
         $members = $this->createMock(TeamMemberRepositoryInterface::class);
-        $moves   = $this->createMock(MoveRepositoryInterface::class);
-        $engine  = $this->createMock(ChessEngineInterface::class);
-        $em      = $this->createMock(EntityManagerInterface::class);
+        $moves = $this->createMock(MoveRepositoryInterface::class);
+        $engine = $this->createMock(ChessEngineInterface::class);
+        $em = $this->createMock(EntityManagerInterface::class);
 
         // Lock always acquired
         $lock = $this->createMock(LockInterface::class);
@@ -80,7 +80,7 @@ final class MakeMoveHandlerTest extends TestCase
         $engine->method('applyUci')->with('startpos', 'e2e4')->willReturn([
             // FEN valide après 1.e4 (au trait: noir)
             'fenAfter' => 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1',
-            'san'      => 'e4',
+            'san' => 'e4',
         ]);
 
         $moves->expects(self::once())->method('add');

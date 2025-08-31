@@ -17,7 +17,7 @@ final class FakeChessEngine implements ChessEngineInterface
         error_log('FakeEngine - UCI reçu: '.$uci);
 
         $fenAfter = $fen.'|'.$uci;
-        $san      = strtoupper($uci);
+        $san = strtoupper($uci);
 
         error_log('FakeEngine - FEN retourné: '.$fenAfter);
 

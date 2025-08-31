@@ -25,8 +25,8 @@ final class GameTimeoutTest extends WebTestCase
     public function testTickAppliesTimeoutAndSwitchesTurn(): void
     {
         $client = self::createClient();
-        $c      = self::getContainer();
-        $em     = $c->get('doctrine')->getManager();
+        $c = self::getContainer();
+        $em = $c->get('doctrine')->getManager();
 
         $uA = new User();
         $uA->setEmail('ta+'.bin2hex(random_bytes(3)).'@test.io');
@@ -40,8 +40,8 @@ final class GameTimeoutTest extends WebTestCase
 
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out    = $create(new CreateGameInput($uA->getId() ?? 'x', 5, 'private'), $uA);
-        $game   = $em->getRepository(\App\Entity\Game::class)->find($out->gameId);
+        $out = $create(new CreateGameInput($uA->getId() ?? 'x', 5, 'private'), $uA);
+        $game = $em->getRepository(\App\Entity\Game::class)->find($out->gameId);
 
         /** @var TeamRepositoryInterface $teams */
         $teams = $c->get(TeamRepositoryInterface::class);
@@ -77,8 +77,8 @@ final class GameTimeoutTest extends WebTestCase
     public function testTickNoopIfNotExpired(): void
     {
         $client = self::createClient();
-        $c      = self::getContainer();
-        $em     = $c->get('doctrine')->getManager();
+        $c = self::getContainer();
+        $em = $c->get('doctrine')->getManager();
 
         $uA = new User();
         $uA->setEmail('tc+'.bin2hex(random_bytes(3)).'@test.io');
@@ -92,8 +92,8 @@ final class GameTimeoutTest extends WebTestCase
 
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out    = $create(new CreateGameInput($uA->getId() ?? 'x', 60, 'private'), $uA);
-        $game   = $em->getRepository(\App\Entity\Game::class)->find($out->gameId);
+        $out = $create(new CreateGameInput($uA->getId() ?? 'x', 60, 'private'), $uA);
+        $game = $em->getRepository(\App\Entity\Game::class)->find($out->gameId);
 
         /** @var TeamRepositoryInterface $teams */
         $teams = $c->get(TeamRepositoryInterface::class);

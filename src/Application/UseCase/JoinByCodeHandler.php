@@ -54,7 +54,7 @@ final class JoinByCodeHandler
             return new JoinByCodeOutput($team->getName(), $existing->getPosition());
         }
 
-        $maxPos   = $this->members->maxPositionByTeam($team);
+        $maxPos = $this->members->maxPositionByTeam($team);
         $position = $maxPos + 1;
 
         $member = new TeamMember($team, $user, $position);

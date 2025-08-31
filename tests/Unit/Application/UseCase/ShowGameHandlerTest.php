@@ -22,8 +22,8 @@ final class ShowGameHandlerTest extends TestCase
 {
     public function testReturnsProjectionWithMembers(): void
     {
-        $games   = $this->createMock(GameRepositoryInterface::class);
-        $teams   = $this->createMock(TeamRepositoryInterface::class);
+        $games = $this->createMock(GameRepositoryInterface::class);
+        $teams = $this->createMock(TeamRepositoryInterface::class);
         $members = $this->createMock(TeamMemberRepositoryInterface::class);
 
         $handler = new ShowGameHandler($games, $teams, $members);

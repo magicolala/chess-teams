@@ -22,10 +22,10 @@ final class StartGameHandlerTest extends TestCase
 {
     public function testStartGameSetsLiveAndDeadline(): void
     {
-        $games   = $this->createMock(GameRepositoryInterface::class);
-        $teams   = $this->createMock(TeamRepositoryInterface::class);
+        $games = $this->createMock(GameRepositoryInterface::class);
+        $teams = $this->createMock(TeamRepositoryInterface::class);
         $members = $this->createMock(TeamMemberRepositoryInterface::class);
-        $em      = $this->createMock(EntityManagerInterface::class);
+        $em = $this->createMock(EntityManagerInterface::class);
 
         $handler = new StartGameHandler($games, $teams, $members, $em);
 

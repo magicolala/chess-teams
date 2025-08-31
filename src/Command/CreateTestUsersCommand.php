@@ -34,7 +34,7 @@ class CreateTestUsersCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $io    = new SymfonyStyle($input, $output);
+        $io = new SymfonyStyle($input, $output);
         $count = (int) $input->getArgument('count');
 
         if ($count <= 0) {
@@ -60,9 +60,9 @@ class CreateTestUsersCommand extends Command
         $createdUsersData = [];
 
         for ($i = 1; $i <= $count; ++$i) {
-            $user     = new User();
+            $user = new User();
             $randomId = $i + random_int(1000, 9999);
-            $email    = sprintf('user%d@test.io', $randomId);
+            $email = sprintf('user%d@test.io', $randomId);
 
             // Génération de noms variés
             $displayName = $this->generateDisplayName($firstNames, $chessTerms, $i);
@@ -75,8 +75,8 @@ class CreateTestUsersCommand extends Command
             $this->entityManager->persist($user);
 
             $createdUsersData[] = [
-                'email'       => $email,
-                'password'    => 'password',
+                'email' => $email,
+                'password' => 'password',
                 'displayName' => $displayName,
             ];
 
@@ -106,7 +106,7 @@ class CreateTestUsersCommand extends Command
             case 1:
                 // Terme d'échecs + nombre (ex: "GrandMaster42")
                 $chessTerm = $chessTerms[array_rand($chessTerms)];
-                $number    = random_int(10, 99);
+                $number = random_int(10, 99);
 
                 return $chessTerm.$number;
 

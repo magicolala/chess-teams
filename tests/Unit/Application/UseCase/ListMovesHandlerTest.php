@@ -21,7 +21,7 @@ final class ListMovesHandlerTest extends TestCase
 {
     public function testReturnsMovesProjection(): void
     {
-        $games     = $this->createMock(GameRepositoryInterface::class);
+        $games = $this->createMock(GameRepositoryInterface::class);
         $movesRepo = $this->createMock(MoveRepositoryInterface::class);
 
         $handler = new ListMovesHandler($games, $movesRepo);

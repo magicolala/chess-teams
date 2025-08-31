@@ -44,7 +44,7 @@ final class GameWebController extends AbstractController
         $user = $this->getUser();
 
         $turn = max(10, min(600, (int) $request->request->get('turnDuration', 60)));
-        $vis  = $request->request->get('visibility', 'private');
+        $vis = $request->request->get('visibility', 'private');
 
         $out = ($this->createGame)(new CreateGameInput($user->getId() ?? '', $turn, $vis), $user);
 
@@ -76,8 +76,8 @@ final class GameWebController extends AbstractController
         // Si on vient via ?code=XXXX, on retrouve la partie par code
         if (!$id && $request->query->get('code')) {
             $inviteCode = (string) $request->query->get('code');
-            $invite     = $this->invites->findOneByCode($inviteCode);
-            $game       = $invite?->getGame();
+            $invite = $this->invites->findOneByCode($inviteCode);
+            $game = $invite?->getGame();
             if (!$game) {
                 throw $this->createNotFoundException('game_not_found');
             }
@@ -102,37 +102,37 @@ final class GameWebController extends AbstractController
 
         // Détermine le joueur actuel qui doit jouer
         $currentPlayer = null;
-        if ($game->getStatus() === \App\Entity\Game::STATUS_LIVE && $teamA && $teamB) {
-            $currentTeam = $game->getTurnTeam() === 'A' ? $teamA : $teamB;
+        if (\App\Entity\Game::STATUS_LIVE === $game->getStatus() && $teamA && $teamB) {
+            $currentTeam = 'A' === $game->getTurnTeam() ? $teamA : $teamB;
             $teamMembers = $this->members->findActiveOrderedByTeam($currentTeam);
             if (!empty($teamMembers)) {
-                $currentIndex  = $currentTeam->getCurrentIndex() % count($teamMembers);
+                $currentIndex = $currentTeam->getCurrentIndex() % count($teamMembers);
                 $currentPlayer = $teamMembers[$currentIndex] ?? null;
             }
         }
 
         // Vérifie si tous les joueurs sont prêts
         $allReady = $this->members->areAllActivePlayersReady($game);
-        $canStart = $allReady && $game->getStatus() === \App\Entity\Game::STATUS_LOBBY;
+        $canStart = $allReady && \App\Entity\Game::STATUS_LOBBY === $game->getStatus();
 
         return $this->render('game/show.html.twig', [
-            'game'           => $game,
-            'teamA'          => $teamA,
-            'teamB'          => $teamB,
-            'moves'          => $moves,
+            'game' => $game,
+            'teamA' => $teamA,
+            'teamB' => $teamB,
+            'moves' => $moves,
             'userMembership' => $userMembership,
-            'currentPlayer'  => $currentPlayer,
-            'allReady'       => $allReady,
-            'canStart'       => $canStart,
-            'isCreator'      => $this->getUser() && $game->getCreatedBy() === $this->getUser(),
+            'currentPlayer' => $currentPlayer,
+            'allReady' => $allReady,
+            'canStart' => $canStart,
+            'isCreator' => $this->getUser() && $game->getCreatedBy() === $this->getUser(),
             // Données utiles pour JS :
             'initial' => [
-                'gameId'       => $game->getId(),
-                'fen'          => $game->getFen(),
-                'turnTeam'     => $game->getTurnTeam(),
+                'gameId' => $game->getId(),
+                'fen' => $game->getFen(),
+                'turnTeam' => $game->getTurnTeam(),
                 'turnDeadline' => $game->getTurnDeadline()?->getTimestamp() * 1000,
-                'status'       => $game->getStatus(),
-                'result'       => $game->getResult(),
+                'status' => $game->getStatus(),
+                'result' => $game->getResult(),
             ],
         ]);
     }
@@ -153,9 +153,9 @@ final class GameWebController extends AbstractController
             throw new BadRequestHttpException('invalid_team');
         }
         // normalise
-        $teamName = $teamName === 'A' ? Team::NAME_A : ($teamName === 'B' ? Team::NAME_B : $teamName);
+        $teamName = 'A' === $teamName ? Team::NAME_A : ('B' === $teamName ? Team::NAME_B : $teamName);
 
-        $token = new CsrfToken('join-team-'.$id.'-'.($teamName === Team::NAME_A ? 'A' : 'B'), (string) $request->request->get('_token'));
+        $token = new CsrfToken('join-team-'.$id.'-'.(Team::NAME_A === $teamName ? 'A' : 'B'), (string) $request->request->get('_token'));
         if (!$csrf->isTokenValid($token)) {
             throw new BadRequestHttpException('invalid_csrf');
         }
@@ -183,7 +183,7 @@ final class GameWebController extends AbstractController
         }
 
         // Position = fin de file pour cette équipe
-        $current  = $this->members->findActiveOrderedByTeam($team);
+        $current = $this->members->findActiveOrderedByTeam($team);
         $position = \is_array($current) ? \count($current) : 0;
 
         $member = new TeamMember($team, $user, $position);
@@ -213,7 +213,7 @@ final class GameWebController extends AbstractController
         }
 
         $game = $this->games->get($id);
-        if (!$game || $game->getStatus() !== \App\Entity\Game::STATUS_LOBBY) {
+        if (!$game || \App\Entity\Game::STATUS_LOBBY !== $game->getStatus()) {
             throw new NotFoundHttpException('game_not_found_or_not_in_lobby');
         }
 
@@ -255,7 +255,7 @@ final class GameWebController extends AbstractController
         }
 
         $game = $this->games->get($id);
-        if (!$game || $game->getStatus() !== \App\Entity\Game::STATUS_LOBBY) {
+        if (!$game || \App\Entity\Game::STATUS_LOBBY !== $game->getStatus()) {
             throw new NotFoundHttpException('game_not_found_or_not_ready');
         }
 
@@ -280,7 +280,6 @@ final class GameWebController extends AbstractController
 
         return $this->redirectToRoute('app_game_show_page', ['id' => $id]);
     }
-
 
     private function canStartGame(\App\Entity\Game $game): bool
     {

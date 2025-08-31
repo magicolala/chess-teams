@@ -26,13 +26,13 @@ final class ListMovesHandler
         $rows = [];
         foreach ($this->moves->listByGameOrdered($g) as $m) {
             $rows[] = [
-                'ply'       => $m->getPly(),
-                'team'      => $m->getTeam()?->getName(),
-                'byUserId'  => $m->getByUser()?->getId(),
-                'uci'       => $m->getUci(),
-                'san'       => $m->getSan(),
-                'type'      => method_exists($m, 'getType') ? $m->getType() : null,
-                'fenAfter'  => $m->getFenAfter(),
+                'ply' => $m->getPly(),
+                'team' => $m->getTeam()?->getName(),
+                'byUserId' => $m->getByUser()?->getId(),
+                'uci' => $m->getUci(),
+                'san' => $m->getSan(),
+                'type' => method_exists($m, 'getType') ? $m->getType() : null,
+                'fenAfter' => $m->getFenAfter(),
                 'createdAt' => $m->getCreatedAt()?->format(DATE_ATOM),
             ];
         }

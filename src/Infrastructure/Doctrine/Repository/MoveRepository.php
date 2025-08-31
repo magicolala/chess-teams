@@ -33,7 +33,7 @@ final class MoveRepository extends ServiceEntityRepository implements MoveReposi
             ->getQuery()->getSingleScalarResult()
         ;
 
-        return $q === null ? -1 : (int) $q;
+        return null === $q ? -1 : (int) $q;
     }
 
     public function listByGameOrdered(Game $game): array

@@ -24,8 +24,8 @@ final class GameReadyTest extends WebTestCase
     public function testMarkPlayerReady(): void
     {
         $client = self::createClient();
-        $c      = self::getContainer();
-        $em     = $c->get('doctrine')->getManager();
+        $c = self::getContainer();
+        $em = $c->get('doctrine')->getManager();
 
         // Create users
         $creator = new User();
@@ -41,7 +41,7 @@ final class GameReadyTest extends WebTestCase
         // Create game
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out    = $create(new CreateGameInput($creator->getId() ?? 'x', 60, 'private'), $creator);
+        $out = $create(new CreateGameInput($creator->getId() ?? 'x', 60, 'private'), $creator);
 
         // Fetch game+teams
         $gameRepo = $em->getRepository(Game::class);
@@ -71,7 +71,7 @@ final class GameReadyTest extends WebTestCase
 
         $json = json_decode($client->getResponse()->getContent(), true);
         self::assertSame($game->getId(), $json['gameId']);
-        self::assertSame((string)$creator->getId(), $json['userId']);
+        self::assertSame((string) $creator->getId(), $json['userId']);
         self::assertTrue($json['ready']);
         self::assertEquals(1, $json['readyPlayersCount']);
         self::assertEquals(2, $json['totalPlayersCount']);
@@ -84,7 +84,7 @@ final class GameReadyTest extends WebTestCase
 
         $json = json_decode($client->getResponse()->getContent(), true);
         self::assertSame($game->getId(), $json['gameId']);
-        self::assertSame((string)$p2->getId(), $json['userId']);
+        self::assertSame((string) $p2->getId(), $json['userId']);
         self::assertTrue($json['ready']);
         self::assertEquals(2, $json['readyPlayersCount']);
         self::assertEquals(2, $json['totalPlayersCount']);
@@ -94,8 +94,8 @@ final class GameReadyTest extends WebTestCase
     public function testMarkPlayerNotReady(): void
     {
         $client = self::createClient();
-        $c      = self::getContainer();
-        $em     = $c->get('doctrine')->getManager();
+        $c = self::getContainer();
+        $em = $c->get('doctrine')->getManager();
 
         // Create user
         $creator = new User();
@@ -107,7 +107,7 @@ final class GameReadyTest extends WebTestCase
         // Create game
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out    = $create(new CreateGameInput($creator->getId() ?? 'x', 60, 'private'), $creator);
+        $out = $create(new CreateGameInput($creator->getId() ?? 'x', 60, 'private'), $creator);
 
         $gameRepo = $em->getRepository(Game::class);
         /** @var Game $game */
@@ -133,7 +133,7 @@ final class GameReadyTest extends WebTestCase
 
         $json = json_decode($client->getResponse()->getContent(), true);
         self::assertSame($game->getId(), $json['gameId']);
-        self::assertSame((string)$creator->getId(), $json['userId']);
+        self::assertSame((string) $creator->getId(), $json['userId']);
         self::assertFalse($json['ready']);
         self::assertEquals(0, $json['readyPlayersCount']);
         self::assertEquals(1, $json['totalPlayersCount']);
@@ -143,8 +143,8 @@ final class GameReadyTest extends WebTestCase
     public function testStartGameRequiresAllPlayersReady(): void
     {
         $client = self::createClient();
-        $c      = self::getContainer();
-        $em     = $c->get('doctrine')->getManager();
+        $c = self::getContainer();
+        $em = $c->get('doctrine')->getManager();
 
         // Create users
         $creator = new User();
@@ -160,7 +160,7 @@ final class GameReadyTest extends WebTestCase
         // Create game
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
-        $out    = $create(new CreateGameInput($creator->getId() ?? 'x', 60, 'private'), $creator);
+        $out = $create(new CreateGameInput($creator->getId() ?? 'x', 60, 'private'), $creator);
 
         $gameRepo = $em->getRepository(Game::class);
         /** @var Game $game */

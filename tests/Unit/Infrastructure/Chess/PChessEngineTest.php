@@ -15,7 +15,7 @@ final class PChessEngineTest extends TestCase
     public function testApplyUciReturnsFenAndSan(): void
     {
         $engine = new PChessEngine();
-        $out    = $engine->applyUci('startpos', 'e2e4');
+        $out = $engine->applyUci('startpos', 'e2e4');
 
         self::assertArrayHasKey('fenAfter', $out);
         self::assertArrayHasKey('san', $out);

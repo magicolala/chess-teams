@@ -90,7 +90,7 @@ final class TeamMemberRepository extends ServiceEntityRepository implements Team
     {
         $totalActive = $this->countActiveByGame($game);
         $readyPlayers = $this->countReadyByGame($game);
-        
+
         return $totalActive > 0 && $totalActive === $readyPlayers;
     }
 }

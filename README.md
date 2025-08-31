@@ -342,3 +342,5 @@ Ce projet est sous licence propriétaire. Tous droits réservés.
   <p><strong>Développé avec ❤️ par l'équipe Chess-Teams</strong></p>
   <p>Made with Symfony 🎵 PHP ⚡ Neo Chess Board</p>
 </div>
+#   T e s t  
+ 

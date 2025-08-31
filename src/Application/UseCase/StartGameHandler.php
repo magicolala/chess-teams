@@ -58,7 +58,7 @@ final class StartGameHandler
             throw new ConflictHttpException('all_players_must_be_ready');
         }
 
-        $now      = new \DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $deadline = $now->modify('+'.$game->getTurnDurationSec().' seconds');
 
         $game

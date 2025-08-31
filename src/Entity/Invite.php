@@ -24,9 +24,9 @@ class Invite
 
     public function __construct(Game $game, string $code)
     {
-        $this->id        = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
-        $this->game      = $game;
-        $this->code      = $code;
+        $this->id = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
+        $this->game = $game;
+        $this->code = $code;
         $this->expiresAt = new \DateTimeImmutable('+7 days');
     }
 

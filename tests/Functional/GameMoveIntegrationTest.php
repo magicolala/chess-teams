@@ -16,8 +16,9 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 /**
  * Tests d'intégration pour s'assurer que les coups normaux fonctionnent
  * sans problème de promotion sur le serveur.
- * 
+ *
  * @internal
+ *
  * @coversNothing
  */
 final class GameMoveIntegrationTest extends WebTestCase
@@ -35,13 +36,13 @@ final class GameMoveIntegrationTest extends WebTestCase
         // Test e2-e4 (normal pawn move)
         $client->request(
             'POST',
-            '/games/' . $game['gameId'] . '/move',
+            '/games/'.$game['gameId'].'/move',
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode(['uci' => 'e2e4'])
         );
 
         self::assertResponseStatusCodeSame(201);
-        
+
         $json = json_decode($client->getResponse()->getContent(), true);
         self::assertSame(1, $json['ply']);
         self::assertSame('B', $json['turnTeam']);
@@ -60,13 +61,13 @@ final class GameMoveIntegrationTest extends WebTestCase
         // Test g1-f3 (knight move)
         $client->request(
             'POST',
-            '/games/' . $game['gameId'] . '/move',
+            '/games/'.$game['gameId'].'/move',
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode(['uci' => 'g1f3'])
         );
 
         self::assertResponseStatusCodeSame(201);
-        
+
         $json = json_decode($client->getResponse()->getContent(), true);
         self::assertSame(1, $json['ply']);
         self::assertSame('B', $json['turnTeam']);
@@ -83,24 +84,26 @@ final class GameMoveIntegrationTest extends WebTestCase
         // Séquence de coups normaux : e2-e4, e7-e5, Ng1-f3, Nb8-c6
         $moves = [
             ['uci' => 'e2e4', 'player' => $game['userA'], 'expectedTurn' => 'B'],
-            ['uci' => 'e7e5', 'player' => $game['userB'], 'expectedTurn' => 'A'], 
+            ['uci' => 'e7e5', 'player' => $game['userB'], 'expectedTurn' => 'A'],
             ['uci' => 'g1f3', 'player' => $game['userA'], 'expectedTurn' => 'B'],
             ['uci' => 'b8c6', 'player' => $game['userB'], 'expectedTurn' => 'A'],
         ];
 
         foreach ($moves as $index => $move) {
             $this->loginClient($client, $move['player']);
-            
+
             $client->request(
                 'POST',
-                '/games/' . $game['gameId'] . '/move',
+                '/games/'.$game['gameId'].'/move',
                 server: ['CONTENT_TYPE' => 'application/json'],
                 content: json_encode(['uci' => $move['uci']])
             );
 
-            self::assertResponseStatusCodeSame(201, 
-                "Coup {$move['uci']} devrait être accepté");
-            
+            self::assertResponseStatusCodeSame(
+                201,
+                "Coup {$move['uci']} devrait être accepté"
+            );
+
             $json = json_decode($client->getResponse()->getContent(), true);
             self::assertSame($index + 1, $json['ply']);
             self::assertSame($move['expectedTurn'], $json['turnTeam']);
@@ -117,7 +120,7 @@ final class GameMoveIntegrationTest extends WebTestCase
         // Tester un coup UCI invalide
         $client->request(
             'POST',
-            '/games/' . $game['gameId'] . '/move',
+            '/games/'.$game['gameId'].'/move',
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode(['uci' => 'invalid_move'])
         );
@@ -135,7 +138,7 @@ final class GameMoveIntegrationTest extends WebTestCase
         // Tester un coup légalement impossible (e2 vers e2)
         $client->request(
             'POST',
-            '/games/' . $game['gameId'] . '/move',
+            '/games/'.$game['gameId'].'/move',
             server: ['CONTENT_TYPE' => 'application/json'],
             content: json_encode(['uci' => 'e2e2'])
         );
@@ -144,7 +147,7 @@ final class GameMoveIntegrationTest extends WebTestCase
     }
 
     /**
-     * Crée une partie et la démarre avec deux joueurs
+     * Crée une partie et la démarre avec deux joueurs.
      */
     private function createAndStartGame($client): array
     {
@@ -153,13 +156,13 @@ final class GameMoveIntegrationTest extends WebTestCase
 
         // Créer deux utilisateurs
         $userA = new User();
-        $userA->setEmail('testa+' . bin2hex(random_bytes(3)) . '@test.io');
+        $userA->setEmail('testa+'.bin2hex(random_bytes(3)).'@test.io');
         $userA->setPassword(password_hash('x', PASSWORD_BCRYPT));
-        
+
         $userB = new User();
-        $userB->setEmail('testb+' . bin2hex(random_bytes(3)) . '@test.io');
+        $userB->setEmail('testb+'.bin2hex(random_bytes(3)).'@test.io');
         $userB->setPassword(password_hash('x', PASSWORD_BCRYPT));
-        
+
         $em->persist($userA);
         $em->persist($userB);
         $em->flush();

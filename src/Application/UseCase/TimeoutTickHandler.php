@@ -26,7 +26,8 @@ final class TimeoutTickHandler
         private TeamRepositoryInterface $teams,
         private TeamMemberRepositoryInterface $members,
         private MoveRepositoryInterface $moves,
-        #[Autowire(service: 'lock.factory')] private LockFactory $lockFactory,
+        #[Autowire(service: 'lock.factory')]
+        private LockFactory $lockFactory,
         private EntityManagerInterface $em,
         private GameEndEvaluator $endEvaluator,
     ) {
@@ -38,7 +39,7 @@ final class TimeoutTickHandler
         if (!$game) {
             throw new NotFoundHttpException('game_not_found');
         }
-        if ($game->getStatus() !== Game::STATUS_LIVE) {
+        if (Game::STATUS_LIVE !== $game->getStatus()) {
             throw new ConflictHttpException('game_not_live');
         }
 
@@ -46,12 +47,12 @@ final class TimeoutTickHandler
         if (!$lock->acquire()) {
             throw new ConflictHttpException('locked');
         }
-        if ($game->getStatus() === Game::STATUS_FINISHED) {
+        if (Game::STATUS_FINISHED === $game->getStatus()) {
             throw new ConflictHttpException('game_finished');
         }
 
         try {
-            $now      = new \DateTimeImmutable();
+            $now = new \DateTimeImmutable();
             $deadline = $game->getTurnDeadline();
             if (!$deadline || $now <= $deadline) {
                 return new TimeoutTickOutput(
@@ -64,21 +65,21 @@ final class TimeoutTickHandler
                 );
             }
 
-            $teamA      = $this->teams->findOneByGameAndName($game, Team::NAME_A);
-            $teamB      = $this->teams->findOneByGameAndName($game, Team::NAME_B);
-            $teamToPlay = $game->getTurnTeam() === Team::NAME_A ? $teamA : $teamB;
-            $othersTeam = $game->getTurnTeam() === Team::NAME_A ? $teamB : $teamA;
+            $teamA = $this->teams->findOneByGameAndName($game, Team::NAME_A);
+            $teamB = $this->teams->findOneByGameAndName($game, Team::NAME_B);
+            $teamToPlay = Team::NAME_A === $game->getTurnTeam() ? $teamA : $teamB;
+            $othersTeam = Team::NAME_A === $game->getTurnTeam() ? $teamB : $teamA;
 
             $order = $this->members->findActiveOrderedByTeam($teamToPlay);
             if (!$order) {
                 $orderCount = 0;
             } else {
                 $orderCount = count($order);
-                $idx        = max(0, min($teamToPlay->getCurrentIndex(), $orderCount - 1));
+                $idx = max(0, min($teamToPlay->getCurrentIndex(), $orderCount - 1));
             }
 
             $ply = $game->getPly() + 1;
-            $mv  = new Move($game, $ply);
+            $mv = new Move($game, $ply);
             $mv->setTeam($teamToPlay)
                 ->setByUser(null)
                 ->setUci(null)

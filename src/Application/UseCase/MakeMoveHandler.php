@@ -45,7 +45,7 @@ final class MakeMoveHandler
         if (Game::STATUS_LIVE !== $game->getStatus()) {
             throw new ConflictHttpException('game_not_live');
         }
-        if ($game->getStatus() === Game::STATUS_FINISHED) {
+        if (Game::STATUS_FINISHED === $game->getStatus()) {
             throw new ConflictHttpException('game_finished');
         }
 
@@ -95,11 +95,11 @@ final class MakeMoveHandler
             }
 
             $fenAfter = $result['fenAfter'];
-            $san      = $result['san'];
+            $san = $result['san'];
 
             // persist Move
             $ply = $game->getPly() + 1;
-            $mv  = new Move($game, $ply);
+            $mv = new Move($game, $ply);
             $mv->setTeam($teamToPlay)->setByUser($byUser)->setUci($in->uci)->setSan($san)->setFenAfter($fenAfter);
             $this->moves->add($mv);
 
