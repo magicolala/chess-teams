@@ -59,12 +59,15 @@ final class StartGameHandler
         }
 
         $now = new \DateTimeImmutable();
-        $deadline = $now->modify('+'.$game->getTurnDurationSec().' seconds');
+        // Par défaut, mode libre : 14 jours maximum
+        $deadline = $now->modify('+14 days');
 
         $game
             ->setStatus(Game::STATUS_LIVE)
             ->setTurnTeam(Game::TEAM_A)
             ->setTurnDeadline($deadline)
+            ->setFastModeEnabled(false)
+            ->setFastModeDeadline(null)
             ->setUpdatedAt($now)
         ;
 

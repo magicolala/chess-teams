@@ -53,14 +53,16 @@ final class TimeoutTickHandler
 
         try {
             $now = new \DateTimeImmutable();
-            $deadline = $game->getTurnDeadline();
-            if (!$deadline || $now <= $deadline) {
+            $effectiveDeadline = $game->getEffectiveDeadline();
+
+            // Si pas de délai ou si le délai n'est pas dépassé, pas de timeout
+            if (!$effectiveDeadline || $now <= $effectiveDeadline) {
                 return new TimeoutTickOutput(
                     $game->getId(),
                     false,
                     $game->getPly(),
                     $game->getTurnTeam(),
-                    ($deadline?->getTimestamp() ?? $now->getTimestamp()) * 1000,
+                    ($effectiveDeadline?->getTimestamp() ?? $now->getTimestamp()) * 1000,
                     $game->getFen()
                 );
             }
@@ -93,9 +95,24 @@ final class TimeoutTickHandler
                 $teamToPlay->setCurrentIndex(($teamToPlay->getCurrentIndex() + 1) % $orderCount);
             }
 
+            // Gestion des timeouts consécutifs
+            $currentTeamName = Team::NAME_A === $teamToPlay->getName() ? Game::TEAM_A : Game::TEAM_B;
+            if ($game->getLastTimeoutTeam() === $currentTeamName) {
+                // Même équipe que le dernier timeout
+                $game->incrementConsecutiveTimeouts();
+            } else {
+                // Équipe différente ou premier timeout
+                $game->setConsecutiveTimeouts(1);
+                $game->setLastTimeoutTeam($currentTeamName);
+            }
+
             $game->setPly($ply);
             $game->setTurnTeam($othersTeam->getName());
-            $newDeadline = $now->modify('+'.$game->getTurnDurationSec().' seconds');
+
+            // Réinitialiser le mode rapide pour le nouveau tour (mode libre par défaut = 14 jours max)
+            $game->setFastModeEnabled(false);
+            $game->setFastModeDeadline(null);
+            $newDeadline = $now->modify('+14 days'); // Mode libre : 14 jours maximum
             $game->setTurnDeadline($newDeadline);
             $game->setUpdatedAt($now);
 

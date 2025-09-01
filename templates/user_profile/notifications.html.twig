@@ -1,0 +1,132 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Préférences de notifications - Chess Teams{% endblock %}
+
+{% block body %}
+<div class="neo-container neo-py-xl">
+    <!-- Bouton retour -->
+    <div class="neo-mb-lg">
+        <a href="{{ path('app_user_profile') }}" class="neo-btn neo-btn-ghost">
+            <i class="material-icons">arrow_back</i>
+            Retour au profil
+        </a>
+    </div>
+
+    <div class="neo-card neo-card-glass">
+        <div class="neo-card-header">
+            <h1 class="neo-card-title">
+                <i class="material-icons">notifications</i>
+                Préférences de notifications
+            </h1>
+        </div>
+        
+        <div class="neo-card-content">
+            <div class="neo-info-box neo-mb-xl">
+                <p><i class="material-icons neo-mr-sm">info</i> Personnalisez vos notifications</p>
+                <ul>
+                    <li><strong>Notifications bureau :</strong> Recevez des notifications système quand c'est votre tour</li>
+                    <li><strong>Sons :</strong> Entendez un son quand une action se produit</li>
+                    <li><strong>Flash du titre :</strong> Le titre de la page clignote pour attirer l'attention</li>
+                </ul>
+            </div>
+
+            <!-- Panel des préférences de notifications -->
+            <div class="neo-notification-preferences" 
+                 data-controller="notification-controls"
+                 data-notification-controls-desktop-toggle-target="desktopToggle"
+                 data-notification-controls-sound-toggle-target="soundToggle"
+                 data-notification-controls-flash-toggle-target="flashToggle">
+                
+                <!-- Notifications de bureau -->
+                <div class="neo-preference-item">
+                    <div class="neo-preference-content">
+                        <div class="neo-preference-header">
+                            <i class="material-icons neo-preference-icon">desktop_windows</i>
+                            <div class="neo-preference-text">
+                                <h3 class="neo-preference-title">Notifications de bureau</h3>
+                                <p class="neo-preference-description">
+                                    Afficher des notifications système quand c'est votre tour de jouer
+                                </p>
+                            </div>
+                        </div>
+                        <div class="neo-preference-control">
+                            <label class="neo-toggle">
+                                <input type="checkbox" 
+                                       data-action="change->notification-controls#toggleDesktopNotifications"
+                                       data-notification-controls-target="desktopToggle">
+                                <span class="neo-toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications sonores -->
+                <div class="neo-preference-item">
+                    <div class="neo-preference-content">
+                        <div class="neo-preference-header">
+                            <i class="material-icons neo-preference-icon">volume_up</i>
+                            <div class="neo-preference-text">
+                                <h3 class="neo-preference-title">Sons de notification</h3>
+                                <p class="neo-preference-description">
+                                    Jouer un son quand des événements importants se produisent
+                                </p>
+                            </div>
+                        </div>
+                        <div class="neo-preference-control">
+                            <label class="neo-toggle">
+                                <input type="checkbox" 
+                                       data-action="change->notification-controls#toggleSoundNotifications"
+                                       data-notification-controls-target="soundToggle">
+                                <span class="neo-toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Flash du titre -->
+                <div class="neo-preference-item">
+                    <div class="neo-preference-content">
+                        <div class="neo-preference-header">
+                            <i class="material-icons neo-preference-icon">flash_on</i>
+                            <div class="neo-preference-text">
+                                <h3 class="neo-preference-title">Flash du titre</h3>
+                                <p class="neo-preference-description">
+                                    Faire clignoter le titre de la page pour attirer l'attention
+                                </p>
+                            </div>
+                        </div>
+                        <div class="neo-preference-control">
+                            <label class="neo-toggle">
+                                <input type="checkbox" 
+                                       data-action="change->notification-controls#toggleFlashNotifications"
+                                       data-notification-controls-target="flashToggle">
+                                <span class="neo-toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informations sur le navigateur -->
+                <div class="neo-preference-info">
+                    <div class="neo-text-xs neo-text-muted">
+                        <i class="material-icons tiny">info</i>
+                        Vos préférences sont sauvegardées localement dans votre navigateur
+                    </div>
+                </div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="neo-btn-group neo-btn-group-center neo-mt-xl">
+                <button type="button" class="neo-btn neo-btn-secondary" onclick="window.history.back()">
+                    <i class="material-icons">arrow_back</i>
+                    Retour
+                </button>
+                <button type="button" class="neo-btn neo-btn-success" onclick="addFlashMessage('success', '🎉 Préférences sauvegardées automatiquement!')">
+                    <i class="material-icons">check</i>
+                    Préférences sauvegardées
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

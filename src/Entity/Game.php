@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Infrastructure\Doctrine\Repository\GameRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: GameRepository::class)]
@@ -54,17 +56,35 @@ class Game
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $turnDeadline = null;
 
+    // Gestion du mode rapide (chrono de 1 minute)
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $fastModeEnabled = false;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $fastModeDeadline = null;
+
     #[ORM\Column(length: 16, nullable: true)]
     private ?string $result = null; // Ex: 'A#' (A mat), 'B#', '1/2-1/2', 'resignA', 'timeoutA', etc.
 
+    // Compteur de timeouts consécutifs pour la revendication de victoire
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $consecutiveTimeouts = 0;
+
+    #[ORM\Column(length: 1, nullable: true)]
+    private ?string $lastTimeoutTeam = null; // 'A' ou 'B' - pour tracker les timeouts consécutifs
+
     #[ORM\OneToOne(mappedBy: 'game', targetEntity: Invite::class, cascade: ['persist', 'remove'])]
     private ?Invite $invite = null;
+
+    #[ORM\OneToMany(mappedBy: 'game', targetEntity: Team::class, orphanRemoval: true)]
+    private Collection $teams;
 
     public function __construct()
     {
         // UUID en texte (SQLite-friendly)
         $this->id = \Symfony\Component\Uid\Uuid::v4()->toRfc4122();
         $this->createdAt = new \DateTimeImmutable();
+        $this->teams = new ArrayCollection();
     }
 
     // Getters/Setters
@@ -198,6 +218,43 @@ class Game
         return $this;
     }
 
+    public function isFastModeEnabled(): bool
+    {
+        return $this->fastModeEnabled;
+    }
+
+    public function setFastModeEnabled(bool $enabled): self
+    {
+        $this->fastModeEnabled = $enabled;
+
+        return $this;
+    }
+
+    public function getFastModeDeadline(): ?\DateTimeImmutable
+    {
+        return $this->fastModeDeadline;
+    }
+
+    public function setFastModeDeadline(?\DateTimeImmutable $deadline): self
+    {
+        $this->fastModeDeadline = $deadline;
+
+        return $this;
+    }
+
+    /**
+     * Retourne le délai effectif selon le mode actuel
+     * (fastModeDeadline si mode rapide activé, sinon turnDeadline).
+     */
+    public function getEffectiveDeadline(): ?\DateTimeImmutable
+    {
+        if ($this->fastModeEnabled && $this->fastModeDeadline) {
+            return $this->fastModeDeadline;
+        }
+
+        return $this->turnDeadline;
+    }
+
     public function getInvite(): ?Invite
     {
         return $this->invite;
@@ -213,5 +270,133 @@ class Game
         $this->invite = $invite;
 
         return $this;
+    }
+
+    public function getConsecutiveTimeouts(): int
+    {
+        return $this->consecutiveTimeouts;
+    }
+
+    public function setConsecutiveTimeouts(int $count): self
+    {
+        $this->consecutiveTimeouts = $count;
+
+        return $this;
+    }
+
+    public function incrementConsecutiveTimeouts(): self
+    {
+        ++$this->consecutiveTimeouts;
+
+        return $this;
+    }
+
+    public function resetConsecutiveTimeouts(): self
+    {
+        $this->consecutiveTimeouts = 0;
+        $this->lastTimeoutTeam = null;
+
+        return $this;
+    }
+
+    public function getLastTimeoutTeam(): ?string
+    {
+        return $this->lastTimeoutTeam;
+    }
+
+    public function setLastTimeoutTeam(?string $team): self
+    {
+        $this->lastTimeoutTeam = $team;
+
+        return $this;
+    }
+
+    /**
+     * Vérifie si l'adversaire peut revendiquer la victoire
+     * (après 3 timeouts consécutifs de la même équipe).
+     */
+    public function canClaimVictory(): bool
+    {
+        return $this->consecutiveTimeouts >= 3 && null !== $this->lastTimeoutTeam;
+    }
+
+    /**
+     * Détermine quelle équipe peut revendiquer la victoire.
+     */
+    public function getClaimVictoryTeam(): ?string
+    {
+        if (!$this->canClaimVictory()) {
+            return null;
+        }
+
+        return self::TEAM_A === $this->lastTimeoutTeam ? self::TEAM_B : self::TEAM_A;
+    }
+
+    /**
+     * @return Collection<int, Team>
+     */
+    public function getTeams(): Collection
+    {
+        return $this->teams;
+    }
+
+    public function addTeam(Team $team): self
+    {
+        if (!$this->teams->contains($team)) {
+            $this->teams[] = $team;
+        }
+
+        return $this;
+    }
+
+    public function removeTeam(Team $team): self
+    {
+        $this->teams->removeElement($team);
+
+        return $this;
+    }
+
+    /**
+     * Récupère l'équipe par son nom.
+     */
+    public function getTeamByName(string $name): ?Team
+    {
+        foreach ($this->teams as $team) {
+            if ($team->getName() === $name) {
+                return $team;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Récupère le TeamMember actuel dont c'est le tour de jouer.
+     */
+    public function getCurrentMembership(): ?TeamMember
+    {
+        $currentTeam = $this->getTeamByName($this->turnTeam);
+
+        if (!$currentTeam) {
+            return null;
+        }
+
+        // Récupérer les membres actifs de l'équipe triés par position
+        $activeMembers = $currentTeam->getMembers()->filter(
+            fn (TeamMember $member) => $member->isActive()
+        )->toArray();
+
+        // Trier par position
+        usort($activeMembers, fn (TeamMember $a, TeamMember $b) => $a->getPosition() <=> $b->getPosition());
+
+        if (empty($activeMembers)) {
+            return null;
+        }
+
+        // Utiliser l'index actuel de l'équipe pour déterminer quel membre c'est le tour
+        $currentIndex = $currentTeam->getCurrentIndex();
+        $memberIndex = $currentIndex % count($activeMembers);
+
+        return $activeMembers[$memberIndex] ?? null;
     }
 }

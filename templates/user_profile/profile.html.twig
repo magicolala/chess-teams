@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Profil - Chess Teams{% endblock %}
+
+{% block body %}
+<div class="neo-container neo-py-xl">
+    <div class="neo-card neo-card-glass">
+        <div class="neo-card-header">
+            <h1 class="neo-card-title">
+                <i class="material-icons">account_circle</i>
+                Mon Profil
+            </h1>
+        </div>
+        
+        <div class="neo-card-content">
+            <div class="neo-profile-section">
+                <div class="neo-user-avatar neo-avatar-lg">
+                    <i class="material-icons">account_circle</i>
+                </div>
+                <div class="neo-profile-info">
+                    <h2 class="neo-profile-name">{{ user.displayName ?? user.email|split('@')|first }}</h2>
+                    <p class="neo-profile-email">{{ user.email }}</p>
+                    <div class="neo-profile-status">
+                        <span class="neo-badge neo-badge-success">En ligne</span>
+                        {% if user.roles contains 'ROLE_ADMIN' %}
+                            <span class="neo-badge neo-badge-primary">Admin</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="neo-profile-nav">
+                <a href="{{ path('app_user_notifications') }}" class="neo-btn neo-btn-primary">
+                    <i class="material-icons">notifications</i>
+                    Préférences de notifications
+                </a>
+                <a href="{{ path('app_logout') }}" class="neo-btn neo-btn-secondary">
+                    <i class="material-icons">logout</i>
+                    Se déconnecter
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

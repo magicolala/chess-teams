@@ -81,9 +81,10 @@ final class MakeMoveHandler
                 throw new AccessDeniedHttpException('not_your_turn_in_team');
             }
 
-            // deadline
+            // Vérifier le délai effectif (mode rapide ou mode libre)
             $now = new \DateTimeImmutable();
-            if ($game->getTurnDeadline() && $now > $game->getTurnDeadline()) {
+            $effectiveDeadline = $game->getEffectiveDeadline();
+            if ($effectiveDeadline && $now > $effectiveDeadline) {
                 throw new ConflictHttpException('turn_expired');
             }
 
@@ -112,7 +113,14 @@ final class MakeMoveHandler
 
             // changer de camp / deadline
             $game->setTurnTeam($othersTeam->getName());
-            $deadline = $now->modify('+'.$game->getTurnDurationSec().' seconds');
+
+            // Remise à zéro des timeouts consécutifs quand un coup est joué normalement
+            $game->resetConsecutiveTimeouts();
+
+            // Réinitialiser le mode rapide pour le nouveau tour (mode libre par défaut = 14 jours max)
+            $game->setFastModeEnabled(false);
+            $game->setFastModeDeadline(null);
+            $deadline = $now->modify('+14 days'); // Mode libre : 14 jours maximum
             $game->setTurnDeadline($deadline);
             $game->setUpdatedAt($now);
 

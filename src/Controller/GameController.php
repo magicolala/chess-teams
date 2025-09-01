@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Application\DTO\ClaimVictoryInput;
 use App\Application\DTO\CreateGameInput;
+use App\Application\DTO\EnableFastModeInput;
 use App\Application\DTO\JoinByCodeInput;
 use App\Application\DTO\ListMovesInput;
 use App\Application\DTO\MakeMoveInput;
@@ -10,7 +12,9 @@ use App\Application\DTO\MarkPlayerReadyInput;
 use App\Application\DTO\ShowGameInput;
 use App\Application\DTO\StartGameInput;
 use App\Application\DTO\TimeoutTickInput;
+use App\Application\UseCase\ClaimVictoryHandler;
 use App\Application\UseCase\CreateGameHandler;
+use App\Application\UseCase\EnableFastModeHandler;
 use App\Application\UseCase\JoinByCodeHandler;
 use App\Application\UseCase\ListMovesHandler;
 use App\Application\UseCase\MakeMoveHandler;
@@ -37,6 +41,8 @@ final class GameController extends AbstractController
         private TimeoutTickHandler $timeoutTick,
         private ListMovesHandler $listMoves,
         private MarkPlayerReadyHandler $markPlayerReady,
+        private EnableFastModeHandler $enableFastMode,
+        private ClaimVictoryHandler $claimVictory,
     ) {
     }
 
@@ -197,6 +203,45 @@ final class GameController extends AbstractController
         ]);
     }
 
+    // POST /games/{id}/enable-fast-mode - Activer le mode rapide (1 minute)
+    #[Route('/{id}/enable-fast-mode', name: 'enable_fast_mode', methods: ['POST'])]
+    public function enableFastMode(string $id): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $in = new EnableFastModeInput($id, $user->getId() ?? '');
+        $out = ($this->enableFastMode)($in, $user);
+
+        return $this->json([
+            'gameId' => $out->gameId,
+            'fastModeEnabled' => $out->fastModeEnabled,
+            'fastModeDeadline' => $out->fastModeDeadlineTs,
+            'turnDeadline' => $out->turnDeadlineTs,
+        ], 200);
+    }
+
+    // POST /games/{id}/claim-victory - Revendiquer la victoire après timeouts consécutifs
+    #[Route('/{id}/claim-victory', name: 'claim_victory', methods: ['POST'])]
+    public function claimVictory(string $id): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $in = new ClaimVictoryInput($id, $user->getId() ?? '');
+        $out = ($this->claimVictory)($in, $user);
+
+        return $this->json([
+            'gameId' => $out->gameId,
+            'claimed' => $out->claimed,
+            'result' => $out->result,
+            'status' => $out->status,
+            'winnerTeam' => $out->winnerTeam,
+        ], 200);
+    }
+
     // GET /games/{id}/state - Endpoint pour l'actualisation automatique
     #[Route('/{id}/state', name: 'state', methods: ['GET'])]
     public function state(string $id, GameRepositoryInterface $gameRepo): JsonResponse
@@ -219,6 +264,28 @@ final class GameController extends AbstractController
                 ];
             }
 
+            // Informations sur le mode de chronométrage
+            $fastModeInfo = [
+                'enabled' => $game->isFastModeEnabled(),
+                'deadline' => $game->getFastModeDeadline()?->getTimestamp() * 1000 ?? null,
+            ];
+
+            $effectiveDeadline = $game->getEffectiveDeadline();
+            $timingInfo = [
+                'mode' => $game->isFastModeEnabled() ? 'fast' : 'free',
+                'effectiveDeadline' => $effectiveDeadline?->getTimestamp() * 1000 ?? null,
+                'turnDeadline' => $game->getTurnDeadline()?->getTimestamp() * 1000 ?? null,
+                'fastMode' => $fastModeInfo,
+            ];
+
+            // Informations de revendication de victoire
+            $claimInfo = [
+                'canClaim' => $game->canClaimVictory(),
+                'claimTeam' => $game->getClaimVictoryTeam(),
+                'consecutiveTimeouts' => $game->getConsecutiveTimeouts(),
+                'lastTimeoutTeam' => $game->getLastTimeoutTeam(),
+            ];
+
             return $this->json([
                 'gameId' => $gameOut->id,
                 'status' => $gameOut->status,
@@ -227,7 +294,9 @@ final class GameController extends AbstractController
                 'ply' => $gameOut->ply,
                 'turnTeam' => $gameOut->turnTeam,
                 'turnDeadline' => $gameOut->turnDeadlineTs,
+                'timing' => $timingInfo,
                 'currentPlayer' => $currentPlayer,
+                'claimVictory' => $claimInfo,
                 'moves' => $movesOut->moves,
                 'teams' => [
                     'A' => $gameOut->teamA,

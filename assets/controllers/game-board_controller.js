@@ -1144,4 +1144,23 @@ export default class extends Controller {
         if (res.status === 422) { this.printDebug('⚠️ 422: coup illégal'); return false }
         return res.ok
     }
+
+    async claimVictory() {
+        console.debug('[game-board] claimVictory()')
+        
+        const confirmed = confirm('Êtes-vous sûr de vouloir revendiquer la victoire ? Cette action est définitive.')
+        if (!confirmed) {
+            this.printDebug('❌ Revendication annulée par l\'utilisateur')
+            return
+        }
+        
+        const ok = await this.apiPost(`/games/${this.gameIdValue}/claim-victory`, {})
+        if (ok) {
+            this.printDebug('✅ Victoire revendiquée avec succès')
+            // Recharger la page pour voir le résultat
+            window.location.reload()
+        } else {
+            this.printDebug('❌ Erreur lors de la revendication de victoire')
+        }
+    }
 }

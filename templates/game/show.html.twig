@@ -296,6 +296,60 @@
 				box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
 			}
 		}
+
+		/* Styles pour les boutons toggle des notifications */
+		.neo-toggle {
+			position: relative;
+			display: inline-block;
+			width: 50px;
+			height: 24px;
+		}
+
+		.neo-toggle input {
+			opacity: 0;
+			width: 0;
+			height: 0;
+		}
+
+		.neo-toggle-slider {
+			position: absolute;
+			cursor: pointer;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background-color: var(--neo-bg-secondary, #15181d);
+			border: 1px solid var(--neo-border-light, #262a31);
+			transition: .4s;
+			border-radius: 12px;
+		}
+
+		.neo-toggle-slider:before {
+			position: absolute;
+			content: "";
+			height: 18px;
+			width: 18px;
+			left: 2px;
+			bottom: 2px;
+			background-color: var(--neo-text-secondary, #c2c8d2);
+			transition: .4s;
+			border-radius: 50%;
+		}
+
+		.neo-toggle input:checked + .neo-toggle-slider {
+			background-color: var(--neo-accent-primary, #4f46e5);
+			border-color: var(--neo-accent-primary, #4f46e5);
+		}
+
+		.neo-toggle input:checked + .neo-toggle-slider:before {
+			transform: translateX(26px);
+			background-color: white;
+		}
+
+		/* Classes utilitaires pour les espaces */
+		.neo-gap-sm {
+			gap: var(--neo-spacing-sm, 0.5rem);
+		}
 	</style>
 {% endblock %}
 
@@ -369,6 +423,54 @@
 						</div>
 					</div>
 				</div>
+
+				{# Panneau de contrôle des notifications #}
+				{% if game.status == 'live' and userMembership %}
+					<div class="neo-card neo-mb-lg" data-controller="notification-controls">
+						<div class="neo-card-header">
+							<h3 class="neo-card-title">
+								<i class="material-icons" style="margin-right: 0.5rem;">notifications</i>
+								Notifications
+							</h3>
+						</div>
+						<div class="neo-card-content">
+							<div class="neo-flex neo-justify-between neo-items-center neo-mb-sm neo-p-sm neo-bg-secondary neo-rounded">
+								<div class="neo-flex neo-items-center neo-gap-sm">
+									<i class="material-icons tiny">desktop_windows</i>
+									<span class="neo-text-sm neo-font-medium">Notifications de bureau:</span>
+								</div>
+								<label class="neo-toggle">
+									<input type="checkbox" data-notification-controls-target="desktopToggle" data-action="change->notification-controls#toggleDesktopNotifications">
+									<span class="neo-toggle-slider"></span>
+								</label>
+							</div>
+							<div class="neo-flex neo-justify-between neo-items-center neo-mb-sm neo-p-sm neo-bg-secondary neo-rounded">
+								<div class="neo-flex neo-items-center neo-gap-sm">
+									<i class="material-icons tiny">volume_up</i>
+									<span class="neo-text-sm neo-font-medium">Sons de notification:</span>
+								</div>
+								<label class="neo-toggle">
+									<input type="checkbox" data-notification-controls-target="soundToggle" data-action="change->notification-controls#toggleSoundNotifications" checked>
+									<span class="neo-toggle-slider"></span>
+								</label>
+							</div>
+							<div class="neo-flex neo-justify-between neo-items-center neo-p-sm neo-bg-secondary neo-rounded">
+								<div class="neo-flex neo-items-center neo-gap-sm">
+									<i class="material-icons tiny">flash_on</i>
+									<span class="neo-text-sm neo-font-medium">Flash du titre:</span>
+								</div>
+								<label class="neo-toggle">
+									<input type="checkbox" data-notification-controls-target="flashToggle" data-action="change->notification-controls#toggleFlashNotifications" checked>
+									<span class="neo-toggle-slider"></span>
+								</label>
+							</div>
+							<div class="neo-text-xs neo-text-muted neo-mt-sm">
+								<i class="material-icons tiny">info</i>
+								Vous serez alerté quand c'est votre tour de jouer
+							</div>
+						</div>
+					</div>
+				{% endif %}
 
 				<div class="neo-card neo-mb-lg">
 					<div class="neo-card-header">
@@ -604,6 +706,21 @@
 									</button>
 								</form>
 							{% endif %}
+
+							{# Bouton Revendiquer la victoire (après 3 timeouts consécutifs) #}
+							<div class="claim-victory-section" data-game-poll-target="claimSection" style="display: none;">
+								<div class="neo-alert neo-alert-warning neo-mt-lg">
+									<i class="material-icons" style="margin-right: 0.5rem;">warning</i>
+									<div>
+										<h4>L'adversaire a fait plusieurs timeouts consécutifs</h4>
+										<p>Vous pouvez revendiquer la victoire par abandon.</p>
+									</div>
+								</div>
+								<button data-action="game-board#claimVictory" class="neo-btn neo-btn-warning neo-btn-lg neo-btn-full neo-mt-sm">
+									<i class="material-icons" style="margin-right: 0.5rem;">emoji_events</i>
+									Revendiquer la victoire
+								</button>
+							</div>
 						</div>
 
 						{# Messages d'état #}

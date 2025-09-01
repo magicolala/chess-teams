@@ -45,6 +45,84 @@
   border-radius: var(--neo-radius-full);
 }
 
+/* User section in header */
+.neo-header-user {
+  display: flex;
+  align-items: center;
+  gap: var(--neo-spacing-md);
+}
+
+.neo-user-card {
+  display: flex;
+  align-items: center;
+  gap: var(--neo-spacing-sm);
+  padding: var(--neo-spacing-xs) var(--neo-spacing-sm);
+  background: var(--neo-bg-card);
+  border-radius: var(--neo-radius-full);
+  transition: all var(--neo-transition-fast);
+  cursor: pointer;
+}
+
+.neo-user-card:hover {
+  background: var(--neo-bg-hover);
+  transform: translateY(-1px);
+}
+
+.neo-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--neo-radius-full);
+  background: var(--neo-accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+}
+
+.neo-user-avatar .material-icons {
+  font-size: 20px;
+}
+
+.neo-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.neo-user-name {
+  color: var(--neo-text-primary);
+  font-size: var(--neo-font-size-sm);
+  font-weight: var(--neo-font-weight-medium);
+  line-height: 1.2;
+}
+
+.neo-user-status {
+  color: var(--neo-success);
+  font-size: var(--neo-font-size-xs);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.neo-user-status::before {
+  content: "●";
+  color: var(--neo-success);
+  font-size: 8px;
+}
+
+/* Responsive pour mobile */
+@media (max-width: 768px) {
+  .neo-user-info {
+    display: none;
+  }
+  
+  .neo-user-card {
+    padding: var(--neo-spacing-xs);
+  }
+}
+
 /* ===== CARTES ET PANELS ===== */
 
 .neo-card {
@@ -970,6 +1048,372 @@
 .neo-dropdown-item:hover {
   background: var(--neo-bg-hover);
   color: var(--neo-text-primary);
+}
+
+/* User dropdown spécifique */
+.neo-user-dropdown {
+  position: relative;
+}
+
+.neo-user-dropdown-content {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--neo-bg-card);
+  border: 1px solid var(--neo-border-light);
+  border-radius: var(--neo-radius);
+  box-shadow: var(--neo-shadow-lg);
+  backdrop-filter: blur(var(--neo-blur-amount));
+  -webkit-backdrop-filter: blur(var(--neo-blur-amount));
+  min-width: 280px;
+  z-index: var(--neo-z-dropdown);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px) scale(0.95);
+  transition: all var(--neo-transition-fast);
+  overflow: hidden;
+}
+
+.neo-user-dropdown.neo-active .neo-user-dropdown-content {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.neo-user-dropdown-content::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: 16px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid var(--neo-border-light);
+}
+
+.neo-user-dropdown-content::after {
+  content: '';
+  position: absolute;
+  top: -7px;
+  right: 16px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid var(--neo-bg-card);
+}
+
+.neo-user-dropdown-header {
+  padding: var(--neo-spacing-md);
+  border-bottom: 1px solid var(--neo-border-light);
+  background: var(--neo-bg-secondary);
+}
+
+.neo-user-dropdown-title {
+  color: var(--neo-text-primary);
+  font-size: var(--neo-font-size-sm);
+  font-weight: var(--neo-font-weight-semibold);
+  margin: 0;
+}
+
+.neo-user-dropdown-email {
+  color: var(--neo-text-muted);
+  font-size: var(--neo-font-size-xs);
+  margin: var(--neo-spacing-xs) 0 0 0;
+}
+
+.neo-user-dropdown-item {
+  padding: var(--neo-spacing-sm) var(--neo-spacing-md);
+  color: var(--neo-text-secondary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: var(--neo-spacing-sm);
+  transition: all var(--neo-transition-fast);
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-size: var(--neo-font-size-sm);
+}
+
+.neo-user-dropdown-item:hover {
+  background: var(--neo-bg-hover);
+  color: var(--neo-text-primary);
+}
+
+.neo-user-dropdown-item .material-icons {
+  font-size: 18px;
+  opacity: 0.7;
+}
+
+.neo-user-dropdown-divider {
+  height: 1px;
+  background: var(--neo-border-light);
+  margin: var(--neo-spacing-xs) 0;
+}
+
+/* ===== PROFIL UTILISATEUR ===== */
+
+.neo-profile-section {
+  display: flex;
+  align-items: center;
+  gap: var(--neo-spacing-lg);
+  margin-bottom: var(--neo-spacing-xl);
+  padding-bottom: var(--neo-spacing-xl);
+  border-bottom: 1px solid var(--neo-border-light);
+}
+
+.neo-avatar-lg {
+  width: 80px;
+  height: 80px;
+  font-size: 48px;
+}
+
+.neo-avatar-lg .material-icons {
+  font-size: 48px;
+}
+
+.neo-profile-info {
+  flex: 1;
+}
+
+.neo-profile-name {
+  color: var(--neo-text-primary);
+  font-size: var(--neo-font-size-xl);
+  font-weight: var(--neo-font-weight-semibold);
+  margin: 0 0 var(--neo-spacing-xs) 0;
+}
+
+.neo-profile-email {
+  color: var(--neo-text-muted);
+  font-size: var(--neo-font-size-sm);
+  margin: 0 0 var(--neo-spacing-sm) 0;
+}
+
+.neo-profile-status {
+  display: flex;
+  gap: var(--neo-spacing-sm);
+  flex-wrap: wrap;
+}
+
+.neo-profile-nav {
+  display: flex;
+  gap: var(--neo-spacing-md);
+  flex-wrap: wrap;
+}
+
+/* ===== PRÉFÉRENCES DE NOTIFICATIONS ===== */
+
+.neo-notification-preferences {
+  display: flex;
+  flex-direction: column;
+  gap: var(--neo-spacing-lg);
+}
+
+.neo-preference-item {
+  background: var(--neo-bg-secondary);
+  border: 1px solid var(--neo-border-light);
+  border-radius: var(--neo-radius);
+  padding: var(--neo-spacing-lg);
+  transition: all var(--neo-transition-fast);
+}
+
+.neo-preference-item:hover {
+  background: var(--neo-bg-hover);
+  border-color: var(--neo-border-medium);
+}
+
+.neo-preference-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--neo-spacing-lg);
+}
+
+.neo-preference-header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--neo-spacing-md);
+  flex: 1;
+}
+
+.neo-preference-icon {
+  color: var(--neo-accent-primary);
+  font-size: 24px;
+  margin-top: 2px;
+}
+
+.neo-preference-text {
+  flex: 1;
+}
+
+.neo-preference-title {
+  color: var(--neo-text-primary);
+  font-size: var(--neo-font-size-base);
+  font-weight: var(--neo-font-weight-semibold);
+  margin: 0 0 var(--neo-spacing-xs) 0;
+}
+
+.neo-preference-description {
+  color: var(--neo-text-muted);
+  font-size: var(--neo-font-size-sm);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.neo-preference-control {
+  flex-shrink: 0;
+}
+
+.neo-preference-info {
+  text-align: center;
+  margin-top: var(--neo-spacing-lg);
+  padding-top: var(--neo-spacing-lg);
+  border-top: 1px solid var(--neo-border-light);
+}
+
+/* ===== TOGGLE SWITCHES ===== */
+
+.neo-toggle {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  cursor: pointer;
+}
+
+.neo-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.neo-toggle-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--neo-bg-secondary);
+  border: 2px solid var(--neo-border-light);
+  transition: all var(--neo-transition-normal);
+  border-radius: 34px;
+  cursor: pointer;
+}
+
+.neo-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 4px;
+  bottom: 2px;
+  background: var(--neo-text-muted);
+  transition: all var(--neo-transition-normal);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.neo-toggle input:checked + .neo-toggle-slider {
+  background: var(--neo-accent-primary);
+  border-color: var(--neo-accent-primary);
+}
+
+.neo-toggle input:checked + .neo-toggle-slider:before {
+  transform: translateX(26px);
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.neo-toggle:hover .neo-toggle-slider {
+  border-color: var(--neo-border-medium);
+}
+
+.neo-toggle input:checked:hover + .neo-toggle-slider {
+  background: var(--neo-accent-secondary);
+  border-color: var(--neo-accent-secondary);
+}
+
+/* Mini toggles pour le dropdown */
+.neo-toggle[style*="width: 40px"] .neo-toggle-slider:before {
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+}
+
+.neo-toggle[style*="width: 40px"] input:checked + .neo-toggle-slider:before {
+  transform: translateX(18px);
+}
+
+/* Animation de l'icône expand_more */
+.neo-user-card .material-icons:last-child {
+  transition: transform var(--neo-transition-fast);
+}
+
+/* Amélioration du z-index pour les dropdowns */
+:root {
+  --neo-z-dropdown: 1000;
+  --neo-z-tooltip: 1010;
+  --neo-z-overlay: 1020;
+}
+
+/* Style pour les icônes tiny */
+.material-icons.tiny {
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+/* Progress bar pour les flash messages */
+.neo-flash-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--neo-accent-primary);
+  width: 0;
+  transition: width ease-out;
+}
+
+.neo-flash-progress-active {
+  width: 100%;
+}
+
+/* ===== RESPONSIVE MOBILE ===== */
+
+@media (max-width: 768px) {
+  .neo-profile-section {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--neo-spacing-md);
+  }
+  
+  .neo-profile-nav {
+    justify-content: center;
+  }
+  
+  .neo-preference-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--neo-spacing-md);
+  }
+  
+  .neo-preference-header {
+    width: 100%;
+  }
+  
+  .neo-preference-control {
+    align-self: flex-end;
+  }
+  
+  .neo-user-dropdown-content {
+    right: var(--neo-spacing-md);
+    left: var(--neo-spacing-md);
+    min-width: auto;
+  }
 }
 
 /* ===== MESSAGES FLASH FLOTTANTS ===== */

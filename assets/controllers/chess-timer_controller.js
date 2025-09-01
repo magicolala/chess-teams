@@ -23,7 +23,11 @@ export default class extends Controller {
         this.fastTimeValue = this.fastTimeValue || 60
         this.isInFastMode = false
         this.fastModeStartTime = null
+        this.fastModeDeadline = null
 
+        // Récupérer l'état initial depuis l'API
+        this.fetchGameState()
+        
         this.setupTimer()
         this.updateDisplay()
         
@@ -61,14 +65,6 @@ export default class extends Controller {
         `
 
         this.setupStyles()
-        this.bindTargets()
-    }
-
-    bindTargets() {
-        this.mainTimeTarget = this.displayTarget.querySelector('[data-chess-timer-target="mainTime"]')
-        this.modeIndicatorTarget = this.displayTarget.querySelector('[data-chess-timer-target="modeIndicator"]')
-        this.progressFillTarget = this.displayTarget.querySelector('[data-chess-timer-target="progressFill"]')
-        this.readyButtonTarget = this.displayTarget.querySelector('[data-chess-timer-target="readyButton"]')
     }
 
     setupStyles() {
@@ -235,7 +231,10 @@ export default class extends Controller {
     }
 
     updateDisplay() {
-        if (!this.mainTimeTarget) return
+        const mainTimeElement = this.displayTarget.querySelector('[data-chess-timer-target="mainTime"]')
+        const modeIndicatorElement = this.displayTarget.querySelector('[data-chess-timer-target="modeIndicator"]')
+        
+        if (!mainTimeElement || !modeIndicatorElement) return
 
         let timeRemaining, displayText, isUrgent = false
 
@@ -246,34 +245,36 @@ export default class extends Controller {
             displayText = this.formatTime(timeRemaining)
             isUrgent = timeRemaining <= 10
             
-            this.modeIndicatorTarget.textContent = 'Mode rapide'
-            this.modeIndicatorTarget.classList.add('fast')
-            this.mainTimeTarget.classList.add('fast-mode')
+            modeIndicatorElement.textContent = 'Mode rapide'
+            modeIndicatorElement.classList.add('fast')
+            mainTimeElement.classList.add('fast-mode')
         } else if (this.currentDeadlineValue) {
             // Mode normal : jusqu'à 14 jours
             timeRemaining = Math.max(0, (this.currentDeadlineValue - Date.now()) / 1000)
             displayText = this.formatLongTime(timeRemaining)
             isUrgent = timeRemaining <= 3600 // Urgent dans la dernière heure
             
-            this.modeIndicatorTarget.textContent = 'Temps libre'
-            this.modeIndicatorTarget.classList.remove('fast')
-            this.mainTimeTarget.classList.remove('fast-mode')
+            modeIndicatorElement.textContent = 'Temps libre'
+            modeIndicatorElement.classList.remove('fast')
+            mainTimeElement.classList.remove('fast-mode')
         } else {
             displayText = '--:--:--'
-            this.modeIndicatorTarget.textContent = 'En attente'
+            modeIndicatorElement.textContent = 'En attente'
         }
 
-        this.mainTimeTarget.textContent = displayText
+        mainTimeElement.textContent = displayText
         
         if (isUrgent) {
-            this.mainTimeTarget.classList.add('urgent')
+            mainTimeElement.classList.add('urgent')
         } else {
-            this.mainTimeTarget.classList.remove('urgent')
+            mainTimeElement.classList.remove('urgent')
         }
     }
 
     updateProgress() {
-        if (!this.progressFillTarget) return
+        const progressFillElement = this.displayTarget.querySelector('[data-chess-timer-target="progressFill"]')
+        
+        if (!progressFillElement) return
 
         let percentage = 0
 
@@ -281,22 +282,22 @@ export default class extends Controller {
             const elapsed = (Date.now() - this.fastModeStartTime) / 1000
             percentage = Math.max(0, Math.min(100, (elapsed / this.fastTimeValue) * 100))
             
-            this.progressFillTarget.classList.add('fast-mode')
+            progressFillElement.classList.add('fast-mode')
         } else if (this.currentDeadlineValue) {
             const maxTime = this.maxDaysValue * 24 * 3600 // En secondes
             const remaining = (this.currentDeadlineValue - Date.now()) / 1000
             percentage = Math.max(0, Math.min(100, ((maxTime - remaining) / maxTime) * 100))
             
-            this.progressFillTarget.classList.remove('fast-mode')
+            progressFillElement.classList.remove('fast-mode')
         }
 
         if (percentage > 80) {
-            this.progressFillTarget.classList.add('urgent')
+            progressFillElement.classList.add('urgent')
         } else {
-            this.progressFillTarget.classList.remove('urgent')
+            progressFillElement.classList.remove('urgent')
         }
 
-        this.progressFillTarget.style.width = `${percentage}%`
+        progressFillElement.style.width = `${percentage}%`
     }
 
     formatTime(seconds) {
@@ -339,23 +340,69 @@ export default class extends Controller {
         this.notifyFastModeStart()
     }
 
-    async notifyFastModeStart() {
+    async fetchGameState() {
         try {
-            const response = await fetch(`/games/${this.gameIdValue}/start-fast-mode`, {
-                method: 'POST',
+            const response = await fetch(`/games/${this.gameIdValue}/state`, {
+                method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    fastTime: this.fastTimeValue
-                })
+                    'Accept': 'application/json'
+                }
             })
 
-            if (!response.ok) {
-                console.warn('[chess-timer] Failed to notify fast mode start')
+            if (response.ok) {
+                const data = await response.json()
+                
+                // Mettre à jour l'état du timer avec les données serveur
+                if (data.timing) {
+                    this.isInFastMode = data.timing.mode === 'fast'
+                    this.currentDeadlineValue = data.timing.effectiveDeadline
+                    
+                    if (this.isInFastMode && data.timing.fastMode.deadline) {
+                        this.fastModeDeadline = data.timing.fastMode.deadline
+                        // Calculer le temps de début approximatif
+                        this.fastModeStartTime = data.timing.fastMode.deadline - (this.fastTimeValue * 1000)
+                    }
+                }
             }
         } catch (error) {
-            console.error('[chess-timer] Error notifying fast mode start:', error)
+            console.warn('[chess-timer] Could not fetch game state:', error)
+        }
+    }
+
+    async notifyFastModeStart() {
+        try {
+            const response = await fetch(`/games/${this.gameIdValue}/enable-fast-mode`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+
+            if (response.ok) {
+                const data = await response.json()
+                // Mettre à jour avec les données du serveur
+                this.fastModeDeadline = data.fastModeDeadline
+                this.fastModeStartTime = Date.now()
+                console.debug('[chess-timer] Fast mode activated by server')
+            } else {
+                console.warn('[chess-timer] Failed to enable fast mode')
+                // Revert changes
+                this.isInFastMode = false
+                this.fastModeStartTime = null
+                if (this.readyButtonTarget) {
+                    this.readyButtonTarget.disabled = false
+                    this.readyButtonTarget.classList.remove('activated')
+                }
+            }
+        } catch (error) {
+            console.error('[chess-timer] Error enabling fast mode:', error)
+            // Revert changes
+            this.isInFastMode = false
+            this.fastModeStartTime = null
+            if (this.readyButtonTarget) {
+                this.readyButtonTarget.disabled = false
+                this.readyButtonTarget.classList.remove('activated')
+            }
         }
     }
 
@@ -363,10 +410,10 @@ export default class extends Controller {
         console.debug('[chess-timer] Timeout reached')
         
         // Envoyer timeout au serveur
-        fetch(`/games/${this.gameIdValue}/timeout`, {
+        fetch(`/games/${this.gameIdValue}/tick`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Accept': 'application/json'
             }
         }).then(response => {
             if (response.ok) {
