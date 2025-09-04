@@ -42,6 +42,7 @@ This project follows **Hexagonal Architecture** (Clean Architecture) with clear 
 ## Common Development Commands
 
 ### Setup and Installation
+
 ```bash
 # Install PHP dependencies
 composer install
@@ -61,6 +62,7 @@ docker compose up -d
 ```
 
 ### Development Workflow
+
 ```bash
 # Run tests
 ./vendor/bin/phpunit
@@ -88,6 +90,7 @@ php bin/console debug:container
 ```
 
 ### Database Commands
+
 ```bash
 # Create test users (custom command)
 php bin/console app:create-test-users
@@ -107,6 +110,7 @@ The application uses environment-specific configuration:
 - `.env.test` - Test environment overrides
 
 Key environment variables:
+
 - `DATABASE_URL` - Database connection string
 - `MERCURE_URL` - Mercure hub URL for real-time features
 - `APP_ENV` - Environment mode (dev/prod/test)
@@ -119,6 +123,7 @@ Key environment variables:
 - **Test Setup**: Database is cleaned before each test
 
 Example test run:
+
 ```bash
 # Run all tests
 ./vendor/bin/phpunit
@@ -136,6 +141,7 @@ Example test run:
 ## Real-time Features
 
 The application uses **Symfony Mercure** for real-time updates:
+
 - Game state changes broadcast to all connected clients
 - Turn timer updates
 - Move notifications
@@ -151,15 +157,18 @@ The application uses **Symfony Mercure** for real-time updates:
 ## Key Files to Understand
 
 ### Core Business Logic
+
 - `src/Entity/Game.php` - Central game state management
 - `src/Application/UseCase/` - Business operations handlers
 - `src/Infrastructure/Chess/PChessEngine.php` - Chess move validation
 
 ### API Endpoints
+
 - `src/Controller/GameController.php` - RESTful game API
 - `config/routes.yaml` - Route definitions
 
 ### Configuration
+
 - `config/services.yaml` - Dependency injection setup
 - `compose.yaml` - Docker services (PostgreSQL, Mercure)
 - `importmap.php` - Frontend dependency mapping

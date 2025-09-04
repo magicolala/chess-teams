@@ -1,5 +1,25 @@
-
 services:
+  php:
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    volumes:
+      - .:/var/www/html
+      - var_data:/var/www/html/var
+      - vendor_data:/var/www/html/vendor
+    depends_on:
+      - database
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+
 ###> doctrine/doctrine-bundle ###
   database:
     ports:
@@ -22,3 +42,7 @@ services:
     ports:
       - "80"
 ###< symfony/mercure-bundle ###
+
+volumes:
+  var_data:
+  vendor_data:
