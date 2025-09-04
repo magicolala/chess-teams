@@ -50,8 +50,13 @@ final class GameTimeoutTest extends WebTestCase
 
         /** @var TeamMemberRepositoryInterface $members */
         $members = $c->get(TeamMemberRepositoryInterface::class);
-        $members->add(new TeamMember($teamA, $uA, 0));
-        $members->add(new TeamMember($teamB, $uB, 0));
+        $memberA = new TeamMember($teamA, $uA, 0);
+        $memberA->setReadyToStart(true);
+        $members->add($memberA);
+
+        $memberB = new TeamMember($teamB, $uB, 0);
+        $memberB->setReadyToStart(true);
+        $members->add($memberB);
         $em->flush();
 
         // démarre
@@ -102,8 +107,13 @@ final class GameTimeoutTest extends WebTestCase
 
         /** @var TeamMemberRepositoryInterface $members */
         $members = $c->get(TeamMemberRepositoryInterface::class);
-        $members->add(new TeamMember($teamA, $uA, 0));
-        $members->add(new TeamMember($teamB, $uB, 0));
+        $memberA = new TeamMember($teamA, $uA, 0);
+        $memberA->setReadyToStart(true);
+        $members->add($memberA);
+
+        $memberB = new TeamMember($teamB, $uB, 0);
+        $memberB->setReadyToStart(true);
+        $members->add($memberB);
         $em->flush();
 
         /** @var StartGameHandler $start */

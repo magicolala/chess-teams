@@ -57,8 +57,13 @@ final class GameStartTest extends WebTestCase
         // add one member in each team
         /** @var TeamMemberRepositoryInterface $members */
         $members = $c->get(TeamMemberRepositoryInterface::class);
-        $members->add(new TeamMember($teamA, $creator, 0));
-        $members->add(new TeamMember($teamB, $p2, 0));
+        $memberA = new TeamMember($teamA, $creator, 0);
+        $memberA->setReadyToStart(true);
+        $members->add($memberA);
+
+        $memberB = new TeamMember($teamB, $p2, 0);
+        $memberB->setReadyToStart(true);
+        $members->add($memberB);
         $em->flush();
 
         // login as creator

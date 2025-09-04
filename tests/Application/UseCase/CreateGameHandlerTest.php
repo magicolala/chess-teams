@@ -38,7 +38,7 @@ class CreateGameHandlerTest extends TestCase
         );
 
         $this->user = $this->createMock(User::class);
-        $this->user->method('getId')->willReturn(123);
+        $this->user->method('getId')->willReturn('user-123');
     }
 
     public function testCreateGame(): void

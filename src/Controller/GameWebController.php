@@ -149,6 +149,7 @@ final class GameWebController extends AbstractController
         $user = $this->getUser();
 
         $teamName = (string) $request->request->get('team', '');
+        dump($teamName); // DEBUG: Check what teamName is received
         if (!\in_array($teamName, [Team::NAME_A, Team::NAME_B, 'A', 'B'], true)) {
             throw new BadRequestHttpException('invalid_team');
         }

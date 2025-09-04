@@ -19,7 +19,7 @@ class GameControllerTest extends WebTestCase
 
         // Mock user for authentication
         $this->user = $this->createMock(User::class);
-        $this->user->method('getId')->willReturn(123);
+        $this->user->method('getId')->willReturn('user-123');
         $this->user->method('getUserIdentifier')->willReturn('test@example.com');
     }
 

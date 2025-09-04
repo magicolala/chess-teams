@@ -8,7 +8,7 @@ use App\Domain\Repository\GameRepositoryInterface;
 use App\Domain\Repository\MoveRepositoryInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-final class ListMovesHandler
+class ListMovesHandler
 {
     public function __construct(
         private GameRepositoryInterface $games,

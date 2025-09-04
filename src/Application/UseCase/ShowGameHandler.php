@@ -10,7 +10,7 @@ use App\Domain\Repository\TeamRepositoryInterface;
 use App\Entity\Team;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-final class ShowGameHandler
+class ShowGameHandler
 {
     public function __construct(
         private GameRepositoryInterface $games,

@@ -17,26 +17,17 @@ final class RegistrationControllerTest extends WebTestCase
     private KernelBrowser $client;
     private UserRepository $userRepository;
 
+    
+
     protected function setUp(): void
     {
         $this->client = self::createClient();
-
-        // Ensure we have a clean database
-        $container = self::getContainer();
-
-        /** @var EntityManager $em */
-        $em = $container->get('doctrine')->getManager();
-        $this->userRepository = $container->get(UserRepository::class);
-
-        foreach ($this->userRepository->findAll() as $user) {
-            $em->remove($user);
-        }
-
-        $em->flush();
+        $this->userRepository = self::getContainer()->get(UserRepository::class);
     }
 
     public function testRegister(): void
     {
+
         // Register a new user
         $this->client->request('GET', '/register');
         self::assertResponseIsSuccessful();

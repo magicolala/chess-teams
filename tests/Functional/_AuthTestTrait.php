@@ -5,6 +5,11 @@ namespace App\Tests\Functional;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 
+/**
+ * @internal
+ *
+ * @coversNothing
+ */
 trait _AuthTestTrait
 {
     private function loginClient($client, \App\Entity\User $user, string $firewallName = 'main'): void
@@ -17,3 +22,4 @@ trait _AuthTestTrait
         $client->getCookieJar()->set(new Cookie($session->getName(), $session->getId()));
     }
 }
+

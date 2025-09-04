@@ -6,6 +6,8 @@ use App\Application\DTO\CreateGameInput;
 use App\Application\DTO\StartGameInput;
 use App\Application\UseCase\CreateGameHandler;
 use App\Application\UseCase\StartGameHandler;
+use App\Application\UseCase\MarkPlayerReadyHandler;
+use App\Application\DTO\MarkPlayerReadyInput;
 use App\Domain\Repository\TeamMemberRepositoryInterface;
 use App\Domain\Repository\TeamRepositoryInterface;
 use App\Entity\Team;
@@ -52,6 +54,12 @@ final class GameEndTest extends WebTestCase
         $members = $c->get(TeamMemberRepositoryInterface::class);
         $members->add(new TeamMember($teamA, $uA, 0));
         $members->add(new TeamMember($teamB, $uB, 0));
+        $em->flush();
+
+        /** @var MarkPlayerReadyHandler $markReady */
+        $markReady = $c->get(MarkPlayerReadyHandler::class);
+        $markReady(new MarkPlayerReadyInput($game->getId(), true), $uA);
+        $markReady(new MarkPlayerReadyInput($game->getId(), true), $uB);
         $em->flush();
 
         /** @var StartGameHandler $start */
