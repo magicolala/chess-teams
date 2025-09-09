@@ -484,6 +484,24 @@
 					</div>
 				{% endif %}
 
+				{# Panneau de décision après timeout (affiché seulement si nécessaire) #}
+                <div class="neo-card neo-mb-lg" data-game-board-target="timeoutDecision" style="display: none;">
+                    <div class="neo-card-header">
+                        <h3 class="neo-card-title">⏰ Décision après timeout</h3>
+                    </div>
+                    <div class="neo-card-content">
+                        <p class="neo-text-sm neo-text-secondary neo-mb-sm">L'adversaire a dépassé le temps. Que souhaitez-vous faire ?</p>
+                        <div class="neo-flex neo-gap-sm">
+                            <button class="neo-btn neo-btn-warning neo-btn-full" data-decision="end" data-action="game-board#decideTimeout">
+                                🛑 Mettre fin à la partie (victoire)
+                            </button>
+                            <button class="neo-btn neo-btn-success neo-btn-full" data-decision="allow_next" data-action="game-board#decideTimeout">
+                                ▶️ Laisser le suivant jouer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
 				<div class="neo-card neo-mb-lg">
 					<div class="neo-card-header">
 						<h3 class="neo-card-title">📋 Historique des coups</h3>

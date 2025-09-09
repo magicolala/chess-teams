@@ -63,6 +63,16 @@ class Game
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $fastModeDeadline = null;
 
+    // Décision d'adversaire après timeout
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $timeoutDecisionPending = false;
+
+    #[ORM\Column(length: 1, nullable: true)]
+    private ?string $timeoutTimedOutTeam = null; // 'A' ou 'B' (équipe qui a dépassé le temps)
+
+    #[ORM\Column(length: 1, nullable: true)]
+    private ?string $timeoutDecisionTeam = null; // 'A' ou 'B' (équipe qui doit décider)
+
     #[ORM\Column(length: 16, nullable: true)]
     private ?string $result = null; // Ex: 'A#' (A mat), 'B#', '1/2-1/2', 'resignA', 'timeoutA', etc.
 
@@ -238,6 +248,51 @@ class Game
     public function setFastModeDeadline(?\DateTimeImmutable $deadline): self
     {
         $this->fastModeDeadline = $deadline;
+
+        return $this;
+    }
+
+    public function isTimeoutDecisionPending(): bool
+    {
+        return $this->timeoutDecisionPending;
+    }
+
+    public function setTimeoutDecisionPending(bool $pending): self
+    {
+        $this->timeoutDecisionPending = $pending;
+
+        return $this;
+    }
+
+    public function getTimeoutTimedOutTeam(): ?string
+    {
+        return $this->timeoutTimedOutTeam;
+    }
+
+    public function setTimeoutTimedOutTeam(?string $team): self
+    {
+        $this->timeoutTimedOutTeam = $team;
+
+        return $this;
+    }
+
+    public function getTimeoutDecisionTeam(): ?string
+    {
+        return $this->timeoutDecisionTeam;
+    }
+
+    public function setTimeoutDecisionTeam(?string $team): self
+    {
+        $this->timeoutDecisionTeam = $team;
+
+        return $this;
+    }
+
+    public function resetTimeoutDecision(): self
+    {
+        $this->timeoutDecisionPending = false;
+        $this->timeoutTimedOutTeam = null;
+        $this->timeoutDecisionTeam = null;
 
         return $this;
     }

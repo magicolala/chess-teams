@@ -652,7 +652,7 @@ class SimpleNeoChessBoard {
 
 export default class extends Controller {
     static values = { fen: String, gameId: String, turnTeam: String, deadlineTs: Number, status: String }
-    static targets = ['timer', 'turnTeam', 'status', 'result']
+    static targets = ['timer', 'turnTeam', 'status', 'result', 'timeoutDecision']
 
     connect() {
         console.debug('[game-board] connect() with Neo Chess Board (inline)', {
@@ -1110,10 +1110,51 @@ export default class extends Controller {
         // Mettre à jour interactivité selon le tour ET le clic "Prêt"
         const isPlayerTurn = this.isCurrentPlayerTurn()
         this.turnReady = this.isTurnReady()
-        const canInteract = this.statusValue === 'live' && isPlayerTurn && this.turnReady
+        let canInteract = this.statusValue === 'live' && isPlayerTurn && this.turnReady
+
+        // Gérer la décision de timeout en attente
+        const td = gs.timeoutDecision || {}
+        const pending = !!td.pending
+        if (pending) {
+            // Bloquer l'interaction pendant la décision
+            canInteract = false
+            const userTeamEl = document.querySelector('[data-user-team]')
+            const userTeam = userTeamEl ? userTeamEl.dataset.userTeam : null
+            const decisionTeam = (td.decisionTeam === 'TeamA') ? 'A' : (td.decisionTeam === 'TeamB' ? 'B' : td.decisionTeam)
+            if (this.hasTimeoutDecisionTarget) {
+                // Afficher le panneau seulement pour l'équipe décisionnaire
+                this.timeoutDecisionTarget.style.display = (userTeam && decisionTeam && userTeam === decisionTeam) ? 'block' : 'none'
+            }
+        } else {
+            if (this.hasTimeoutDecisionTarget) {
+                this.timeoutDecisionTarget.style.display = 'none'
+            }
+        }
+
         this.board.setInteractive(!!canInteract)
         this.setupBoardOverlay(isPlayerTurn)
         this.renderState()
+    }
+
+    async decideTimeout(event) {
+        const decision = event?.currentTarget?.dataset?.decision
+        if (!decision) return
+        this.printDebug(`🕒 Décision timeout: ${decision}`)
+        const ok = await this.apiPost(`/games/${this.gameIdValue}/timeout-decision`, { decision })
+        if (!ok) {
+            this.printDebug('❌ Décision refusée par le serveur')
+            return
+        }
+        // Forcer un refresh de l'état
+        try {
+            const gameRes = await fetch(`/games/${this.gameIdValue}/state`, { headers: { 'Accept': 'application/json' } })
+            if (gameRes.ok) {
+                const gameState = await gameRes.json()
+                this.onPollGameUpdated({ detail: gameState })
+            }
+        } catch (e) {
+            // ignore
+        }
     }
 
     async reloadMoves() {

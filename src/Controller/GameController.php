@@ -12,6 +12,7 @@ use App\Application\DTO\MarkPlayerReadyInput;
 use App\Application\DTO\ShowGameInput;
 use App\Application\DTO\StartGameInput;
 use App\Application\DTO\TimeoutTickInput;
+use App\Application\DTO\TimeoutDecisionInput;
 use App\Application\UseCase\ClaimVictoryHandler;
 use App\Application\UseCase\CreateGameHandler;
 use App\Application\UseCase\EnableFastModeHandler;
@@ -22,6 +23,7 @@ use App\Application\UseCase\MarkPlayerReadyHandler;
 use App\Application\UseCase\ShowGameHandler;
 use App\Application\UseCase\StartGameHandler;
 use App\Application\UseCase\TimeoutTickHandler;
+use App\Application\UseCase\DecideTimeoutHandler;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -41,6 +43,7 @@ final class GameController extends AbstractController
         private ShowGameHandler $showGame,
         private MakeMoveHandler $makeMove,
         private TimeoutTickHandler $timeoutTick,
+        private DecideTimeoutHandler $decideTimeout,
         private ListMovesHandler $listMoves,
         private MarkPlayerReadyHandler $markPlayerReady,
         private EnableFastModeHandler $enableFastMode,
@@ -219,6 +222,7 @@ final class GameController extends AbstractController
                 'turnTeam' => $out->turnTeam,
                 'turnDeadline' => $out->turnDeadlineTs,
                 'fen' => $out->fen,
+                // client can refetch state to get detailed decision info
             ]);
         }
 
@@ -371,6 +375,42 @@ final class GameController extends AbstractController
         }
     }
 
+    // POST /games/{id}/timeout-decision
+    #[Route('/{id}/timeout-decision', name: 'timeout_decision', methods: ['POST'])]
+    public function timeoutDecision(string $id, Request $r): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $payload = $r->toArray();
+        $decision = (string) ($payload['decision'] ?? ''); // 'end' | 'allow_next'
+
+        $out = ($this->decideTimeout)(new TimeoutDecisionInput($id, $user->getId() ?? '', $decision), $user);
+
+        $response = $this->json([
+            'gameId' => $out->gameId,
+            'status' => $out->status,
+            'result' => $out->result,
+            'pending' => $out->pending,
+            'turnTeam' => $out->turnTeam,
+            'turnDeadline' => $out->turnDeadlineTs,
+        ]);
+
+        // Inform clients
+        $this->publishMercure($id, [
+            'type' => 'game.timeout_decision',
+            'gameId' => $out->gameId,
+            'status' => $out->status,
+            'result' => $out->result,
+            'pending' => $out->pending,
+            'turnTeam' => $out->turnTeam,
+            'turnDeadline' => $out->turnDeadlineTs,
+        ]);
+
+        return $response;
+    }
+
     // GET /games/{id}/state - Endpoint pour l'actualisation automatique
     #[Route('/{id}/state', name: 'state', methods: ['GET'])]
     public function state(string $id, GameRepositoryInterface $gameRepo, Request $request): JsonResponse
@@ -414,6 +454,13 @@ final class GameController extends AbstractController
                 'lastTimeoutTeam' => $game->getLastTimeoutTeam(),
             ];
 
+            // Informations sur décision de timeout en attente
+            $timeoutDecision = [
+                'pending' => $game->isTimeoutDecisionPending(),
+                'decisionTeam' => $game->getTimeoutDecisionTeam(),
+                'timedOutTeam' => $game->getTimeoutTimedOutTeam(),
+            ];
+
             // Compute ETag BEFORE heavy payload (moves)
             $etagBase = implode(':', [
                 $gameOut->id,
@@ -445,6 +492,8 @@ final class GameController extends AbstractController
                     'A' => $gameOut->teamA,
                     'B' => $gameOut->teamB,
                 ],
+                'claimVictory' => $claimInfo,
+                'timeoutDecision' => $timeoutDecision,
                 'lastUpdate' => time(),
             ];
 

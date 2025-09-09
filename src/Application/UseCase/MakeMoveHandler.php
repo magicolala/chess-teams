@@ -48,6 +48,9 @@ final class MakeMoveHandler
         if (Game::STATUS_FINISHED === $game->getStatus()) {
             throw new ConflictHttpException('game_finished');
         }
+        if ($game->isTimeoutDecisionPending()) {
+            throw new ConflictHttpException('timeout_decision_pending');
+        }
 
         // Lock sur la partie (évite les moves concurrents)
         $lock = $this->lockFactory->createLock('game:'.$game->getId(), 5.0);

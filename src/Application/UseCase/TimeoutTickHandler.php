@@ -91,9 +91,7 @@ final class TimeoutTickHandler
             ;
             $this->moves->add($mv);
 
-            if ($orderCount > 0) {
-                $teamToPlay->setCurrentIndex(($teamToPlay->getCurrentIndex() + 1) % $orderCount);
-            }
+            // Ne pas avancer l'index tout de suite: l'adversaire choisira s'il autorise le joueur suivant à jouer.
 
             // Gestion des timeouts consécutifs
             $currentTeamName = Team::NAME_A === $teamToPlay->getName() ? Game::TEAM_A : Game::TEAM_B;
@@ -107,13 +105,18 @@ final class TimeoutTickHandler
             }
 
             $game->setPly($ply);
-            $game->setTurnTeam($othersTeam->getName());
+            // Le tour reste à l'équipe qui a dépassé le temps jusqu'à décision de l'adversaire
+            $game->setTurnTeam($teamToPlay->getName());
 
-            // Réinitialiser le mode rapide pour le nouveau tour (mode libre par défaut = 14 jours max)
+            // Marquer la décision en attente
+            $game->setTimeoutDecisionPending(true);
+            $game->setTimeoutTimedOutTeam($currentTeamName);
+            $game->setTimeoutDecisionTeam($currentTeamName === Game::TEAM_A ? Game::TEAM_B : Game::TEAM_A);
+
+            // Suspendre les délais pendant la décision
             $game->setFastModeEnabled(false);
             $game->setFastModeDeadline(null);
-            $newDeadline = $now->modify('+14 days'); // Mode libre : 14 jours maximum
-            $game->setTurnDeadline($newDeadline);
+            $game->setTurnDeadline(null);
             $game->setUpdatedAt($now);
 
             $end = $this->endEvaluator->evaluateAndApply($game);
