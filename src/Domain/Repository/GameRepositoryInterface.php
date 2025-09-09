@@ -11,4 +11,11 @@ interface GameRepositoryInterface
     public function get(string $id): ?Game;
 
     public function findOneByInviteCode(string $inviteCode): ?Game;
+
+    /**
+     * Returns recent public games for display on homepage.
+     *
+     * @return Game[]
+     */
+    public function findPublicGames(int $limit = 10): array;
 }

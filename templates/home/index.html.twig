@@ -79,6 +79,30 @@
 			</div>
 		</div>
 
+		<!-- Public games list -->
+		<div class="neo-card neo-animate-fadeIn neo-mb-2xl">
+			<div class="neo-card-header">
+				<h3 class="neo-card-title">🌍 Parties publiques récentes</h3>
+			</div>
+			<div class="neo-card-content">
+				{% if publicGames is defined and publicGames|length > 0 %}
+					<ul class="neo-list neo-divide">
+						{% for game in publicGames %}
+							<li class="neo-flex neo-justify-between neo-items-center neo-py-sm">
+								<div class="neo-text-sm neo-text-secondary">
+									<span class="neo-badge">{{ game.status|upper }}</span>
+									· Créée le {{ game.createdAt|date('d/m/Y H:i') }} · ⏱️ {{ game.turnDurationSec }}s
+								</div>
+								<a class="neo-btn neo-btn-link" href="{{ path('app_game_show_page', { id: game.id }) }}">Ouvrir</a>
+							</li>
+						{% endfor %}
+					</ul>
+				{% else %}
+					<p class="neo-text-secondary">Aucune partie publique pour le moment. Créez-en une !</p>
+				{% endif %}
+			</div>
+		</div>
+
 		<!-- Section informative -->
 		<div class="neo-card neo-bg-info neo-animate-fadeIn neo-delay-200">
 			<div class="neo-card-header">

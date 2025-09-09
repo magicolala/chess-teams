@@ -35,4 +35,19 @@ final class GameRepository extends ServiceEntityRepository implements GameReposi
             ->getOneOrNullResult()
         ;
     }
+
+    /**
+     * @return Game[]
+     */
+    public function findPublicGames(int $limit = 10): array
+    {
+        return $this->createQueryBuilder('g')
+            ->where('g.visibility = :visibility')
+            ->setParameter('visibility', 'public')
+            ->orderBy('g.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }
