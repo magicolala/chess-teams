@@ -16,10 +16,10 @@ security:
     main:
       lazy: true
       provider: app_user_provider
-      json_login:
+      form_login:
         check_path: /login
-        username_path: email
-        password_path: password
+        username_parameter: _username
+        password_parameter: _password
       logout:
         path: app_logout
 

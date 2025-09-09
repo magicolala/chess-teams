@@ -93,10 +93,10 @@
             "@auto-scripts"
         ],
         "cs:fix": [
-            "php tools/php-cs-fixer.phar fix --config=.php-cs-fixer.php --allow-risky=yes"
+            "php tools/php-cs-fixer.phar fix --config=.php-cs-fixer.dist.php --allow-risky=yes"
         ],
         "cs:check": [
-            "php tools/php-cs-fixer.phar fix --config=.php-cs-fixer.php --allow-risky=yes --dry-run --diff"
+            "php tools/php-cs-fixer.phar fix --config=.php-cs-fixer.dist.php --allow-risky=yes --dry-run --diff"
         ]
     },
     "conflict": {

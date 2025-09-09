@@ -18,7 +18,7 @@ class Team
     #[ORM\Column(type: 'uuid', unique: true)]
     private string $id;
 
-    #[ORM\ManyToOne(targetEntity: Game::class)]
+    #[ORM\ManyToOne(targetEntity: Game::class, inversedBy: 'teams')]
     #[ORM\JoinColumn(nullable: false)]
     private Game $game;
 

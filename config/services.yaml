@@ -15,8 +15,8 @@ services:
     App\Domain\Repository\InviteRepositoryInterface: '@App\Infrastructure\Doctrine\Repository\InviteRepository'
     App\Domain\Repository\TeamMemberRepositoryInterface: '@App\Infrastructure\Doctrine\Repository\TeamMemberRepository'
     App\Domain\Repository\MoveRepositoryInterface: '@App\Infrastructure\Doctrine\Repository\MoveRepository'
-    App\Application\Port\ChessEngineInterface: '@App\Infrastructure\Chess\PChessEngine'
-    App\Infrastructure\Chess\PChessEngine: ~
+    App\Application\Port\ChessEngineInterface: '@App\Infrastructure\Chess\ChesslablabEngine'
+    App\Infrastructure\Chess\ChesslablabEngine: ~
     App\Application\Service\GameEndEvaluator: ~
 
     # makes classes in src/ available to be used as services

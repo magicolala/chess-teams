@@ -3,7 +3,6 @@
 namespace App\Application\Service;
 
 use App\Entity\Game;
-use App\Infrastructure\Chess\PChessEngine;
 
 /**
  * Détecte et applique la fin de partie sur un Game :
@@ -23,7 +22,7 @@ final class GameEndEvaluator
             return ['isOver' => true, 'status' => Game::STATUS_FINISHED, 'result' => $game->getResult()];
         }
 
-        $fen = 'startpos' === $game->getFen() ? PChessEngine::DEFAULT_FEN : $game->getFen();
+        $fen = 'startpos' === $game->getFen() ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : $game->getFen();
 
         // Détection basique de fin de partie
         // Vérifier si c'est possiblement un mat basique (quelques cas simples)

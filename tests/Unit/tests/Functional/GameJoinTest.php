@@ -52,4 +52,3 @@ final class GameJoinTest extends WebTestCase
         self::assertIsInt($json['position']);
     }
 }
-

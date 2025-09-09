@@ -4,6 +4,16 @@
 
 
 {% block body %}
+	{% for message in app.flashes('success') %}
+		<div class="neo-alert neo-alert-success neo-mb-lg">
+			✅ {{ message }}
+		</div>
+	{% endfor %}
+	{% for message in app.flashes('error') %}
+		<div class="neo-alert neo-alert-error neo-mb-lg">
+			❌ {{ message }}
+		</div>
+	{% endfor %}
 	<div class="neo-animate-fadeIn">
 		<div class="neo-flex neo-justify-center neo-items-start neo-min-h-screen neo-pt-xl">
 			<div class="neo-w-full neo-max-w-xs">
@@ -15,7 +25,7 @@
 					</div>
 					<div class="neo-card-content">
 						{{ form_start(registrationForm, {'attr': {'novalidate': 'novalidate'}}) }}
-							
+							{{ form_errors(registrationForm) }}
 							<div class="neo-form-group">
 								<label class="neo-label">
 									📧 Adresse e-mail

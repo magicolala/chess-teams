@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '"user"')]
@@ -19,6 +20,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private string $id;
 
     #[ORM\Column(length: 180)]
+    #[Assert\NotBlank(message: 'Please enter an email')]
+    #[Assert\Email(message: 'The email "{{ value }}" is not a valid email.')]
     private ?string $email = null;
 
     /**
@@ -31,9 +34,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string The hashed password
      */
     #[ORM\Column]
+    #[Assert\Length(min: 6, max: 255, minMessage: 'Your password must be at least {{ limit }} characters long')]
     private ?string $password = null;
 
     #[ORM\Column(length: 50, nullable: true)]
+    #[Assert\NotBlank(message: 'Please enter a display name')]
+    #[Assert\Length(min: 3, max: 50, minMessage: 'Your display name must be at least {{ limit }} characters long')]
     private ?string $displayName = null;
 
     #[ORM\Column(type: 'datetime_immutable')]

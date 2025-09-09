@@ -49,7 +49,7 @@ final class StartGameHandlerTest extends TestCase
             [$g, Team::NAME_B, $tb],
         ]);
 
-                $members->method('countActiveByTeam')->willReturn(1);
+        $members->method('countActiveByTeam')->willReturn(1);
         $members->method('areAllActivePlayersReady')->willReturn(true);
         $em->expects(self::once())->method('flush');
 
@@ -60,4 +60,3 @@ final class StartGameHandlerTest extends TestCase
         self::assertGreaterThan(time() * 1000, $out->turnDeadlineTs - 1000); // ~now+60s
     }
 }
-

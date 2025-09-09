@@ -97,7 +97,7 @@ export default class extends Controller {
                 li.className = 'move-item'
                 li.innerHTML = `
                     <span class="move-notation">#${move.ply}: ${move.san ?? move.uci}</span>
-                    <span class="neo-badge neo-badge-sm team-${move.team.name.toLowerCase()}">${move.team.name}</span>
+                    <span class="neo-badge neo-badge-sm team-${move.team?.name?.toLowerCase() || ''}">${move.team?.name || ''}</span>
                 `
                 list.appendChild(li)
             })

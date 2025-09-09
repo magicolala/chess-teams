@@ -22,4 +22,3 @@ trait _AuthTestTrait
         $client->getCookieJar()->set(new Cookie($session->getName(), $session->getId()));
     }
 }
-

@@ -4,9 +4,9 @@ namespace App\Tests\Controller;
 
 use App\Entity\User;
 use App\Tests\Functional\_AuthTestTrait;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
-use Doctrine\ORM\EntityManagerInterface;
 
 class UserProfileControllerTest extends WebTestCase
 {

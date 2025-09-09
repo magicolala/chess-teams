@@ -36,6 +36,10 @@ class RegistrationController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
+        if ($form->isSubmitted() && !$form->isValid()) {
+            $this->addFlash('error', 'Une erreur est survenue lors de la création de votre compte. Veuillez vérifier les informations saisies.');
+        }
+
         return $this->render('registration/register.html.twig', [
             'registrationForm' => $form,
         ]);

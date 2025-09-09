@@ -52,30 +52,34 @@ function isWhitePiece(piece) {
 }
 
 function parseFEN(fen) {
-  const parts = fen.split(' ');
-  const position = parts[0];
-  const turn = parts[1];
-  const castling = parts[2];
-  const ep = parts[3] === '-' ? null : parts[3];
-  const halfmove = parseInt(parts[4]) || 0;
-  const fullmove = parseInt(parts[5]) || 1;
-
+  const chess = new ChessJs(fen);
   const board = Array(8).fill(null).map(() => Array(8).fill(null));
-  let rank = 7, file = 0;
 
-  for (const char of position) {
-    if (char === '/') {
-      rank--;
-      file = 0;
-    } else if (char >= '1' && char <= '8') {
-      file += parseInt(char);
-    } else {
-      board[rank][file] = char;
-      file++;
+  for (let r = 0; r < 8; r++) {
+    for (let f = 0; f < 8; f++) {
+      const square = FILES[f] + RANKS[r];
+      const piece = chess.get(square);
+      if (piece) {
+        board[r][f] = piece.color === 'w' ? piece.type.toUpperCase() : piece.type.toLowerCase();
+      }
     }
   }
 
-  return { board, turn, castling, ep, halfmove, fullmove };
+  let castlingRights = '';
+  if (chess.has_castling_rights('w', 'k')) castlingRights += 'K';
+  if (chess.has_castling_rights('w', 'q')) castlingRights += 'Q';
+  if (chess.has_castling_rights('b', 'k')) castlingRights += 'k';
+  if (chess.has_castling_rights('b', 'q')) castlingRights += 'q';
+  if (castlingRights === '') castlingRights = '-';
+
+  return {
+    board,
+    turn: chess.turn(),
+    castling: castlingRights,
+    ep: chess.en_passant() || '-',
+    halfmove: chess.half_moves(),
+    fullmove: chess.full_moves()
+  };
 }
 
 // FlatSprites class - identical to Neo Chess Board Ts Library
@@ -966,175 +970,7 @@ export default class extends Controller {
         }
     }
     
-    setupReadyButton() {
-        const boardEl = this.element.querySelector('#board')
-        if (!boardEl) return
-        
-        // Chercher s'il y a déjà un bouton prêt
-        const existingButton = boardEl.querySelector('.center-ready-button')
-        if (existingButton) {
-            existingButton.remove()
-        }
-        
-        // Créer le bouton "Prêt" au centre de l'échiquier
-        const readyButton = document.createElement('div')
-        readyButton.className = 'center-ready-button'
-        readyButton.innerHTML = `
-            <button class="ready-center-btn" data-action="click->game-board#activateFastMode">
-                <div class="btn-content">
-                    <span class="btn-icon">⚡</span>
-                    <span class="btn-text">Prêt</span>
-                    <span class="btn-subtext">1min chrono</span>
-                </div>
-            </button>
-        `
-        
-        // Styles pour le bouton central
-        readyButton.style.cssText = `
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 100;
-            pointer-events: auto;
-        `
-        
-        const button = readyButton.querySelector('.ready-center-btn')
-        button.style.cssText = `
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            border: none;
-            border-radius: 50%;
-            width: 120px;
-            height: 120px;
-            color: white;
-            cursor: pointer;
-            box-shadow: 0 8px 32px rgba(79, 70, 229, 0.4), 0 0 0 4px rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(8px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        `
-        
-        const content = readyButton.querySelector('.btn-content')
-        content.style.cssText = `
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            position: relative;
-            z-index: 2;
-        `
-        
-        const icon = readyButton.querySelector('.btn-icon')
-        icon.style.cssText = `
-            font-size: 2rem;
-            margin-bottom: 0.25rem;
-            animation: glow 2s ease-in-out infinite alternate;
-        `
-        
-        const text = readyButton.querySelector('.btn-text')
-        text.style.cssText = `
-            font-size: 1rem;
-            font-weight: 700;
-            line-height: 1;
-            margin-bottom: 0.125rem;
-        `
-        
-        const subtext = readyButton.querySelector('.btn-subtext')
-        subtext.style.cssText = `
-            font-size: 0.7rem;
-            opacity: 0.9;
-            font-weight: 500;
-        `
-        
-        // Ajouter les animations CSS si nécessaire
-        if (!document.querySelector('#ready-button-styles')) {
-            const style = document.createElement('style')
-            style.id = 'ready-button-styles'
-            style.textContent = `
-                @keyframes glow {
-                    from { text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); }
-                    to { text-shadow: 0 0 20px rgba(255, 255, 255, 1), 0 0 30px rgba(79, 70, 229, 0.8); }
-                }
-                
-                .ready-center-btn:hover {
-                    transform: scale(1.1) rotate(5deg);
-                    box-shadow: 0 12px 40px rgba(79, 70, 229, 0.6), 0 0 0 6px rgba(255, 255, 255, 0.2);
-                }
-                
-                .ready-center-btn:active {
-                    transform: scale(0.95);
-                    transition: transform 0.1s ease;
-                }
-                
-                .ready-center-btn::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: -100%;
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-                    animation: shine 3s infinite;
-                }
-                
-                @keyframes shine {
-                    0% { left: -100%; }
-                    100% { left: 100%; }
-                }
-            `
-            document.head.appendChild(style)
-        }
-        
-        boardEl.appendChild(readyButton)
-    }
     
-    activateFastMode() {
-        console.debug('[game-board] Activation du mode rapide')
-        
-        // Communiquer avec le timer controller
-        const timerController = this.application.getControllerForElementAndIdentifier(
-            document.querySelector('[data-controller*="chess-timer"]'), 
-            'chess-timer'
-        )
-        
-        if (timerController) {
-            timerController.startFastMode()
-        }
-        
-        // Supprimer le bouton "Prêt" et activer l'échiquier
-        const readyButton = this.element.querySelector('.center-ready-button')
-        if (readyButton) {
-            readyButton.style.animation = 'fadeOut 0.5s ease-out forwards'
-            setTimeout(() => readyButton.remove(), 500)
-        }
-        
-        // Activer l'échiquier
-        if (this.board) {
-            this.board.setInteractive(true)
-        }
-        
-        // Notification visuelle
-        if (window.addFlashMessage) {
-            window.addFlashMessage('success', 'Mode rapide activé ! Vous avez 1 minute pour jouer.', {
-                duration: 3000
-            })
-        }
-        
-        // Ajouter animation fadeOut si nécessaire
-        if (!document.querySelector('#fade-out-animation')) {
-            const style = document.createElement('style')
-            style.id = 'fade-out-animation'
-            style.textContent = `
-                @keyframes fadeOut {
-                    from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-                    to { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
-                }
-            `
-            document.head.appendChild(style)
-        }
-    }
 
     async apiPost(path, body) {
         const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })

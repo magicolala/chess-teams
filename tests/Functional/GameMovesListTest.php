@@ -3,11 +3,11 @@
 namespace App\Tests\Functional;
 
 use App\Application\DTO\CreateGameInput;
+use App\Application\DTO\MarkPlayerReadyInput;
 use App\Application\DTO\StartGameInput;
 use App\Application\UseCase\CreateGameHandler;
-use App\Application\UseCase\StartGameHandler;
 use App\Application\UseCase\MarkPlayerReadyHandler;
-use App\Application\DTO\MarkPlayerReadyInput;
+use App\Application\UseCase\StartGameHandler;
 use App\Domain\Repository\TeamMemberRepositoryInterface;
 use App\Domain\Repository\TeamRepositoryInterface;
 use App\Entity\Team;
@@ -56,7 +56,7 @@ final class GameMovesListTest extends WebTestCase
         $members = $c->get(TeamMemberRepositoryInterface::class);
         $members->add(new TeamMember($teamA, $uA, 0));
         $members->add(new TeamMember($teamB, $uB, 0));
-                $em->flush();
+        $em->flush();
 
         // Mark players as ready
         /** @var MarkPlayerReadyHandler $markReady */
