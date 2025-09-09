@@ -169,9 +169,10 @@ final class GameController extends AbstractController
 
     // GET /games/{id}/moves
     #[Route('/{id}/moves', name: 'moves', methods: ['GET'])]
-    public function moves(string $id): JsonResponse
+    public function moves(string $id, Request $r): JsonResponse
     {
-        $out = ($this->listMoves)(new ListMovesInput($id));
+        $since = $r->query->has('since') ? (int) $r->query->get('since') : null;
+        $out = ($this->listMoves)(new ListMovesInput($id, $since));
 
         return $this->json([
             'gameId' => $out->gameId,

@@ -25,8 +25,9 @@ export default class extends Controller {
         this.fastModeStartTime = null
         this.fastModeDeadline = null
 
-        // Récupérer l'état initial depuis l'API
-        this.fetchGameState()
+        // Ne plus appeler /state ici: on se synchronise via les événements du game-poll
+        this.onGameUpdated = this.handleGameUpdated.bind(this)
+        document.addEventListener('game-poll:gameUpdated', this.onGameUpdated)
         
         this.setupTimer()
         this.updateDisplay()
@@ -38,6 +39,10 @@ export default class extends Controller {
     disconnect() {
         if (this.interval) {
             clearInterval(this.interval)
+        }
+        if (this.onGameUpdated) {
+            document.removeEventListener('game-poll:gameUpdated', this.onGameUpdated)
+            this.onGameUpdated = null
         }
         console.debug('[chess-timer] disconnect')
     }

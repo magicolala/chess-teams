@@ -15,4 +15,11 @@ interface MoveRepositoryInterface
 
     /** @return Move[] */
     public function listByGameOrdered(Game $game): array;
+
+    /**
+     * Retourne les coups strictement après le ply fourni (exclusif), ordonnés par ply croissant.
+     *
+     * @return Move[]
+     */
+    public function listByGameSince(Game $game, int $sincePly): array;
 }

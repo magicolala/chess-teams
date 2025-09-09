@@ -23,8 +23,12 @@ class ListMovesHandler
             throw new NotFoundHttpException('game_not_found');
         }
 
+        $list = null !== $in->sincePly
+            ? $this->moves->listByGameSince($g, $in->sincePly)
+            : $this->moves->listByGameOrdered($g);
+
         $rows = [];
-        foreach ($this->moves->listByGameOrdered($g) as $m) {
+        foreach ($list as $m) {
             $rows[] = [
                 'ply' => $m->getPly(),
                 'team' => $m->getTeam()?->getName(),

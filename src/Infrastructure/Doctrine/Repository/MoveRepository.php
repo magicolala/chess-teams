@@ -40,4 +40,13 @@ final class MoveRepository extends ServiceEntityRepository implements MoveReposi
     {
         return $this->findBy(['game' => $game], ['ply' => 'ASC']);
     }
+
+    public function listByGameSince(Game $game, int $sincePly): array
+    {
+        return $this->createQueryBuilder('m')
+            ->where('m.game = :g')->setParameter('g', $game)
+            ->andWhere('m.ply > :since')->setParameter('since', $sincePly)
+            ->orderBy('m.ply', 'ASC')
+            ->getQuery()->getResult();
+    }
 }

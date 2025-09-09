@@ -17,9 +17,14 @@ export default class extends Controller {
             isMyTurn: false
         }
         
+        // Snapshot léger pour éviter les requêtes lourdes inutiles
+        this.previousSnapshot = null // { ply, turnTeam, status }
+        
         // Éviter de spammer la console si data-user-team est absent
         this.loggedNoUserTeam = false
         
+        // Initialiser le dernier ply affiché depuis le DOM existant si possible
+        this.lastDisplayedPly = this.getLastDisplayedPly()
         this.startPolling()
         
         // Gérer les changements de visibilité de la page
@@ -57,32 +62,52 @@ export default class extends Controller {
 
     async refresh() {
         try {
-            // Récupérer l'état complet de la partie
-            const gameRes = await fetch(`/games/${this.gameIdValue}/state`, {
-                headers: { 'Accept': 'application/json' }
-            })
-            
-            if (!gameRes.ok) {
-                console.warn('⚠️ Erreur lors de la récupération de l\'état de la partie')
+            // 1) Appel léger pour détecter les changements
+            const lightRes = await fetch(`/games/${this.gameIdValue}`, { headers: { 'Accept': 'application/json' } })
+            if (!lightRes.ok) {
+                console.warn('⚠️ Erreur lors de la récupération des infos de base de la partie')
                 return
             }
-            
+            const light = await lightRes.json()
+
+            // Mettre à jour l'UI minimale depuis la réponse légère
+            this.updateGameStatus(light.status)
+            this.updateCurrentTurn(light.turnTeam)
+            this.updateTimer(light.turnDeadline)
+            this.updateBoard(light.fen)
+
+            const changed = !this.previousSnapshot
+                || light.ply !== this.previousSnapshot.ply
+                || light.turnTeam !== this.previousSnapshot.turnTeam
+                || light.status !== this.previousSnapshot.status
+
+            // Mettre à jour le snapshot pour le prochain tour
+            this.previousSnapshot = { ply: light.ply, turnTeam: light.turnTeam, status: light.status }
+
+            if (!changed) {
+                // Rien n'a changé, éviter de charger l'état complet
+                return
+            }
+
+            // 2) Charger de manière incrémentale uniquement les nouveaux coups
+            await this.fetchAndAppendNewMoves()
+
+            // 3) Récupérer l'état complet uniquement quand nécessaire (pour currentPlayer, claimVictory, timing avancé)
+            const gameRes = await fetch(`/games/${this.gameIdValue}/state`, { headers: { 'Accept': 'application/json' } })
+            if (!gameRes.ok) {
+                console.warn('⚠️ Erreur lors de la récupération de l\'état complet de la partie')
+                return
+            }
             const gameState = await gameRes.json()
-            
+
             // Détecter les changements et envoyer des notifications si nécessaire
             this.checkForTurnChange(gameState)
-            
-            // Mettre à jour les différentes parties de l'interface
-            this.updateMoves(gameState.moves)
-            this.updateGameStatus(gameState.status, gameState.result)
-            this.updateCurrentTurn(gameState.turnTeam, gameState.currentPlayer)
-            this.updateTimer(gameState.turnDeadline)
-            this.updateBoard(gameState.fen)
+
+            // Ne pas recharger la liste des coups depuis /state pour éviter les doublons
             this.updateClaimVictorySection(gameState.claimVictory)
-            
+
             // Émettre un événement personnalisé pour que d'autres contrôleurs puissent réagir
             this.dispatch('gameUpdated', { detail: gameState })
-            
         } catch (error) {
             console.error('❌ Erreur lors de l\'actualisation:', error)
         }
@@ -108,6 +133,45 @@ export default class extends Controller {
             // Auto-scroll vers le dernier coup
             list.scrollTop = list.scrollHeight
         }
+    }
+
+    // Détermine le dernier ply affiché en lisant la liste des coups
+    getLastDisplayedPly() {
+        const list = document.getElementById('moves-list')
+        if (!list || list.children.length === 0) return 0
+        const lastItem = list.lastElementChild
+        if (!lastItem) return 0
+        // Format texte attendu "#<ply>: ..."
+        const text = lastItem.querySelector('.move-notation')?.textContent || ''
+        const match = text.match(/#(\d+)\s*:/)
+        return match ? parseInt(match[1], 10) : 0
+    }
+
+    // Appelle l'API incrémentale pour récupérer et ajouter seulement les nouveaux coups
+    async fetchAndAppendNewMoves() {
+        const since = typeof this.lastDisplayedPly === 'number' ? this.lastDisplayedPly : 0
+        const res = await fetch(`/games/${this.gameIdValue}/moves?since=${since}`, { headers: { 'Accept': 'application/json' } })
+        if (!res.ok) return
+        const json = await res.json()
+        const moves = json.moves || []
+        if (!moves.length) return
+
+        // Ajouter les nouveaux coups
+        const list = document.getElementById('moves-list')
+        if (!list) return
+        moves.forEach(move => {
+            const li = document.createElement('li')
+            li.className = 'move-item'
+            li.innerHTML = `
+                <span class="move-notation">#${move.ply}: ${move.san ?? move.uci}</span>
+                <span class="neo-badge neo-badge-sm team-${(move.team || '').toLowerCase()}">${move.team || ''}</span>
+            `
+            list.appendChild(li)
+        })
+        // Mettre à jour le dernier ply
+        this.lastDisplayedPly = Math.max(this.getLastDisplayedPly(), this.lastDisplayedPly || 0)
+        // Auto-scroll vers le dernier coup
+        list.scrollTop = list.scrollHeight
     }
 
     updateGameStatus(status, result = null) {
