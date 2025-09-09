@@ -1,0 +1,25 @@
+security:
+  providers:
+    app_user_provider:
+      entity:
+        class: App\Entity\User
+        property: email
+
+  firewalls:
+    dev:
+      pattern: ^/(_(profiler|wdt)|css|images|js)/
+      security: false
+    main:
+      provider: app_user_provider
+      lazy: true
+      stateless: false
+      # Keep form_login so test helpers like loginClient() can authenticate via session
+      form_login:
+        check_path: /login
+        username_parameter: _username
+        password_parameter: _password
+      logout:
+        path: app_logout
+      # Force 401 for unauthenticated requests
+      http_basic: ~
+      entry_point: http_basic
