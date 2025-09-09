@@ -179,6 +179,7 @@ final class GameController extends AbstractController
         $this->publishMercure($id, [
             'type' => 'game.move',
             'gameId' => $out->gameId,
+            'uci' => $uci,
             'ply' => $out->ply,
             'turnTeam' => $out->turnTeam,
             'turnDeadline' => $out->turnDeadlineTs,

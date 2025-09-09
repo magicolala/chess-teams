@@ -792,6 +792,12 @@ export default class extends Controller {
             return
         }
 
+        // Bloquer toute tentative si un coup est déjà en attente ou en cours de soumission
+        if (this._pending || this._submittingMove) {
+            this.printDebug('⏳ Un coup est déjà en attente/validation. Annulez ou attendez la réponse du serveur.')
+            return
+        }
+
         // Sauvegarder les positions originales (pour annuler au besoin)
         const originalPos = this.chessJs.fen()
         const originalBoardPos = this.board.getPosition()
@@ -852,6 +858,8 @@ export default class extends Controller {
         this.board.setPosition(previewFen, true)
         this._showPendingControls(uci)
         this.printDebug(`📝 Coup en attente de validation: ${uci}`)
+        // Tant que l'utilisateur n'a pas validé/annulé, empêcher de jouer un autre coup
+        this.board.setInteractive(false)
     }
 
     async offerMove(e) {
@@ -873,6 +881,8 @@ export default class extends Controller {
         }
         this._submittingMove = true
         this._setPendingDisabled(true)
+        // Empêcher toute interaction pendant l'envoi au serveur
+        this.board.setInteractive(false)
         try {
             const ok = await this.apiPost(`/games/${this.gameIdValue}/move`, { uci })
             if (!ok) { 
@@ -899,6 +909,7 @@ export default class extends Controller {
             // Réactiver en cas d'échec; en cas de succès, les contrôles sont masqués plus loin
             this._submittingMove = false
             this._setPendingDisabled(false)
+            // Si l'envoi a échoué, on pourra réactiver l'interaction plus tard (dans confirmPending on le gère)
         }
     }
 
@@ -944,27 +955,116 @@ export default class extends Controller {
         btns.forEach(b => { b.disabled = !!disabled })
     }
 
+    _showStatusOverlay(message, icon, spinner) {
+        const boardEl = this.element.querySelector('#board')
+        if (!boardEl) return
+        
+        // Supprimer l'overlay existant s'il y en a un
+        const existingOverlay = boardEl.querySelector('.board-overlay')
+        if (existingOverlay) {
+            existingOverlay.remove()
+        }
+        
+        const overlay = document.createElement('div')
+        overlay.className = 'board-overlay'
+        overlay.innerHTML = `
+            <div class="overlay-content">
+                <div class="waiting-message">
+                    <i class="material-icons">${icon}</i>
+                    <h3>${message}</h3>
+                    ${spinner ? '<div class="spinner-border text-light" role="status"></div>' : ''}
+                </div>
+            </div>
+        `
+        
+        // Styles pour l'overlay
+        overlay.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 8px;
+            backdrop-filter: blur(2px);
+        `
+        // Styliser le contenu et l'icône
+        const content = overlay.querySelector('.overlay-content')
+        if (content) {
+            content.style.cssText = `
+                text-align: center;
+                color: white;
+                padding: 2rem;
+            `
+        }
+        const iconEl = overlay.querySelector('.material-icons')
+        if (iconEl) {
+            iconEl.style.cssText = `
+                font-size: 3rem;
+                margin-bottom: 1rem;
+                opacity: 0.9;
+                ${spinner ? 'animation: spin 1.2s linear infinite;' : ''}
+            `
+        }
+        // Ajouter l'animation de rotation si absente
+        if (spinner && !document.querySelector('#board-overlay-styles')) {
+            const style = document.createElement('style')
+            style.id = 'board-overlay-styles'
+            style.textContent = `
+                @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+            `
+            document.head.appendChild(style)
+        }
+        
+        boardEl.appendChild(overlay)
+    }
+
+    _hideStatusOverlay() {
+        const boardEl = this.element.querySelector('#board')
+        if (!boardEl) return
+        
+        const existingOverlay = boardEl.querySelector('.board-overlay')
+        if (existingOverlay) {
+            existingOverlay.remove()
+        }
+    }
+
     async confirmPending() {
         if (!this._pending) return
         const { uci } = this._pending
         this.printDebug(`✅ Validation du coup: ${uci}`)
+        // Afficher un loader pendant la validation côté serveur
+        this._showStatusOverlay('Validation du coup…', 'autorenew', true)
         const ok = await this.sendMove(uci)
         if (!ok) {
             // Revenir à l'état précédent si le serveur refuse
             this.chessJs.load(this._pending.prevGameFen)
             this.board.setPosition(this._pending.prevBoardFen, true)
             this.printDebug('↩️ Retour à la position précédente (move refusé)')
+            // Retirer le loader et réactiver si c'est toujours mon tour et prêt
+            this._hideStatusOverlay()
+            const canInteract = this.statusValue === 'live' && this.isCurrentPlayerTurn() && this.isTurnReady()
+            this.board.setInteractive(!!canInteract)
         } else {
-            // Mise à jour locale et fluide: masquer contrôles, désactiver interaction et afficher overlay
+            // Garder un overlay d'attente côté client jusqu'à la MAJ serveur
             this._hidePendingControls()
             this._pending = null
-            // Après un coup réussi, le tour passe à l'adversaire
             // Désactiver l'interaction immédiatement côté client
             this.board.setInteractive(false)
-            // Forcer l'overlay "en attente adversaire"
-            this.setupBoardOverlay(false)
+            // Mettre à jour le message pour indiquer l'attente de l'adversaire
+            this._showStatusOverlay(`En attente de l'adversaire…`, 'hourglass_empty', true)
+            // Masquer le canvas en attendant pour éviter toute confusion visuelle
+            const boardEl = this.element.querySelector('#board')
+            const canvas = boardEl?.querySelector('canvas')
+            if (canvas) canvas.style.visibility = 'hidden'
             this.printDebug('✅ Coup envoyé. En attente de l\'adversaire…')
         }
+        this._pending = null
+        this._hidePendingControls()
     }
 
     cancelPending() {
@@ -975,6 +1075,10 @@ export default class extends Controller {
         this.board.setPosition(this._pending.prevBoardFen, true)
         this._pending = null
         this._hidePendingControls()
+        // Redonner la main pour permettre de rejouer un autre coup
+        // Uniquement si c'est toujours mon tour et que je suis prêt
+        const canInteract = this.statusValue === 'live' && this.isCurrentPlayerTurn() && this.isTurnReady()
+        this.board.setInteractive(!!canInteract)
     }
 
     // ----- Réactions aux événements du polling -----

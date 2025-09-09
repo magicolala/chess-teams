@@ -27,14 +27,29 @@ export default class extends Controller {
             }
 
             this.es.onmessage = (event) => {
+                let data = null
                 try {
-                    const data = JSON.parse(event.data || '{}')
-                    // Lightweight reaction: request fresh state and dispatch same events as polling
-                    this.refreshState()
+                    data = JSON.parse(event.data || '{}')
                 } catch (e) {
-                    console.debug('[mercure] message non JSON, rafraîchit tout de même')
-                    this.refreshState()
+                    console.debug('[mercure] message non JSON, ignore le parse et garde fallback')
                 }
+
+                if (data && typeof data === 'object') {
+                    // 1) Mettre à jour l'échiquier si une FEN est fournie
+                    if (data.fen) {
+                        this.element.dispatchEvent(new CustomEvent('game-poll:fenUpdated', { detail: { fen: data.fen }, bubbles: true }))
+                    }
+
+                    // 2) Dispatche un événement d'état avec les champs disponibles
+                    //    game-poll_controller met à jour ce qu'il peut en fonction des clés présentes
+                    this.element.dispatchEvent(new CustomEvent('game-poll:gameUpdated', { detail: data, bubbles: true }))
+
+                    // 3) Rien d'autre à faire ici: on évite les requêtes HTTP supplémentaires
+                    return
+                }
+
+                // Fallback si le payload est inexploitable
+                this.refreshState()
             }
 
             this.es.onerror = (e) => {
