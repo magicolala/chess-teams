@@ -17,6 +17,9 @@ export default class extends Controller {
             isMyTurn: false
         }
         
+        // Éviter de spammer la console si data-user-team est absent
+        this.loggedNoUserTeam = false
+        
         this.startPolling()
         
         // Gérer les changements de visibilité de la page
@@ -256,7 +259,10 @@ export default class extends Controller {
     checkForTurnChange(gameState) {
         const userTeamElement = document.querySelector('[data-user-team]')
         if (!userTeamElement) {
-            console.debug('🤖 Pas d\'attribut data-user-team trouvé')
+            if (!this.loggedNoUserTeam) {
+                console.debug('🤖 Pas d\'attribut data-user-team trouvé')
+                this.loggedNoUserTeam = true
+            }
             return
         }
         

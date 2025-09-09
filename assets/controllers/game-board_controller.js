@@ -65,20 +65,22 @@ function parseFEN(fen) {
     }
   }
 
-  let castlingRights = '';
-  if (chess.has_castling_rights('w', 'k')) castlingRights += 'K';
-  if (chess.has_castling_rights('w', 'q')) castlingRights += 'Q';
-  if (chess.has_castling_rights('b', 'k')) castlingRights += 'k';
-  if (chess.has_castling_rights('b', 'q')) castlingRights += 'q';
-  if (castlingRights === '') castlingRights = '-';
+  // Extract fields from FEN directly to avoid relying on chess.js internals
+  // FEN format: pieces activeColor castling enPassant halfmove fullmove
+  const fenString = typeof chess.fen === 'function' ? chess.fen() : (fen || '');
+  const parts = fenString.split(' ');
+  const castling = parts[2] && parts[2].length > 0 ? parts[2] : '-';
+  const ep = parts[3] && parts[3] !== '-' ? parts[3] : '-';
+  const halfmove = parts[4] ? parseInt(parts[4], 10) : 0;
+  const fullmove = parts[5] ? parseInt(parts[5], 10) : 1;
 
   return {
     board,
     turn: chess.turn(),
-    castling: castlingRights,
-    ep: chess.en_passant() || '-',
-    halfmove: chess.half_moves(),
-    fullmove: chess.full_moves()
+    castling,
+    ep,
+    halfmove,
+    fullmove
   };
 }
 
