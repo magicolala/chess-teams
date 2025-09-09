@@ -1110,7 +1110,7 @@ export default class extends Controller {
         // Mettre à jour interactivité selon le tour ET le clic "Prêt"
         const isPlayerTurn = this.isCurrentPlayerTurn()
         this.turnReady = this.isTurnReady()
-        let canInteract = this.statusValue === 'live' && isPlayerTurn && this.turnReady
+        const canInteract = this.statusValue === 'live' && isPlayerTurn && this.turnReady
 
         // Gérer la décision de timeout en attente
         const td = gs.timeoutDecision || {}
@@ -1131,9 +1131,28 @@ export default class extends Controller {
             }
         }
 
-        this.board.setInteractive(!!canInteract)
-        this.setupBoardOverlay(isPlayerTurn)
-        this.renderState()
+        // 1) Déclencher immédiatement la notification de changement de tour
+        try {
+            const minimalState = {
+                turnTeam: this.turnTeamValue,
+                status: this.statusValue,
+                currentPlayer: gs.currentPlayer ?? null,
+            }
+            this.checkForTurnChange(minimalState)
+        } catch (_) {}
+
+        // 2) Puis activer l'interaction (et retirer l'overlay) juste après, pour garantir l'ordre
+        //    Utilise requestAnimationFrame pour laisser le navigateur afficher la notif
+        const enableInteraction = () => {
+            this.board.setInteractive(!!canInteract)
+            this.setupBoardOverlay(isPlayerTurn)
+            this.renderState()
+        }
+        if (typeof window !== 'undefined' && window.requestAnimationFrame) {
+            window.requestAnimationFrame(() => enableInteraction())
+        } else {
+            setTimeout(() => enableInteraction(), 50)
+        }
     }
 
     async decideTimeout(event) {
