@@ -687,6 +687,16 @@ export default class extends Controller {
             return
         }
 
+        // Écouter les événements du contrôleur game-poll (même élément)
+        this._onFenUpdated = (e) => this.onPollFenUpdated(e)
+        this._onGameUpdated = (e) => this.onPollGameUpdated(e)
+        this.element.addEventListener('game-poll:fenUpdated', this._onFenUpdated)
+        this.element.addEventListener('game-poll:gameUpdated', this._onGameUpdated)
+
+        // État pour la validation manuelle des coups
+        this._pending = null // { from, to, uci, prevBoardFen, prevGameFen }
+        this._ensurePendingControls()
+
         // Timer
         this.timerInterval = setInterval(() => this.tickTimer(), 250)
         this.renderState()
@@ -695,6 +705,9 @@ export default class extends Controller {
     disconnect() {
         clearInterval(this.timerInterval)
         this.board?.destroy?.()
+        // Nettoyer les listeners
+        if (this._onFenUpdated) this.element.removeEventListener('game-poll:fenUpdated', this._onFenUpdated)
+        if (this._onGameUpdated) this.element.removeEventListener('game-poll:gameUpdated', this._onGameUpdated)
         console.debug('[game-board] disconnect()')
     }
 
@@ -744,7 +757,7 @@ export default class extends Controller {
             return
         }
 
-        // Sauvegarder les positions originales
+        // Sauvegarder les positions originales (pour annuler au besoin)
         const originalPos = this.chessJs.fen()
         const originalBoardPos = this.board.getPosition()
         
@@ -787,16 +800,23 @@ export default class extends Controller {
             return
         }
 
-        // Coup légal localement - l'envoyer au serveur
-        const success = await this.sendMove(move.from + move.to + (move.promotion || ''))
-        
-        // Si le serveur refuse le coup, remettre les positions originales
-        if (!success) {
-            console.warn('[game-board] Coup refusé par le serveur:', from, to)
-            this.chessJs.load(originalPos)
-            this.board.setPosition(originalBoardPos, true)
-            this.printDebug(`❌ Coup refusé par le serveur: ${from}-${to}`)
+        // Coup légal localement - NE PAS envoyer directement.
+        // Préparer une validation manuelle: prévisualiser le coup et afficher les contrôles Valider/Annuler
+        const uci = move.from + move.to + (move.promotion || '')
+        this._pending = {
+            from,
+            to,
+            uci,
+            prevBoardFen: originalBoardPos,
+            prevGameFen: originalPos
         }
+
+        // Appliquer visuellement le coup sur le canvas et sur chess.js
+        // (chessJs a déjà move(moveOptions) réussi)
+        const previewFen = this.chessJs.fen()
+        this.board.setPosition(previewFen, true)
+        this._showPendingControls(uci)
+        this.printDebug(`📝 Coup en attente de validation: ${uci}`)
     }
 
     async offerMove(e) {
@@ -834,6 +854,99 @@ export default class extends Controller {
         return true
     }
 
+    // ----- Validation manuelle des coups -----
+    _ensurePendingControls() {
+        // Crée dynamiquement une barre d'actions si absente
+        let actions = this.element.querySelector('.game-actions')
+        if (!actions) return // Pas critique, on n'affiche pas les contrôles
+
+        let pending = this.element.querySelector('.pending-move-controls')
+        if (!pending) {
+            pending = document.createElement('div')
+            pending.className = 'pending-move-controls'
+            pending.style.display = 'none'
+            pending.style.gap = '0.5rem'
+            pending.style.marginTop = '0.25rem'
+            pending.innerHTML = `
+                <span class="neo-text-sm">Coup proposé: <code class="pending-uci"></code></span>
+                <button class="neo-btn neo-btn-success neo-btn-sm" data-action="game-board#confirmPending">✔️ Valider</button>
+                <button class="neo-btn neo-btn-secondary neo-btn-sm" data-action="game-board#cancelPending">✖️ Annuler</button>
+            `
+            actions.parentNode.insertBefore(pending, actions.nextSibling)
+        }
+        this._pendingEl = pending
+        this._pendingUciEl = pending.querySelector('.pending-uci')
+    }
+
+    _showPendingControls(uci) {
+        if (!this._pendingEl) this._ensurePendingControls()
+        if (this._pendingUciEl) this._pendingUciEl.textContent = uci
+        if (this._pendingEl) this._pendingEl.style.display = ''
+    }
+
+    _hidePendingControls() {
+        if (this._pendingEl) this._pendingEl.style.display = 'none'
+        if (this._pendingUciEl) this._pendingUciEl.textContent = ''
+    }
+
+    async confirmPending() {
+        if (!this._pending) return
+        const { uci } = this._pending
+        this.printDebug(`✅ Validation du coup: ${uci}`)
+        const ok = await this.sendMove(uci)
+        if (!ok) {
+            // Revenir à l'état précédent si le serveur refuse
+            this.chessJs.load(this._pending.prevGameFen)
+            this.board.setPosition(this._pending.prevBoardFen, true)
+            this.printDebug('↩️ Retour à la position précédente (move refusé)')
+        }
+        this._pending = null
+        this._hidePendingControls()
+        // L'adversaire verra le coup via polling (game-poll) côté client
+    }
+
+    cancelPending() {
+        if (!this._pending) return
+        this.printDebug(`⛔ Annulation du coup: ${this._pending.uci}`)
+        // Restaurer les positions d'origine
+        this.chessJs.load(this._pending.prevGameFen)
+        this.board.setPosition(this._pending.prevBoardFen, true)
+        this._pending = null
+        this._hidePendingControls()
+    }
+
+    // ----- Réactions aux événements du polling -----
+    onPollFenUpdated(event) {
+        const fen = event?.detail?.fen
+        if (!fen) return
+        // Mettre à jour sources: chess.js + canvas
+        this.chessJs.load(fen === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : fen)
+        this.board.setPosition(fen === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : fen)
+        // Invalider un éventuel coup en attente si le board change côté serveur
+        if (this._pending) {
+            this._pending = null
+            this._hidePendingControls()
+            this.printDebug('ℹ️ Coup en attente annulé (état serveur mis à jour)')
+        }
+    }
+
+    onPollGameUpdated(event) {
+        const gs = event?.detail
+        if (!gs) return
+        // Normaliser turnTeam éventuel
+        let t = gs.turnTeam
+        if (t === 'TeamA') t = 'A'
+        if (t === 'TeamB') t = 'B'
+        this.turnTeamValue = t || this.turnTeamValue
+        this.statusValue = gs.status || this.statusValue
+        this.deadlineTsValue = (gs.turnDeadline ? gs.turnDeadline * 1000 : this.deadlineTsValue)
+        // Mettre à jour interactivité selon le tour
+        const isPlayerTurn = this.isCurrentPlayerTurn()
+        this.board.setInteractive(this.statusValue === 'live' && isPlayerTurn)
+        this.setupBoardOverlay(isPlayerTurn)
+        this.renderState()
+    }
+
     async reloadMoves() {
         const res = await fetch(`/games/${this.gameIdValue}/moves`, { headers: { 'Accept': 'application/json' } })
         if (!res.ok) return
@@ -841,12 +954,19 @@ export default class extends Controller {
         const list = document.getElementById('moves-list')
         if (!list) return
         list.innerHTML = ''
-        for (const m of json.moves) {
+        const moves = Array.isArray(json.moves) ? json.moves : []
+        for (const m of moves) {
             const li = document.createElement('li')
             li.className = 'move-item slide-up'
+            const notation = this.formatMoveNotation(m)
+            if (notation === '(?)') {
+                console.warn('[game-board] Move ignoré (notation inconnue):', m)
+                continue
+            }
+            const teamName = this.normalizeTeamName(m.team)
             li.innerHTML = `
-                <span class="move-notation">#${m.ply}: ${m.san ?? m.uci}</span>
-                <span class="move-team team-${m.team.toLowerCase()}">${m.team}</span>
+                <span class="move-notation">#${m.ply}: ${notation}</span>
+                <span class="move-team team-${teamName}">${teamName.toUpperCase()}</span>
             `
             list.appendChild(li)
         }
@@ -854,6 +974,28 @@ export default class extends Controller {
         if (list.lastElementChild) {
             list.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'end' })
         }
+    }
+
+    // Normalise une équipe retournée potentiellement sous forme d'objet ou de string
+    normalizeTeamName(team) {
+        if (!team) return ''
+        if (typeof team === 'string') return team.toLowerCase()
+        // Essayer team.name ou team.teamName
+        const name = team.name || team.teamName || ''
+        return ('' + name).toLowerCase()
+    }
+
+    // Formate une notation de coup robuste, y compris les coups spéciaux (timeout-pass)
+    formatMoveNotation(m) {
+        const type = m.type || 'normal'
+        if (type === 'timeout-pass') {
+            return '⏰ timeout'
+        }
+        const san = m.san
+        const uci = m.uci
+        if (san && typeof san === 'string') return san
+        if (uci && typeof uci === 'string') return uci
+        return '(?)'
     }
 
     async fetchGame() {
@@ -1047,12 +1189,26 @@ export default class extends Controller {
     
 
     async apiPost(path, body) {
-        const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        const res = await fetch(path, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+            credentials: 'same-origin', // s'assurer que le cookie de session est envoyé
+            cache: 'no-store'
+        })
         console.debug('[game-board] POST', path, '→', res.status)
         if (res.status === 401) { this.printDebug('⚠️ 401: non connecté'); return false }
-        if (res.status === 409) { this.printDebug('⚠️ 409: conflit (fini/verrouillé)'); return false }
-        if (res.status === 422) { this.printDebug('⚠️ 422: coup illégal'); return false }
-        return res.ok
+        if (res.status === 403) { this.printDebug('⛔ 403: action interdite (pas autorisé / pas votre tour / pas membre)'); return false }
+        if (!res.ok) {
+            try {
+                const data = await res.json()
+                this.printDebug('❌ Erreur serveur: ' + (data?.message || res.status))
+            } catch (e) {
+                this.printDebug('❌ Erreur serveur: ' + res.status)
+            }
+            return false
+        }
+        return true
     }
 
     async claimVictory() {

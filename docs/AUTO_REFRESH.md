@@ -180,12 +180,25 @@ document.addEventListener('mercure:message-received', (event) => {
 Tous les contrôleurs loggent leurs activités dans la console. Ouvrez les DevTools pour suivre les actualisations.
 
 ## 💡 Conseils de Performance
-
 1. **Utilisez Mercure** pour les mises à jour critiques temps réel
 2. **Combinez polling + Mercure** pour la redondance
 3. **Ajustez les intervalles** selon l'importance des données
 4. **Utilisez Turbo Streams** pour les mises à jour partielles fréquentes
 5. **Le polling s'arrête automatiquement** quand la page n'est pas visible
+
+## ✨ Améliorations (auto-refresh v2)
+
+Le contrôleur `assets/controllers/auto-refresh_controller.js` a été renforcé pour de meilleures performances et une UX plus robuste :
+- Exponential backoff avec jitter côté client sur erreurs réseau (jusqu'à 60s), puis retour à l'intervalle normal en cas de succès.
+- Pas de requêtes concurrentes: usage d'`AbortController` pour annuler proprement une requête en cours avant d'en relancer une nouvelle.
+- Requêtes conditionnelles HTTP avec `If-None-Match` (ETag) et `If-Modified-Since` pour économiser la bande passante (gestion 304).
+- Planification adaptative via `setTimeout` au lieu de `setInterval` pour mieux contrôler la cadence.
+- Pause/reprise fiable quand l'onglet est masqué/visible (visibilitychange correctement bindé/unbindé).
+- Contrôle manuel « Actualiser » réinitialise le backoff et déclenche un rafraîchissement immédiat.
+
+Bonnes pratiques côté serveur pour maximiser les gains :
+- Retourner des en-têtes `ETag` et/ou `Last-Modified` sur les endpoints HTML/Turbo Streams.
+- Éviter les réponses massives si seule une partie de la page change; préférer Turbo Streams quand c'est possible.
 
 ## 🐛 Dépannage
 

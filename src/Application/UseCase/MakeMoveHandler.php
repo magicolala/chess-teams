@@ -88,20 +88,35 @@ final class MakeMoveHandler
                 throw new ConflictHttpException('turn_expired');
             }
 
+            // Valider UCI basique côté serveur (évite coups vides ou mal formés)
+            $uci = \trim((string) $in->uci);
+            if ($uci === '' || !\preg_match('/^[a-h][1-8][a-h][1-8][qrbn]?$/i', $uci)) {
+                throw new UnprocessableEntityHttpException('invalid_uci');
+            }
             // appliquer le coup via le moteur
             try {
-                $result = $this->engine->applyUci($game->getFen(), $in->uci);
+                $result = $this->engine->applyUci($game->getFen(), $uci);
             } catch (\InvalidArgumentException $e) {
                 throw new UnprocessableEntityHttpException('illegal_move');
             }
 
-            $fenAfter = $result['fenAfter'];
-            $san = $result['san'];
+            $fenAfter = (string) ($result['fenAfter'] ?? '');
+            $san = \trim((string) ($result['san'] ?? ''));
+            if ($san === '') {
+                // Fallback: garantir que SAN ne soit pas null/empty pour les coups normaux
+                $san = $uci;
+            }
 
             // persist Move
             $ply = $game->getPly() + 1;
             $mv = new Move($game, $ply);
-            $mv->setTeam($teamToPlay)->setByUser($byUser)->setUci($in->uci)->setSan($san)->setFenAfter($fenAfter);
+            $mv
+                ->setTeam($teamToPlay)
+                ->setByUser($byUser)
+                ->setUci($uci)
+                ->setSan($san)
+                ->setFenAfter($fenAfter)
+            ;
             $this->moves->add($mv);
 
             // avancer état partie

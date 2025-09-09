@@ -9,13 +9,24 @@ export default class extends Controller {
         paused: { type: Boolean, default: false } // Pause l'actualisation
     }
 
+    initialize() {
+        // Binder une seule fois pour pouvoir retirer correctement les listeners
+        this._onVisibilityChange = this.handleVisibilityChange.bind(this)
+        this._refreshTimeout = null
+        this._backoff = null
+        this._etag = null
+        this._lastModified = null
+        this._inFlight = false
+        this._abortController = null
+    }
+
     connect() {
         console.log('🔄 Auto-refresh générique activé')
         this.originalContent = this.element.innerHTML
         this.startRefresh()
         
         // Gérer la visibilité de la page
-        document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this))
+        document.addEventListener('visibilitychange', this._onVisibilityChange)
         
         // Ajouter les contrôles si demandés
         this.addControls()
@@ -23,43 +34,73 @@ export default class extends Controller {
 
     disconnect() {
         this.stopRefresh()
-        document.removeEventListener('visibilitychange', this.handleVisibilityChange.bind(this))
+        document.removeEventListener('visibilitychange', this._onVisibilityChange)
+        if (this._abortController) {
+            this._abortController.abort()
+            this._abortController = null
+        }
     }
 
     startRefresh() {
-        if (this.refreshInterval || this.pausedValue) return
-        
-        this.refreshInterval = setInterval(() => {
-            this.refresh()
-        }, this.intervalValue)
-        
-        console.log(`⏱️ Auto-refresh démarré toutes les ${this.intervalValue}ms`)
+        if (this._refreshTimeout || this.pausedValue) return
+        this._scheduleNext(0)
+        console.log(`⏱️ Auto-refresh démarré (intervalle de base ${this.intervalValue}ms)`)        
     }
 
     stopRefresh() {
-        if (this.refreshInterval) {
-            clearInterval(this.refreshInterval)
-            this.refreshInterval = null
-            console.log('⏹️ Auto-refresh arrêté')
+        if (this._refreshTimeout) {
+            clearTimeout(this._refreshTimeout)
+            this._refreshTimeout = null
         }
+        this._backoff = null
+        console.log('⏹️ Auto-refresh arrêté')
     }
 
     async refresh() {
         if (this.pausedValue) return
+        if (document.hidden) return // Ne pas rafraîchir onglet en arrière-plan
+        if (this._inFlight) {
+            // Éviter les requêtes concurrentes: on annule la précédente et on relance
+            try { this._abortController?.abort() } catch (_) {}
+        }
 
         try {
             const url = this.urlValue || window.location.href
+            this._abortController = new AbortController()
+            this._inFlight = true
+            const headers = {
+                'Accept': this.turboValue ? 'text/vnd.turbo-stream.html, text/html' : 'text/html',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+            if (this._etag) headers['If-None-Match'] = this._etag
+            if (this._lastModified) headers['If-Modified-Since'] = this._lastModified
+
             const response = await fetch(url, {
                 headers: {
-                    'Accept': this.turboValue ? 'text/vnd.turbo-stream.html, text/html' : 'text/html',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+                    ...headers
+                },
+                signal: this._abortController.signal,
+                cache: 'no-store'
             })
+
+            // Gestion 304 Not Modified
+            if (response.status === 304) {
+                this._onSuccess()
+                this.dispatch('refreshed', { detail: { url, timestamp: Date.now(), status: 304 } })
+                return
+            }
 
             if (!response.ok) {
                 console.warn('⚠️ Erreur lors de l\'actualisation:', response.status)
+                this._onError()
                 return
             }
+
+            // Stocker ETag/Last-Modified pour les prochains appels
+            const etag = response.headers.get('ETag')
+            const lastMod = response.headers.get('Last-Modified')
+            if (etag) this._etag = etag
+            if (lastMod) this._lastModified = lastMod
 
             if (this.turboValue && response.headers.get('Content-Type')?.includes('turbo-stream')) {
                 // Traitement Turbo Stream
@@ -71,10 +112,19 @@ export default class extends Controller {
                 this.updateContent(html)
             }
 
-            this.dispatch('refreshed', { detail: { url, timestamp: Date.now() } })
+            this._onSuccess()
+            this.dispatch('refreshed', { detail: { url, timestamp: Date.now(), status: response.status } })
 
         } catch (error) {
-            console.error('❌ Erreur lors de l\'actualisation automatique:', error)
+            if (error?.name === 'AbortError') {
+                // Ignorer: une nouvelle requête a été planifiée
+                console.debug('↪️ Requête d\'actualisation annulée (AbortController)')
+            } else {
+                console.error('❌ Erreur lors de l\'actualisation automatique:', error)
+                this._onError()
+            }
+        } finally {
+            this._inFlight = false
         }
     }
 
@@ -147,6 +197,8 @@ export default class extends Controller {
     // Actions manuelles
     forceRefresh() {
         console.log('🔄 Actualisation forcée')
+        // Réinitialiser le backoff et rafraîchir immédiatement
+        this._backoff = null
         this.refresh()
     }
 
@@ -168,10 +220,44 @@ export default class extends Controller {
     changeInterval(event) {
         const newInterval = parseInt(event.target.value) * 1000
         this.intervalValue = newInterval
+        // Redémarrer le scheduler avec le nouvel intervalle
         this.stopRefresh()
         if (!this.pausedValue) {
             this.startRefresh()
         }
         console.log(`⏰ Intervalle d'actualisation changé : ${newInterval}ms`)
+    }
+
+    // ----- Helpers privés -----
+    _scheduleNext(delayMs) {
+        if (this._refreshTimeout) {
+            clearTimeout(this._refreshTimeout)
+        }
+        const base = typeof delayMs === 'number' ? delayMs : this._computeNextDelay()
+        const jitter = Math.floor(base * 0.1 * Math.random()) // 0-10% de jitter pour éviter le thundering herd
+        const next = Math.max(200, base + jitter)
+        this._refreshTimeout = setTimeout(() => {
+            this._refreshTimeout = null
+            this.refresh()
+            // La planification suivante est déclenchée dans _onSuccess/_onError
+        }, next)
+    }
+
+    _computeNextDelay() {
+        if (this._backoff) return this._backoff
+        return this.intervalValue
+    }
+
+    _onSuccess() {
+        // Réinitialiser le backoff en cas de succès et planifier le prochain tick
+        this._backoff = null
+        this._scheduleNext(this.intervalValue)
+    }
+
+    _onError() {
+        // Exponential backoff avec plafond 60s
+        const base = this._backoff ?? this.intervalValue
+        this._backoff = Math.min(base * 2, 60000)
+        this._scheduleNext(this._backoff)
     }
 }

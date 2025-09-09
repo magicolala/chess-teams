@@ -153,18 +153,24 @@ export default class extends Controller {
         const res = await fetch(`/games/${this.gameIdValue}/moves?since=${since}`, { headers: { 'Accept': 'application/json' } })
         if (!res.ok) return
         const json = await res.json()
-        const moves = json.moves || []
+        const moves = Array.isArray(json.moves) ? json.moves : []
         if (!moves.length) return
 
         // Ajouter les nouveaux coups
         const list = document.getElementById('moves-list')
         if (!list) return
         moves.forEach(move => {
+            const notation = this.formatMoveNotation(move)
+            if (notation === '(?)') {
+                console.warn('[game-poll] Move ignoré (notation inconnue):', move)
+                return
+            }
+            const teamName = this.normalizeTeamName(move.team)
             const li = document.createElement('li')
             li.className = 'move-item'
             li.innerHTML = `
-                <span class="move-notation">#${move.ply}: ${move.san ?? move.uci}</span>
-                <span class="neo-badge neo-badge-sm team-${(move.team || '').toLowerCase()}">${move.team || ''}</span>
+                <span class="move-notation">#${move.ply}: ${notation}</span>
+                <span class="neo-badge neo-badge-sm team-${teamName}">${teamName.toUpperCase()}</span>
             `
             list.appendChild(li)
         })
@@ -172,6 +178,23 @@ export default class extends Controller {
         this.lastDisplayedPly = Math.max(this.getLastDisplayedPly(), this.lastDisplayedPly || 0)
         // Auto-scroll vers le dernier coup
         list.scrollTop = list.scrollHeight
+    }
+
+    normalizeTeamName(team) {
+        if (!team) return ''
+        if (typeof team === 'string') return team.toLowerCase()
+        const name = team.name || team.teamName || ''
+        return ('' + name).toLowerCase()
+    }
+
+    formatMoveNotation(m) {
+        const type = m.type || 'normal'
+        if (type === 'timeout-pass') return '⏰ timeout'
+        const san = m.san
+        const uci = m.uci
+        if (san && typeof san === 'string') return san
+        if (uci && typeof uci === 'string') return uci
+        return '(?)'
     }
 
     updateGameStatus(status, result = null) {

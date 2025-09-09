@@ -191,9 +191,31 @@ final class GameController extends AbstractController
         $since = $r->query->has('since') ? (int) $r->query->get('since') : null;
         $out = ($this->listMoves)(new ListMovesInput($id, $since));
 
+        // Sanitize/normalise move list to avoid displaying null/unknown entries in history
+        $moves = \is_array($out->moves) ? $out->moves : [];
+        $moves = \array_values(\array_filter($moves, static function ($m) {
+            $type = \is_array($m) && isset($m['type']) ? (string) $m['type'] : 'normal';
+            $san = \is_array($m) && isset($m['san']) ? (string) $m['san'] : '';
+            $uci = \is_array($m) && isset($m['uci']) ? (string) $m['uci'] : '';
+            // Keep timeout-pass or any move that has san or uci
+            return $type === 'timeout-pass' || $san !== '' || $uci !== '';
+        }));
+
+        // Normalise team name to 'A'/'B' strings when possible to stabilise UI classes
+        $moves = \array_map(static function ($m) {
+            if (!\is_array($m)) return $m;
+            if (isset($m['team']) && \is_array($m['team'])) {
+                $name = $m['team']['name'] ?? $m['team']['teamName'] ?? null;
+                if ($name) {
+                    $m['team'] = (string) $name; // e.g., 'A' or 'B'
+                }
+            }
+            return $m;
+        }, $moves);
+
         return $this->json([
             'gameId' => $out->gameId,
-            'moves' => $out->moves,
+            'moves' => $moves,
         ]);
     }
 
