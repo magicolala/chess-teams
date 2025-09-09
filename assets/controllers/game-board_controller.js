@@ -657,10 +657,12 @@ export default class extends Controller {
             const playerColor = this.getPlayerColor()
             const isPlayerTurn = this.isCurrentPlayerTurn()
             
+            // Au démarrage, si c'est mon tour et la partie est live, ne pas autoriser l'interaction tant que "Prêt" n'est pas cliqué
+            const initialTurnReady = false
             this.board = new SimpleNeoChessBoard(boardEl, {
                 fen: this.fenValue === 'startpos' ? undefined : this.fenValue,
                 theme: 'midnight',
-                interactive: this.statusValue === 'live' && isPlayerTurn, // Interactif seulement si c'est le tour du joueur
+                interactive: this.statusValue === 'live' && isPlayerTurn && initialTurnReady, // Interactif seulement si c'est le tour du joueur ET prêt
                 showCoordinates: true,
                 orientation: playerColor
             })
@@ -702,6 +704,10 @@ export default class extends Controller {
         // Timer
         this.timerInterval = setInterval(() => this.tickTimer(), 250)
         this.renderState()
+
+        // Gate "Prêt" par tour: on stocke l'état 'ready' par (gameId, ply)
+        this.currentPly = null
+        this.turnReady = false
     }
 
     disconnect() {
@@ -970,9 +976,12 @@ export default class extends Controller {
         this.turnTeamValue = t || this.turnTeamValue
         this.statusValue = gs.status || this.statusValue
         this.deadlineTsValue = (gs.turnDeadline ? gs.turnDeadline * 1000 : this.deadlineTsValue)
-        // Mettre à jour interactivité selon le tour
+        this.currentPly = typeof gs.ply === 'number' ? gs.ply : this.currentPly
+        // Mettre à jour interactivité selon le tour ET le clic "Prêt"
         const isPlayerTurn = this.isCurrentPlayerTurn()
-        this.board.setInteractive(this.statusValue === 'live' && isPlayerTurn)
+        this.turnReady = this.isTurnReady()
+        const canInteract = this.statusValue === 'live' && isPlayerTurn && this.turnReady
+        this.board.setInteractive(!!canInteract)
         this.setupBoardOverlay(isPlayerTurn)
         this.renderState()
     }
@@ -1148,10 +1157,73 @@ export default class extends Controller {
             
             boardEl.appendChild(overlay)
         } else if (isPlayerTurn && this.statusValue === 'live') {
-            // Afficher le bouton "Prêt" pour commencer le chrono rapide si nécessaire
-            if (typeof this.setupReadyButton === 'function') {
-                this.setupReadyButton()
+            // Si c'est mon tour mais que je n'ai pas cliqué "Prêt", masquer le board jusqu'au clic
+            if (!this.turnReady) {
+                const overlay = document.createElement('div')
+                overlay.className = 'board-overlay'
+                overlay.innerHTML = `
+                    <div class="overlay-content">
+                        <div class="waiting-message">
+                            <i class="material-icons">bolt</i>
+                            <h3>Votre tour</h3>
+                            <p>Cliquez sur "Prêt" pour révéler l'échiquier et jouer votre coup</p>
+                            <button class="neo-btn neo-btn-primary neo-btn-lg" data-role="ready-to-play">Prêt</button>
+                        </div>
+                    </div>
+                `
+                overlay.style.cssText = `
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.7);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10;
+                    border-radius: 8px;
+                    backdrop-filter: blur(2px);
+                `
+                const content = overlay.querySelector('.overlay-content')
+                content.style.cssText = `text-align:center;color:white;padding:2rem;`
+                const icon = overlay.querySelector('.material-icons')
+                icon.style.cssText = `font-size:3rem;margin-bottom:1rem;opacity:0.9;`
+
+                overlay.querySelector('[data-role="ready-to-play"]').addEventListener('click', () => {
+                    this.setTurnReady()
+                    // Autoriser l'interaction et retirer l'overlay
+                    this.board.setInteractive(true)
+                    overlay.remove()
+                })
+                boardEl.appendChild(overlay)
+            } else {
+                // Déjà prêt -> aucune overlay, interactivité déjà gérée
             }
+        }
+    }
+
+    // --- Gestion de l'état "Prêt" par tour (localStorage) ---
+    getTurnKey() {
+        const ply = (typeof this.currentPly === 'number' && this.currentPly >= 0) ? this.currentPly : 0
+        return `turnReady:${this.gameIdValue}:${ply}`
+    }
+
+    isTurnReady() {
+        try {
+            const key = this.getTurnKey()
+            return localStorage.getItem(key) === '1'
+        } catch (_) {
+            return false
+        }
+    }
+
+    setTurnReady() {
+        try {
+            localStorage.setItem(this.getTurnKey(), '1')
+            this.turnReady = true
+        } catch (_) {
+            this.turnReady = true
         }
     }
     
