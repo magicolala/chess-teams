@@ -363,7 +363,7 @@
 		</div>
 
 		<div
-			class="game-layout neo-animate-slideIn" data-controller="game-board game-poll" data-game-board-fen-value="{{ initial.fen }}" data-game-board-game-id-value="{{ initial.gameId }}" data-game-board-turn-team-value="{{ initial.turnTeam }}" data-game-board-status-value="{{ initial.status }}" data-game-board-deadline-ts-value="{{ initial.turnDeadline ?: 0 }}" data-game-poll-game-id-value="{{ initial.gameId }}" {% if userMembership %}data-user-team="{{ userMembership.team.name == 'TeamA' ? 'A' : 'B' }}"{% endif %}>
+			class="game-layout neo-animate-slideIn" data-controller="game-board game-poll" data-game-board-fen-value="{{ initial.fen }}" data-game-board-game-id-value="{{ initial.gameId }}" data-game-board-turn-team-value="{{ initial.turnTeam }}" data-game-board-status-value="{{ initial.status }}" data-game-board-deadline-ts-value="{{ initial.turnDeadline ?: 0 }}" data-game-poll-game-id-value="{{ initial.gameId }}" {% if userMembership %}data-user-team="{{ userMembership.team.name }}"{% endif %}>
 			<!-- Section de gauche: Échiquier + Actions -->
 			<div class="board-section">
 				<div id="board" class="cg-wrap coordinates"></div>
@@ -409,7 +409,7 @@
 								data-chess-timer-max-days-value="14"
 								data-chess-timer-fast-time-value="60"
 								data-chess-timer-current-deadline-value="{{ initial.turnDeadline ?: 0 }}"
-								data-chess-timer-is-player-turn-value="{{ userMembership and userMembership.team.name == (initial.turnTeam == 'A' ? 'TeamA' : 'TeamB') ? 'true' : 'false' }}"
+								data-chess-timer-is-player-turn-value="{{ userMembership and userMembership.team.name == initial.turnTeam ? 'true' : 'false' }}"
 								data-chess-timer-game-status-value="{{ game.status }}">
 								<div data-chess-timer-target="display"></div>
 							</div>
@@ -567,7 +567,7 @@
 										Rejoindre les Blancs ♔
 									</button>
 								</form>
-							{% elseif userMembership and userMembership.team.name == 'TeamA' %}
+							{% elseif userMembership and userMembership.team.name == 'A' %}
 								<div class="neo-alert neo-alert-success neo-mt-sm">
 									<i class="material-icons" style="margin-right: 0.5rem;">check_circle</i>
 									<span>Vous êtes dans cette équipe</span>
@@ -647,7 +647,7 @@
 										Rejoindre les Noirs ♚
 									</button>
 								</form>
-							{% elseif userMembership and userMembership.team.name == 'TeamB' %}
+							{% elseif userMembership and userMembership.team.name == 'B' %}
 								<div class="neo-alert neo-alert-success neo-mt-sm">
 									<i class="material-icons" style="margin-right: 0.5rem;">check_circle</i>
 									<span>Vous êtes dans cette équipe</span>

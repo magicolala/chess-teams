@@ -767,7 +767,16 @@ export default class extends Controller {
             moveOptions.promotion = 'q'; // Promouvoir en dame si c'est une promotion
         }
         
-        const move = this.chessJs.move(moveOptions)
+        let move = null
+        try {
+            move = this.chessJs.move(moveOptions)
+        } catch (err) {
+            console.warn('[game-board] Exception chess.js.move:', err, moveOptions)
+            this.printDebug(`❌ Coup invalide (exception): ${from}-${to}`)
+            // Remettre la position sur le board Neo
+            this.board.setPosition(originalBoardPos, true)
+            return
+        }
 
         // Coup illégal - revenir à la position d'origine
         if (move === null) {
@@ -968,8 +977,71 @@ export default class extends Controller {
             boardEl.appendChild(overlay)
         } else if (isPlayerTurn && this.statusValue === 'live') {
             // Afficher le bouton "Prêt" pour commencer le chrono rapide si nécessaire
-            this.setupReadyButton()
+            if (typeof this.setupReadyButton === 'function') {
+                this.setupReadyButton()
+            }
         }
+    }
+    
+    // Ajoute un bouton flottant sur le board pour activer rapidement le mode rapide ("Prêt à jouer")
+    setupReadyButton() {
+        const boardEl = this.element.querySelector('#board')
+        if (!boardEl) return
+
+        // Supprimer une ancienne version si présente
+        const existing = boardEl.querySelector('.ready-floating-button')
+        if (existing) return // déjà présent, ne pas dupliquer
+
+        // Rechercher le bouton du timer (s'il est déjà rendu)
+        const timerReadyBtn = document.querySelector('[data-controller~="chess-timer"] [data-chess-timer-target="readyButton"]')
+
+        // Créer le bouton flottant
+        const btn = document.createElement('button')
+        btn.className = 'ready-floating-button'
+        btn.type = 'button'
+        btn.innerHTML = '<span class="icon">⚡</span><span class="label">Prêt à jouer</span>'
+
+        // Styles
+        btn.style.cssText = `
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            z-index: 20;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 6px 16px rgba(79,70,229,0.35);
+            cursor: pointer;
+        `
+
+        btn.addEventListener('click', () => {
+            // Si le bouton du timer existe, simuler un clic dessus
+            const timerBtn = document.querySelector('[data-controller~="chess-timer"] [data-chess-timer-target="readyButton"]')
+            if (timerBtn && !timerBtn.disabled) {
+                timerBtn.click()
+                // feedback visuel local
+                btn.disabled = true
+                btn.style.opacity = '0.8'
+                btn.innerHTML = '<span class="icon">⚡</span><span class="label">Mode rapide activé</span>'
+                // Retirer le bouton après un court délai
+                setTimeout(() => btn.remove(), 1500)
+            } else {
+                // Si pas encore dispo, informer et tenter un fallback léger
+                this.printDebug('⏳ Bouton prêt (timer) indisponible, réessayez dans une seconde…')
+                setTimeout(() => {
+                    const retry = document.querySelector('[data-controller~="chess-timer"] [data-chess-timer-target="readyButton"]')
+                    if (retry && !retry.disabled) retry.click()
+                }, 1000)
+            }
+        })
+
+        boardEl.appendChild(btn)
     }
     
     
