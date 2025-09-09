@@ -695,6 +695,8 @@ export default class extends Controller {
 
         // État pour la validation manuelle des coups
         this._pending = null // { from, to, uci, prevBoardFen, prevGameFen }
+        // Garde pour éviter les doubles envois
+        this._submittingMove = false
         this._ensurePendingControls()
 
         // Timer
@@ -831,27 +833,40 @@ export default class extends Controller {
     }
 
     async sendMove(uci) {
-        const ok = await this.apiPost(`/games/${this.gameIdValue}/move`, { uci })
-        if (!ok) { 
-            this.printDebug('❌ Move refusé par le serveur')
+        // Éviter les doubles envois si un submit est déjà en cours
+        if (this._submittingMove) {
+            console.debug('[game-board] sendMove ignoré (soumission déjà en cours)')
             return false
         }
-        
-        const g = await this.fetchGame()
-        console.debug('[game-board] state after move', g)
-        
-        this.fenValue = g.fen
-        this.turnTeamValue = g.turnTeam
-        this.deadlineTsValue = g.turnDeadline || 0
-        this.statusValue = g.status
-        
-        this.chessJs.load(g.fen === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : g.fen)
-        
-        this.board.setPosition(g.fen === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : g.fen)
-        
-        await this.reloadMoves()
-        this.printDebug('✅ Move OK, FEN mise à jour')
-        return true
+        this._submittingMove = true
+        this._setPendingDisabled(true)
+        try {
+            const ok = await this.apiPost(`/games/${this.gameIdValue}/move`, { uci })
+            if (!ok) { 
+                this.printDebug('❌ Move refusé par le serveur')
+                return false
+            }
+            
+            const g = await this.fetchGame()
+            console.debug('[game-board] state after move', g)
+            
+            this.fenValue = g.fen
+            this.turnTeamValue = g.turnTeam
+            this.deadlineTsValue = g.turnDeadline || 0
+            this.statusValue = g.status
+            
+            this.chessJs.load(g.fen === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : g.fen)
+            
+            this.board.setPosition(g.fen === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : g.fen)
+            
+            await this.reloadMoves()
+            this.printDebug('✅ Move OK, FEN mise à jour')
+            return true
+        } finally {
+            // Réactiver en cas d'échec; en cas de succès, les contrôles sont masqués plus loin
+            this._submittingMove = false
+            this._setPendingDisabled(false)
+        }
     }
 
     // ----- Validation manuelle des coups -----
@@ -889,6 +904,13 @@ export default class extends Controller {
         if (this._pendingUciEl) this._pendingUciEl.textContent = ''
     }
 
+    // Active/désactive les contrôles de coup en attente afin d'éviter les doubles clics
+    _setPendingDisabled(disabled) {
+        if (!this._pendingEl) return
+        const btns = this._pendingEl.querySelectorAll('button')
+        btns.forEach(b => { b.disabled = !!disabled })
+    }
+
     async confirmPending() {
         if (!this._pending) return
         const { uci } = this._pending
@@ -899,6 +921,14 @@ export default class extends Controller {
             this.chessJs.load(this._pending.prevGameFen)
             this.board.setPosition(this._pending.prevBoardFen, true)
             this.printDebug('↩️ Retour à la position précédente (move refusé)')
+        } else {
+            // Rafraîchir la page après un coup validé, pour un comportement type chess.com (correspondance)
+            try {
+                window.location.reload()
+                return
+            } catch (e) {
+                console.debug('[game-board] reload après coup échoué, on continue sans recharger', e)
+            }
         }
         this._pending = null
         this._hidePendingControls()
