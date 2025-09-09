@@ -92,7 +92,9 @@ final class GameWebController extends AbstractController
 
         $teamA = $this->teams->findOneByGameAndName($game, Team::NAME_A);
         $teamB = $this->teams->findOneByGameAndName($game, Team::NAME_B);
-        $moves = $this->moves->listByGameOrdered($game);
+        // Optimisation: ne pas charger la liste complète des coups côté serveur.
+        // Le front se chargera de les récupérer de manière incrémentale.
+        $moves = [];
 
         // Vérifie si l'utilisateur connecté fait déjà partie de cette partie
         $userMembership = null;

@@ -26,8 +26,13 @@ export default class extends Controller {
         this.fastModeDeadline = null
 
         // Ne plus appeler /state ici: on se synchronise via les événements du game-poll
-        this.onGameUpdated = this.handleGameUpdated.bind(this)
-        document.addEventListener('game-poll:gameUpdated', this.onGameUpdated)
+        if (typeof this.handleGameUpdated === 'function') {
+            this.onGameUpdated = this.handleGameUpdated.bind(this)
+            document.addEventListener('game-poll:gameUpdated', this.onGameUpdated)
+        } else {
+            console.warn('[chess-timer] handleGameUpdated non défini; skip event binding')
+            this.onGameUpdated = null
+        }
         
         this.setupTimer()
         this.updateDisplay()
@@ -40,7 +45,7 @@ export default class extends Controller {
         if (this.interval) {
             clearInterval(this.interval)
         }
-        if (this.onGameUpdated) {
+        if (typeof this.onGameUpdated === 'function') {
             document.removeEventListener('game-poll:gameUpdated', this.onGameUpdated)
             this.onGameUpdated = null
         }
@@ -409,6 +414,38 @@ export default class extends Controller {
                 this.readyButtonTarget.classList.remove('activated')
             }
         }
+    }
+
+    // Handler pour se synchroniser avec les mises à jour du contrôleur game-poll
+    handleGameUpdated(event) {
+        const state = event?.detail
+        if (!state || !state.timing) return
+
+        // Mettre à jour le mode et les deadlines
+        this.isInFastMode = state.timing.mode === 'fast'
+        this.currentDeadlineValue = state.timing.effectiveDeadline
+
+        if (this.isInFastMode && state.timing.fastMode?.deadline) {
+            this.fastModeDeadline = state.timing.fastMode.deadline
+            // Déduire l'heure de départ à partir de la deadline
+            this.fastModeStartTime = this.fastModeDeadline - (this.fastTimeValue * 1000)
+        } else {
+            this.fastModeDeadline = null
+        }
+
+        // Mettre à jour "est-ce mon tour" si possible
+        const userTeamElement = document.querySelector('[data-user-team]')
+        if (userTeamElement && state.turnTeam) {
+            this.isPlayerTurnValue = userTeamElement.dataset.userTeam === state.turnTeam && state.status === 'live'
+            // Si le bouton n'était pas présent et que c'est mon tour, re-render pour l'afficher
+            if (this.isPlayerTurnValue && !this.hasReadyButtonTarget && this.gameStatusValue === 'live') {
+                this.setupTimer()
+            }
+        }
+
+        // Rafraîchir l'affichage
+        this.updateDisplay()
+        this.updateProgress()
     }
 
     handleTimeout() {

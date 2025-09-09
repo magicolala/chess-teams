@@ -106,11 +106,21 @@ final class GameController extends AbstractController
 
     // GET /games/{id}
     #[Route('/{id}', name: 'show', methods: ['GET'])]
-    public function show(string $id): JsonResponse
+    public function show(string $id, Request $request): JsonResponse
     {
         $out = ($this->showGame)(new ShowGameInput($id));
 
-        return $this->json([
+        // ETag based on stable, frequently changing fields
+        $etagBase = implode(':', [
+            $out->id,
+            $out->status,
+            $out->ply,
+            $out->turnTeam,
+            (int) $out->turnDeadlineTs,
+        ]);
+        $etag = 'W/"'.substr(sha1($etagBase), 0, 16).'"';
+
+        $response = $this->json([
             'id' => $out->id,
             'status' => $out->status,
             'fen' => $out->fen,
@@ -122,6 +132,13 @@ final class GameController extends AbstractController
                 'B' => $out->teamB,
             ],
         ]);
+        $response->setEtag($etag);
+        $response->headers->set('Cache-Control', 'private, must-revalidate');
+        if ($response->isNotModified($request)) {
+            return $response; // 304 Not Modified
+        }
+
+        return $response;
     }
 
     // POST /games/{id}/move
@@ -245,12 +262,11 @@ final class GameController extends AbstractController
 
     // GET /games/{id}/state - Endpoint pour l'actualisation automatique
     #[Route('/{id}/state', name: 'state', methods: ['GET'])]
-    public function state(string $id, GameRepositoryInterface $gameRepo): JsonResponse
+    public function state(string $id, GameRepositoryInterface $gameRepo, Request $request): JsonResponse
     {
         try {
             // Récupérer l'état complet de la partie
             $gameOut = ($this->showGame)(new ShowGameInput($id));
-            $movesOut = ($this->listMoves)(new ListMovesInput($id));
             $game = $gameRepo->get($id);
 
             // Déterminer le joueur actuel
@@ -287,7 +303,23 @@ final class GameController extends AbstractController
                 'lastTimeoutTeam' => $game->getLastTimeoutTeam(),
             ];
 
-            return $this->json([
+            // Compute ETag BEFORE heavy payload (moves)
+            $etagBase = implode(':', [
+                $gameOut->id,
+                $gameOut->status,
+                $gameOut->ply,
+                $gameOut->turnTeam,
+                (int) $gameOut->turnDeadlineTs,
+                (int) ($game->getEffectiveDeadline()?->getTimestamp() ?? 0),
+                (int) ($game->getFastModeDeadline()?->getTimestamp() ?? 0),
+                (int) $game->getConsecutiveTimeouts(),
+                (string) $game->getLastTimeoutTeam(),
+                (string) $game->getResult(),
+            ]);
+            $etag = 'W/"'.substr(sha1($etagBase), 0, 16).'"';
+
+            // Prepare response with headers first
+            $payload = [
                 'gameId' => $gameOut->id,
                 'status' => $gameOut->status,
                 'result' => $game->getResult(),
@@ -297,14 +329,28 @@ final class GameController extends AbstractController
                 'turnDeadline' => $gameOut->turnDeadlineTs,
                 'timing' => $timingInfo,
                 'currentPlayer' => $currentPlayer,
-                'claimVictory' => $claimInfo,
-                'moves' => $movesOut->moves,
+                // moves will be injected below only if modified
                 'teams' => [
                     'A' => $gameOut->teamA,
                     'B' => $gameOut->teamB,
                 ],
                 'lastUpdate' => time(),
-            ]);
+            ];
+
+            $response = $this->json($payload);
+            $response->setEtag($etag);
+            $response->headers->set('Cache-Control', 'private, must-revalidate');
+            if ($response->isNotModified($request)) {
+                return $response; // 304 Not Modified, avoid computing moves
+            }
+
+            // Only now fetch moves (heavier) because content changed
+            $movesOut = ($this->listMoves)(new ListMovesInput($id));
+            $data = json_decode($response->getContent() ?: '{}', true);
+            $data['moves'] = $movesOut->moves;
+            $response->setData($data);
+
+            return $response;
         } catch (\Exception $e) {
             return $this->json([
                 'error' => 'Impossible de récupérer l\'état de la partie',

@@ -126,6 +126,11 @@
 							</div>
 						</div>
 					</div>
+				{% else %}
+					<div class="neo-header-actions" style="display: flex; gap: var(--neo-spacing-md); align-items: center;">
+						<a href="{{ path('app_login') }}" class="neo-btn neo-btn-primary">Se connecter</a>
+						<a href="{{ path('app_register') }}" class="neo-btn neo-btn-outline">S'inscrire</a>
+					</div>
 				{% endif %}
 			</header>
 
