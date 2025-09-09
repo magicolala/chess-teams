@@ -3,7 +3,6 @@
 namespace App\Tests;
 
 use App\Repository\UserRepository;
-use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -17,8 +16,6 @@ final class RegistrationControllerTest extends WebTestCase
     private KernelBrowser $client;
     private UserRepository $userRepository;
 
-    
-
     protected function setUp(): void
     {
         $this->client = self::createClient();
@@ -27,21 +24,21 @@ final class RegistrationControllerTest extends WebTestCase
 
     public function testRegister(): void
     {
-
         // Register a new user
         $this->client->request('GET', '/register');
         self::assertResponseIsSuccessful();
         self::assertPageTitleContains('Créer un compte');
 
+        $email = 'test+'.bin2hex(random_bytes(4)).'@example.com';
         $this->client->submitForm('🎆 Créer mon compte', [
-            'registration_form[email]' => 'me@example.com',
-            'registration_form[displayName]' => 'TestUser123',
+            'registration_form[email]' => $email,
+            'registration_form[displayName]' => 'TestUser_'.bin2hex(random_bytes(2)),
             'registration_form[plainPassword]' => 'password',
             'registration_form[agreeTerms]' => true,
         ]);
 
-        // Ensure the response redirects after submitting the form, the user exists, and is not verified
-        // self::assertResponseRedirects('/'); @TODO: set the appropriate path that the user is redirected to.
-        self::assertCount(1, $this->userRepository->findAll());
+        // Ensure the user has been created
+        $created = $this->userRepository->findOneBy(['email' => $email]);
+        self::assertNotNull($created, 'User should be created');
     }
 }

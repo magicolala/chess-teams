@@ -52,14 +52,15 @@ final class PromotionBugTest extends TestCase
 
     public function testVariousNormalMovesWork(): void
     {
+        // Only include moves that are legal from the initial position
         $normalMoves = [
-            'e2e4',  // Pion deux cases
-            'd2d3',  // Pion une case
-            'g1f3',  // Cavalier
-            'f1e2',  // Fou
-            'h1g1',  // Tour
-            'd1e2',  // Dame
-            'e1f1',   // Roi
+            'e2e4', // pawn two squares
+            'd2d3', // pawn one square
+            'g1f3', // knight
+            'b1c3', // knight
+            'a2a3', // pawn
+            'h2h3', // pawn
+            'c2c4', // pawn
         ];
 
         foreach ($normalMoves as $uci) {
@@ -82,8 +83,18 @@ final class PromotionBugTest extends TestCase
     public function testPromotionMoveIncludesPromotion(): void
     {
         // e7-e8q est un coup de promotion (pion blanc de la 7e à la 8e rangée)
-        // Note: pour ce test, nous utilisons une FEN où un pion blanc peut être promu
-        $fenWithPawnOnSeventh = 'rnbqkbnr/ppppPppp/8/8/8/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1';
+        // Utiliser une FEN minimale où e7 est libre de promouvoir sans capture et e8 est vide
+        // Board:
+        // 8  . . . . k . . .
+        // 7  . . . . P . . .
+        // 6  . . . . . . . .
+        // 5  . . . . . . . .
+        // 4  . . . . . . . .
+        // 3  . . . . . . . .
+        // 2  . . . . . . . .
+        // 1  . . . . K . . .
+        //    a b c d e f g h
+        $fenWithPawnOnSeventh = 'k7/4P3/8/8/8/8/8/4K3 w - - 0 1';
 
         $result = $this->engine->applyUci($fenWithPawnOnSeventh, 'e7e8q');
 
