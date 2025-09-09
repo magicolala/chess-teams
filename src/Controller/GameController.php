@@ -11,10 +11,11 @@ use App\Application\DTO\MakeMoveInput;
 use App\Application\DTO\MarkPlayerReadyInput;
 use App\Application\DTO\ShowGameInput;
 use App\Application\DTO\StartGameInput;
-use App\Application\DTO\TimeoutTickInput;
 use App\Application\DTO\TimeoutDecisionInput;
+use App\Application\DTO\TimeoutTickInput;
 use App\Application\UseCase\ClaimVictoryHandler;
 use App\Application\UseCase\CreateGameHandler;
+use App\Application\UseCase\DecideTimeoutHandler;
 use App\Application\UseCase\EnableFastModeHandler;
 use App\Application\UseCase\JoinByCodeHandler;
 use App\Application\UseCase\ListMovesHandler;
@@ -23,15 +24,14 @@ use App\Application\UseCase\MarkPlayerReadyHandler;
 use App\Application\UseCase\ShowGameHandler;
 use App\Application\UseCase\StartGameHandler;
 use App\Application\UseCase\TimeoutTickHandler;
-use App\Application\UseCase\DecideTimeoutHandler;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Update;
+use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/games', name: 'game_')]
 final class GameController extends AbstractController
@@ -242,19 +242,24 @@ final class GameController extends AbstractController
             $type = \is_array($m) && isset($m['type']) ? (string) $m['type'] : 'normal';
             $san = \is_array($m) && isset($m['san']) ? (string) $m['san'] : '';
             $uci = \is_array($m) && isset($m['uci']) ? (string) $m['uci'] : '';
+
             // Keep timeout-pass or any move that has san or uci
-            return $type === 'timeout-pass' || $san !== '' || $uci !== '';
+            return 'timeout-pass' === $type || '' !== $san || '' !== $uci;
         }));
 
         // Normalise team name to 'A'/'B' strings when possible to stabilise UI classes
         $moves = \array_map(static function ($m) {
-            if (!\is_array($m)) return $m;
+            if (!\is_array($m)) {
+                return $m;
+            }
+
             if (isset($m['team']) && \is_array($m['team'])) {
                 $name = $m['team']['name'] ?? $m['team']['teamName'] ?? null;
                 if ($name) {
                     $m['team'] = (string) $name; // e.g., 'A' or 'B'
                 }
             }
+
             return $m;
         }, $moves);
 

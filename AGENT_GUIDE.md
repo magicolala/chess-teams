@@ -95,14 +95,23 @@ docker compose up -d database mercure
 # docker compose down
 ```
 
-4. Initialiser la base de données
+4. Initialiser la base de données (dans le conteneur php)
 
 ```powershell
-php bin\console doctrine:database:create
-php bin\console doctrine:migrations:migrate -n
+docker compose exec php php bin/console doctrine:database:create
+docker compose exec php php bin/console doctrine:migrations:migrate -n
 ```
 
 5. Démarrer l’application
+
+- Option Nginx (recommandée, configurée par compose.override.yaml)
+
+```powershell
+docker compose up -d php nginx
+# Accès: http://localhost:8000
+```
+
+- Option Symfony CLI (si vous ne voulez pas du conteneur nginx)
 
 ```powershell
 symfony server:start -d
@@ -112,7 +121,7 @@ symfony server:start -d
 6. Compiler/actualiser les assets (AssetMapper)
 
 ```powershell
-php bin\console asset-map:compile
+docker compose exec php php bin/console asset-map:compile
 ```
 
 Note: Le projet contient aussi un `package-lock.json`. AssetMapper peut fonctionner sans bundler (Webpack/Vite). Les scripts npm sont optionnels; si vous utilisez npm pour des utilitaires, installez avec `npm install` puis exécutez vos scripts si nécessaire.
@@ -124,28 +133,28 @@ Note: Le projet contient aussi un `package-lock.json`. AssetMapper peut fonction
 - Qualité du code
 
 ```powershell
-composer cs:check
-composer cs:fix
+docker compose exec php composer cs:check
+docker compose exec php composer cs:fix
 ```
 
 - Tests PHPUnit
 
 ```powershell
 # Tous les tests
-vendor\bin\phpunit
+docker compose exec php ./vendor/bin/phpunit
 
 # Avec couverture
-vendor\bin\phpunit --coverage-html coverage\
+docker compose exec php ./vendor/bin/phpunit --coverage-html coverage/
 
 # Cibler un répertoire
-vendor\bin\phpunit tests\Controller
+docker compose exec php ./vendor/bin/phpunit tests/Controller
 ```
 
 - Base de données
 
 ```powershell
-php bin\console doctrine:migrations:migrate -n
-php bin\console doctrine:schema:validate
+docker compose exec php php bin/console doctrine:migrations:migrate -n
+docker compose exec php php bin/console doctrine:schema:validate
 ```
 
 - Mercure (santé)
@@ -154,6 +163,31 @@ php bin\console doctrine:schema:validate
 # Vérifier le healthcheck Mercure (le container expose HTTPS interne)
 # Vous pouvez aussi vérifier les logs:
 docker compose logs -f mercure
+```
+
+---
+
+## 6.1) Rappels — Exécuter dans le conteneur php
+
+Pour toutes les commandes Symfony/Doctrine/Composer, utilisez systématiquement le conteneur `php`:
+
+```powershell
+docker compose exec php php bin/console <commande>
+docker compose exec php composer <commande>
+docker compose exec php ./vendor/bin/phpunit <options>
+```
+
+Exemples courants:
+
+```powershell
+# Migrations
+docker compose exec php php bin/console doctrine:migrations:migrate -n
+
+# Validation du schéma
+docker compose exec php php bin/console doctrine:schema:validate
+
+# Compiler les assets (AssetMapper)
+docker compose exec php php bin/console asset-map:compile
 ```
 
 ---

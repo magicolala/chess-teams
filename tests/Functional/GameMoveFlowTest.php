@@ -2,7 +2,6 @@
 
 namespace App\Tests\Functional;
 
-use App\Application\DTO\MakeMoveOutput;
 use App\Application\UseCase\ListMovesHandler;
 use App\Application\UseCase\MakeMoveHandler;
 use App\Entity\User;

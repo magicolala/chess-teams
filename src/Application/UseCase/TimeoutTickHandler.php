@@ -111,7 +111,7 @@ final class TimeoutTickHandler
             // Marquer la décision en attente
             $game->setTimeoutDecisionPending(true);
             $game->setTimeoutTimedOutTeam($currentTeamName);
-            $game->setTimeoutDecisionTeam($currentTeamName === Game::TEAM_A ? Game::TEAM_B : Game::TEAM_A);
+            $game->setTimeoutDecisionTeam(Game::TEAM_A === $currentTeamName ? Game::TEAM_B : Game::TEAM_A);
 
             // Suspendre les délais pendant la décision
             $game->setFastModeEnabled(false);

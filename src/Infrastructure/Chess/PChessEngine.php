@@ -3,7 +3,6 @@
 namespace App\Infrastructure\Chess;
 
 use App\Application\Port\ChessEngineInterface;
-use App\Infrastructure\Chess\ChesslablabEngine;
 
 /**
  * Backward-compatible engine shim that mimics the former PChess engine

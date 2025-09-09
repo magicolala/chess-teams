@@ -70,7 +70,7 @@ final class DecideTimeoutHandler
 
             $now = new \DateTimeImmutable();
             $timedOutTeam = $game->getTimeoutTimedOutTeam(); // 'A' or 'B'
-            $teamTimedOut = $timedOutTeam === Game::TEAM_A ? $teamA : $teamB;
+            $teamTimedOut = Game::TEAM_A === $timedOutTeam ? $teamA : $teamB;
 
             if ('end' === $in->decision) {
                 // Opponent ends the game: opponent wins by timeout

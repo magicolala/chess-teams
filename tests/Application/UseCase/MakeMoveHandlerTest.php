@@ -3,9 +3,9 @@
 namespace App\Tests\Application\UseCase;
 
 use App\Application\DTO\MakeMoveInput;
-use App\Application\UseCase\MakeMoveHandler;
-use App\Application\Service\GameEndEvaluator;
 use App\Application\Port\ChessEngineInterface;
+use App\Application\Service\GameEndEvaluator;
+use App\Application\UseCase\MakeMoveHandler;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Domain\Repository\MoveRepositoryInterface;
 use App\Domain\Repository\TeamMemberRepositoryInterface;
@@ -27,6 +27,7 @@ class MakeMoveHandlerTest extends TestCase
     {
         $user = $this->createMock(User::class);
         $user->method('getId')->willReturn($id);
+
         return $user;
     }
 
@@ -144,7 +145,7 @@ class MakeMoveHandlerTest extends TestCase
         $moves->expects($this->once())
             ->method('add')
             ->with($this->callback(function (Move $m) {
-                return $m->getSan() === 'e2e4' && $m->getUci() === 'e2e4';
+                return 'e2e4' === $m->getSan() && 'e2e4' === $m->getUci();
             }));
 
         $handler = new MakeMoveHandler($games, $teams, $members, $moves, $engine, $lockFactory, $em, $evaluator);

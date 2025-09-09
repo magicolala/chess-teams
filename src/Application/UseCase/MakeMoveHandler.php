@@ -93,7 +93,7 @@ final class MakeMoveHandler
 
             // Valider UCI basique côté serveur (évite coups vides ou mal formés)
             $uci = \trim((string) $in->uci);
-            if ($uci === '' || !\preg_match('/^[a-h][1-8][a-h][1-8][qrbn]?$/i', $uci)) {
+            if ('' === $uci || !\preg_match('/^[a-h][1-8][a-h][1-8][qrbn]?$/i', $uci)) {
                 throw new UnprocessableEntityHttpException('invalid_uci');
             }
             // appliquer le coup via le moteur
@@ -105,7 +105,7 @@ final class MakeMoveHandler
 
             $fenAfter = (string) ($result['fenAfter'] ?? '');
             $san = \trim((string) ($result['san'] ?? ''));
-            if ($san === '') {
+            if ('' === $san) {
                 // Fallback: garantir que SAN ne soit pas null/empty pour les coups normaux
                 $san = $uci;
             }
