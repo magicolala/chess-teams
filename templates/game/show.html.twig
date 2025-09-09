@@ -71,6 +71,8 @@
 			border-radius: 8px;
 			box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 			cursor: pointer;
+			/* Masquer le canvas par défaut pour éviter tout flicker avant l'overlay/JS */
+			visibility: hidden;
 		}
 
 		#board canvas:hover {

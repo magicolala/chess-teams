@@ -684,6 +684,15 @@ export default class extends Controller {
                 showCoordinates: true,
                 orientation: playerColor
             })
+
+            // Masquer immédiatement le canvas si c'est mon tour et que je ne suis pas encore "Prêt"
+            if (this.statusValue === 'live' && isPlayerTurn) {
+                const readyNow = this.isTurnReady?.() || false
+                if (!readyNow) {
+                    const canvas = boardEl.querySelector('canvas')
+                    if (canvas) canvas.style.visibility = 'hidden'
+                }
+            }
             
             // Ajouter overlay de grille si ce n'est pas le tour du joueur
             this.setupBoardOverlay(isPlayerTurn)
@@ -1113,6 +1122,17 @@ export default class extends Controller {
         if (existingOverlay) {
             existingOverlay.remove()
         }
+        // Déterminer l'état de visibilité du canvas selon le tour et l'état "Prêt"
+        const existingCanvas = boardEl.querySelector('canvas')
+        if (existingCanvas) {
+            const isLive = this.statusValue === 'live'
+            const ready = !!this.turnReady
+            if (isLive && isPlayerTurn && ready) {
+                existingCanvas.style.visibility = 'visible'
+            } else {
+                existingCanvas.style.visibility = 'hidden'
+            }
+        }
         
         if (!isPlayerTurn && this.statusValue === 'live') {
             // Créer l'overlay quand ce n'est pas le tour du joueur
@@ -1135,7 +1155,7 @@ export default class extends Controller {
                 left: 0;
                 right: 0;
                 bottom: 0;
-                background: rgba(0, 0, 0, 0.7);
+                background: rgba(0, 0, 0, 1);
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -1176,6 +1196,13 @@ export default class extends Controller {
         } else if (isPlayerTurn && this.statusValue === 'live') {
             // Si c'est mon tour mais que je n'ai pas cliqué "Prêt", masquer le board jusqu'au clic
             if (!this.turnReady) {
+                // Garantir aucune interaction tant que l'utilisateur n'a pas cliqué "Prêt"
+                this.board.setInteractive(false)
+                // Masquer totalement le canvas derrière l'overlay
+                const canvas = boardEl.querySelector('canvas')
+                if (canvas) {
+                    canvas.style.visibility = 'hidden'
+                }
                 const overlay = document.createElement('div')
                 overlay.className = 'board-overlay'
                 overlay.innerHTML = `
@@ -1194,7 +1221,7 @@ export default class extends Controller {
                     left: 0;
                     right: 0;
                     bottom: 0;
-                    background: rgba(0, 0, 0, 0.7);
+                    background: rgba(0, 0, 0, 1);
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -1211,6 +1238,10 @@ export default class extends Controller {
                     this.setTurnReady()
                     // Autoriser l'interaction et retirer l'overlay
                     this.board.setInteractive(true)
+                    // Réafficher le canvas
+                    if (canvas) {
+                        canvas.style.visibility = 'visible'
+                    }
                     overlay.remove()
                 })
                 boardEl.appendChild(overlay)
