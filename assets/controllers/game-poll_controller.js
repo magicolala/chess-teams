@@ -10,6 +10,15 @@ export default class extends Controller {
         // Initialiser les notifications
         this.initNotifications()
         
+        // Arrêter le polling lorsqu'une connexion Mercure est établie
+        this._onMercureConnected = (e) => {
+            console.log('📡 Mercure connecté, arrêt du polling pour', this.gameIdValue)
+            this.stopPolling()
+            // Rafraîchissement immédiat pour aligner l'état
+            this.refresh()
+        }
+        this.element.addEventListener('game-mercure:connected', this._onMercureConnected)
+        
         // État précédent pour détecter les changements
         this.previousState = {
             turnTeam: null,
@@ -34,6 +43,10 @@ export default class extends Controller {
     disconnect() {
         this.stopPolling()
         document.removeEventListener('visibilitychange', this.handleVisibilityChange.bind(this))
+        if (this._onMercureConnected) {
+            this.element.removeEventListener('game-mercure:connected', this._onMercureConnected)
+            this._onMercureConnected = null
+        }
     }
 
     startPolling() {

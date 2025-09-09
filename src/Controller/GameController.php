@@ -28,6 +28,8 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Mercure\HubInterface;
+use Symfony\Component\Mercure\Update;
 
 #[Route('/games', name: 'game_')]
 final class GameController extends AbstractController
@@ -43,6 +45,7 @@ final class GameController extends AbstractController
         private MarkPlayerReadyHandler $markPlayerReady,
         private EnableFastModeHandler $enableFastMode,
         private ClaimVictoryHandler $claimVictory,
+        private HubInterface $mercureHub,
     ) {
     }
 
@@ -95,6 +98,15 @@ final class GameController extends AbstractController
         $user = $this->getUser();
 
         $out = ($this->startGame)(new StartGameInput($id, $user->getId() ?? ''), $user);
+
+        // Publier un événement Mercure pour notifier les abonnés
+        $this->publishMercure($id, [
+            'type' => 'game.started',
+            'gameId' => $out->gameId,
+            'turnTeam' => $out->turnTeam,
+            'turnDeadline' => $out->turnDeadlineTs,
+            'status' => $out->status,
+        ]);
 
         return $this->json([
             'gameId' => $out->gameId,
@@ -153,7 +165,7 @@ final class GameController extends AbstractController
         $uci = (string) ($payload['uci'] ?? '');
         $out = ($this->makeMove)(new MakeMoveInput($id, $uci, $user->getId() ?? ''), $user);
 
-        return $this->json([
+        $response = $this->json([
             'gameId' => $out->gameId,
             'ply' => $out->ply,
             'turnTeam' => $out->turnTeam,
@@ -162,6 +174,20 @@ final class GameController extends AbstractController
             'status' => $gameRepo->get($out->gameId)->getStatus(),
             'result' => $gameRepo->get($out->gameId)->getResult(),
         ], 201);
+
+        // Publier un événement Mercure pour notifier les abonnés
+        $this->publishMercure($id, [
+            'type' => 'game.move',
+            'gameId' => $out->gameId,
+            'ply' => $out->ply,
+            'turnTeam' => $out->turnTeam,
+            'turnDeadline' => $out->turnDeadlineTs,
+            'fen' => $out->fen,
+            'status' => $gameRepo->get($out->gameId)->getStatus(),
+            'result' => $gameRepo->get($out->gameId)->getResult(),
+        ]);
+
+        return $response;
     }
 
     // POST /games/{id}/tick
@@ -174,7 +200,7 @@ final class GameController extends AbstractController
 
         $out = ($this->timeoutTick)(new TimeoutTickInput($id, $user->getId() ?? ''), $user);
 
-        return $this->json([
+        $response = $this->json([
             'gameId' => $out->gameId,
             'timedOutApplied' => $out->timedOutApplied,
             'ply' => $out->ply,
@@ -182,6 +208,20 @@ final class GameController extends AbstractController
             'turnDeadline' => $out->turnDeadlineTs,
             'fen' => $out->fen,
         ], $out->timedOutApplied ? 201 : 200);
+
+        // Publier un événement Mercure seulement si un timeout a été appliqué (changement réel)
+        if ($out->timedOutApplied) {
+            $this->publishMercure($id, [
+                'type' => 'game.timeout',
+                'gameId' => $out->gameId,
+                'ply' => $out->ply,
+                'turnTeam' => $out->turnTeam,
+                'turnDeadline' => $out->turnDeadlineTs,
+                'fen' => $out->fen,
+            ]);
+        }
+
+        return $response;
     }
 
     // GET /games/{id}/moves
@@ -233,7 +273,7 @@ final class GameController extends AbstractController
         $in = new MarkPlayerReadyInput($id, $user->getId() ?? '', $ready);
         $out = ($this->markPlayerReady)($in, $user);
 
-        return $this->json([
+        $response = $this->json([
             'gameId' => $out->gameId,
             'userId' => $out->userId,
             'ready' => $out->ready,
@@ -241,6 +281,17 @@ final class GameController extends AbstractController
             'readyPlayersCount' => $out->readyPlayersCount,
             'totalPlayersCount' => $out->totalPlayersCount,
         ]);
+
+        // Publier un événement Mercure pour synchroniser le lobby
+        $this->publishMercure($id, [
+            'type' => 'game.ready_changed',
+            'gameId' => $out->gameId,
+            'userId' => $out->userId,
+            'ready' => $out->ready,
+            'allPlayersReady' => $out->allPlayersReady,
+        ]);
+
+        return $response;
     }
 
     // POST /games/{id}/enable-fast-mode - Activer le mode rapide (1 minute)
@@ -254,12 +305,22 @@ final class GameController extends AbstractController
         $in = new EnableFastModeInput($id, $user->getId() ?? '');
         $out = ($this->enableFastMode)($in, $user);
 
-        return $this->json([
+        $response = $this->json([
             'gameId' => $out->gameId,
             'fastModeEnabled' => $out->fastModeEnabled,
             'fastModeDeadline' => $out->fastModeDeadlineTs,
             'turnDeadline' => $out->turnDeadlineTs,
         ], 200);
+
+        $this->publishMercure($id, [
+            'type' => 'game.fast_mode',
+            'gameId' => $out->gameId,
+            'fastModeEnabled' => $out->fastModeEnabled,
+            'fastModeDeadline' => $out->fastModeDeadlineTs,
+            'turnDeadline' => $out->turnDeadlineTs,
+        ]);
+
+        return $response;
     }
 
     // POST /games/{id}/claim-victory - Revendiquer la victoire après timeouts consécutifs
@@ -273,13 +334,40 @@ final class GameController extends AbstractController
         $in = new ClaimVictoryInput($id, $user->getId() ?? '');
         $out = ($this->claimVictory)($in, $user);
 
-        return $this->json([
+        $response = $this->json([
             'gameId' => $out->gameId,
             'claimed' => $out->claimed,
             'result' => $out->result,
             'status' => $out->status,
             'winnerTeam' => $out->winnerTeam,
         ], 200);
+
+        $this->publishMercure($id, [
+            'type' => 'game.claimed',
+            'gameId' => $out->gameId,
+            'result' => $out->result,
+            'status' => $out->status,
+            'winnerTeam' => $out->winnerTeam,
+        ]);
+
+        return $response;
+    }
+
+    /**
+     * Publie un événement Mercure sur le topic de la partie.
+     */
+    private function publishMercure(string $gameId, array $data): void
+    {
+        try {
+            $topic = sprintf('/games/%s', $gameId);
+            $update = new Update(
+                topics: $topic,
+                data: json_encode($data, JSON_THROW_ON_ERROR)
+            );
+            $this->mercureHub->publish($update);
+        } catch (\Throwable $e) {
+            // Ne pas casser la requête si Mercure échoue en dev
+        }
     }
 
     // GET /games/{id}/state - Endpoint pour l'actualisation automatique

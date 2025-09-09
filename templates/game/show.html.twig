@@ -363,7 +363,17 @@
 		</div>
 
 		<div
-			class="game-layout neo-animate-slideIn" data-controller="game-board game-poll" data-game-board-fen-value="{{ initial.fen }}" data-game-board-game-id-value="{{ initial.gameId }}" data-game-board-turn-team-value="{{ initial.turnTeam }}" data-game-board-status-value="{{ initial.status }}" data-game-board-deadline-ts-value="{{ initial.turnDeadline ?: 0 }}" data-game-poll-game-id-value="{{ initial.gameId }}" {% if userMembership %}data-user-team="{{ userMembership.team.name }}"{% endif %}>
+			class="game-layout neo-animate-slideIn"
+			data-controller="game-board game-poll game-mercure"
+			data-game-board-fen-value="{{ initial.fen }}"
+			data-game-board-game-id-value="{{ initial.gameId }}"
+			data-game-board-turn-team-value="{{ initial.turnTeam }}"
+			data-game-board-status-value="{{ initial.status }}"
+			data-game-board-deadline-ts-value="{{ initial.turnDeadline ?: 0 }}"
+			data-game-poll-game-id-value="{{ initial.gameId }}"
+			data-game-mercure-game-id-value="{{ initial.gameId }}"
+			data-game-mercure-url-value="{{ mercure(['/games/' ~ initial.gameId]) }}"
+			{% if userMembership %}data-user-team="{{ userMembership.team.name }}"{% endif %}>
 			<!-- Section de gauche: Échiquier + Actions -->
 			<div class="board-section">
 				<div id="board" class="cg-wrap coordinates"></div>
