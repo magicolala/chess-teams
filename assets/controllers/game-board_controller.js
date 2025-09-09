@@ -283,6 +283,12 @@ class SimpleNeoChessBoard {
     
     // Initialize piece sprites like in Neo Chess Board Ts Library
     this.sprites = new FlatSprites(128, this.theme);
+
+    // Bind stable event handler refs to allow proper add/removeEventListener
+    this._onPointerDown = this.onPointerDown.bind(this);
+    this._onPointerMove = this.onPointerMove.bind(this);
+    this._onPointerUp = this.onPointerUp.bind(this);
+    this._eventsAttached = false;
     
     this.initBoard();
     this.attachEvents();
@@ -499,12 +505,23 @@ class SimpleNeoChessBoard {
   }
 
   attachEvents() {
-    if (!this.interactive) return;
-    
-    this.canvas.addEventListener('pointerdown', (e) => this.onPointerDown(e));
-    this.canvas.addEventListener('pointermove', (e) => this.onPointerMove(e));
-    this.canvas.addEventListener('pointerup', (e) => this.onPointerUp(e));
+    if (!this.canvas) return;
+    // Attach only once and only if interactive
+    if (!this.interactive || this._eventsAttached) return;
+
+    this.canvas.addEventListener('pointerdown', this._onPointerDown);
+    this.canvas.addEventListener('pointermove', this._onPointerMove);
+    this.canvas.addEventListener('pointerup', this._onPointerUp);
     this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    this._eventsAttached = true;
+  }
+
+  detachEvents() {
+    if (!this.canvas || !this._eventsAttached) return;
+    this.canvas.removeEventListener('pointerdown', this._onPointerDown);
+    this.canvas.removeEventListener('pointermove', this._onPointerMove);
+    this.canvas.removeEventListener('pointerup', this._onPointerUp);
+    this._eventsAttached = false;
   }
 
   getEventPos(e) {
@@ -616,18 +633,19 @@ class SimpleNeoChessBoard {
 
   setInteractive(interactive) {
     this.interactive = interactive;
-    // Retirer les anciens event listeners
-    this.canvas.removeEventListener('pointerdown', this.onPointerDown);
-    this.canvas.removeEventListener('pointermove', this.onPointerMove);
-    this.canvas.removeEventListener('pointerup', this.onPointerUp);
-    // Remettre les event listeners si interactif
-    this.attachEvents();
+    // Properly toggle listeners
+    if (this.interactive) {
+      this.attachEvents();
+    } else {
+      this.detachEvents();
+    }
   }
 
   destroy() {
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
     }
+    this.detachEvents();
     this.element.innerHTML = '';
   }
 }
@@ -928,17 +946,16 @@ export default class extends Controller {
             this.board.setPosition(this._pending.prevBoardFen, true)
             this.printDebug('↩️ Retour à la position précédente (move refusé)')
         } else {
-            // Rafraîchir la page après un coup validé, pour un comportement type chess.com (correspondance)
-            try {
-                window.location.reload()
-                return
-            } catch (e) {
-                console.debug('[game-board] reload après coup échoué, on continue sans recharger', e)
-            }
+            // Mise à jour locale et fluide: masquer contrôles, désactiver interaction et afficher overlay
+            this._hidePendingControls()
+            this._pending = null
+            // Après un coup réussi, le tour passe à l'adversaire
+            // Désactiver l'interaction immédiatement côté client
+            this.board.setInteractive(false)
+            // Forcer l'overlay "en attente adversaire"
+            this.setupBoardOverlay(false)
+            this.printDebug('✅ Coup envoyé. En attente de l\'adversaire…')
         }
-        this._pending = null
-        this._hidePendingControls()
-        // L'adversaire verra le coup via polling (game-poll) côté client
     }
 
     cancelPending() {
