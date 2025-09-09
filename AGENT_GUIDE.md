@@ -124,6 +124,13 @@ symfony server:start -d
 docker compose exec php php bin/console asset-map:compile
 ```
 
+Alternative locale (sans Docker):
+
+```powershell
+# Si PHP est installé en local et que l'app tourne sans Docker pour PHP
+php bin\console asset-map:compile
+```
+
 Note: Le projet contient aussi un `package-lock.json`. AssetMapper peut fonctionner sans bundler (Webpack/Vite). Les scripts npm sont optionnels; si vous utilisez npm pour des utilitaires, installez avec `npm install` puis exécutez vos scripts si nécessaire.
 
 ---

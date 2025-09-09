@@ -6,10 +6,10 @@ export default class extends Controller {
 
     connect() {
         console.log('🔄 Auto-refresh activé pour la partie', this.gameIdValue)
-        
+
         // Initialiser les notifications
         this.initNotifications()
-        
+
         // Arrêter le polling lorsqu'une connexion Mercure est établie
         this._onMercureConnected = (e) => {
             console.log('📡 Mercure connecté, arrêt du polling pour', this.gameIdValue)
@@ -18,26 +18,44 @@ export default class extends Controller {
             this.refresh()
         }
         this.element.addEventListener('game-mercure:connected', this._onMercureConnected)
-        
+
         // État précédent pour détecter les changements
         this.previousState = {
             turnTeam: null,
             currentPlayer: null,
             isMyTurn: false
         }
-        
+
         // Snapshot léger pour éviter les requêtes lourdes inutiles
         this.previousSnapshot = null // { ply, turnTeam, status }
-        
+
         // Éviter de spammer la console si data-user-team est absent
         this.loggedNoUserTeam = false
-        
+
         // Initialiser le dernier ply affiché depuis le DOM existant si possible
         this.lastDisplayedPly = this.getLastDisplayedPly()
         this.startPolling()
-        
+
         // Gérer les changements de visibilité de la page
-        document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this))
+        this._onVisibility = this.handleVisibilityChange.bind(this)
+        document.addEventListener('visibilitychange', this._onVisibility)
+    }
+
+    // --- Notifications & détection de tour ---
+    initNotifications() {
+        // Préférences locales (desktop/sound/flash)
+        this.notificationPrefs = this.getNotificationPreferences()
+        // Écouter les changements de préférences provenant du panneau
+        this._onNotifPrefsChanged = (e) => {
+            const d = e?.detail || {}
+            const cur = this.notificationPrefs || {}
+            this.notificationPrefs = {
+                desktop: typeof d.desktop === 'boolean' ? d.desktop : cur.desktop,
+                sound: typeof d.sound === 'boolean' ? d.sound : cur.sound,
+                flash: typeof d.flash === 'boolean' ? d.flash : cur.flash,
+            }
+        }
+        window.addEventListener('chess:notification-settings-changed', this._onNotifPrefsChanged)
     }
 
     disconnect() {
