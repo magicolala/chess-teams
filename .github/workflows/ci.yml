@@ -278,6 +278,8 @@ jobs:
     - name: 📋 Create deployment artifact
       run: |
         tar -czf chess-teams-${{ github.sha }}.tar.gz \
+          --warning=no-file-changed \
+          --exclude="chess-teams-${{ github.sha }}.tar.gz" \
           --exclude='.git' \
           --exclude='node_modules' \
           --exclude='tests' \
