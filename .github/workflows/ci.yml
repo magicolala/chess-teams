@@ -356,9 +356,10 @@ jobs:
       - name: 🗃️ Setup test database (migrate)
         run: |
           # Create database directly on the Postgres service
-          docker compose -f compose.yaml -f compose.override.yaml exec -T database \
-            sh -lc "PGPASSWORD=$${POSTGRES_PASSWORD:-!ChangeMe!} psql -U $${POSTGRES_USER:-app} -h 127.0.0.1 -p 5432 -tc \"SELECT 1 FROM pg_database WHERE datname = 'chess_teams_test'\" | grep -q 1 || \
-            PGPASSWORD=$${POSTGRES_PASSWORD:-!ChangeMe!} psql -U $${POSTGRES_USER:-app} -h 127.0.0.1 -p 5432 -c \"CREATE DATABASE chess_teams_test;\""
+          docker compose -f compose.yaml -f compose.override.yaml exec -T -e PGPASSWORD='!ChangeMe!' database \
+            psql -U app -h 127.0.0.1 -p 5432 -tc "SELECT 1 FROM pg_database WHERE datname = 'chess_teams_test'" | grep -q 1 || \
+          docker compose -f compose.yaml -f compose.override.yaml exec -T -e PGPASSWORD='!ChangeMe!' database \
+            psql -U app -h 127.0.0.1 -p 5432 -c "CREATE DATABASE chess_teams_test;"
           # Run migrations in php container
           docker compose -f compose.yaml -f compose.override.yaml run --rm --entrypoint sh \
             -e APP_ENV=test \
