@@ -24,10 +24,12 @@ use App\Application\UseCase\MarkPlayerReadyHandler;
 use App\Application\UseCase\ShowGameHandler;
 use App\Application\UseCase\StartGameHandler;
 use App\Application\UseCase\TimeoutTickHandler;
+use App\Application\Service\PgnExporter;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Update;
@@ -522,5 +524,26 @@ final class GameController extends AbstractController
                 'message' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    // GET /games/{id}/pgn - Export PGN de la partie
+    #[Route('/{id}/pgn', name: 'pgn', methods: ['GET'])]
+    public function pgn(string $id, GameRepositoryInterface $gameRepo, PgnExporter $pgn): Response
+    {
+        $game = $gameRepo->get($id);
+        if (!$game) {
+            throw $this->createNotFoundException('game_not_found');
+        }
+
+        $content = $pgn->export($game);
+
+        return new Response(
+            $content,
+            200,
+            [
+                'Content-Type' => 'application/x-chess-pgn; charset=utf-8',
+                'Cache-Control' => 'no-cache',
+            ]
+        );
     }
 }

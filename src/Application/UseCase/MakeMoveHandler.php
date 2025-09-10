@@ -142,11 +142,23 @@ final class MakeMoveHandler
             $game->setTurnDeadline($deadline);
             $game->setUpdatedAt($now);
 
-            // -> ici, on évalue la fin :
-            $end = $this->endEvaluator->evaluateAndApply($game);
-            if ($end['isOver']) {
-                // si fini, plus de deadline ni tour
+            // Détection immédiate du mat à partir de la SAN retournée par le moteur
+            if (false !== strpos($san, '#')) {
+                // L'équipe qui vient de jouer gagne par mat
+                $winnerTeam = $teamToPlay->getName(); // 'A' ou 'B'
+                $game->setResult($winnerTeam.'#');
+                $game->setStatus(Game::STATUS_FINISHED);
+                // Plus de deadline quand la partie est finie
                 $game->setTurnDeadline(null);
+                $game->setFastModeDeadline(null);
+            } else {
+                // -> ici, on évalue la fin (nulle 50 coups, etc.)
+                $end = $this->endEvaluator->evaluateAndApply($game);
+                if ($end['isOver']) {
+                    // si fini, plus de deadline
+                    $game->setTurnDeadline(null);
+                    $game->setFastModeDeadline(null);
+                }
             }
 
             $this->em->flush();
