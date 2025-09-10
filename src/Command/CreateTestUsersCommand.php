@@ -2,6 +2,8 @@
 
 namespace App\Command;
 
+use App\Application\DTO\CreateGameInput;
+use App\Application\UseCase\CreateGameHandler;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -20,6 +22,7 @@ class CreateTestUsersCommand extends Command
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly UserPasswordHasherInterface $passwordHasher,
+        private readonly CreateGameHandler $createGame,
     ) {
         parent::__construct();
     }
@@ -49,6 +52,7 @@ class CreateTestUsersCommand extends Command
 
         $io->progressStart($count);
         $createdUsersData = [];
+        $createdGamesData = [];
 
         for ($i = 1; $i <= $count; ++$i) {
             $user = new User();
@@ -70,6 +74,38 @@ class CreateTestUsersCommand extends Command
                 'displayName' => $displayName,
             ];
 
+            // Créer une game publique et une game privée pour chaque utilisateur
+            try {
+                // Public game
+                $outPublic = ($this->createGame)(
+                    new CreateGameInput($user->getId() ?? '', 60, 'public'),
+                    $user
+                );
+                $createdGamesData[] = [
+                    'owner' => $email,
+                    'gameId' => $outPublic->gameId,
+                    'visibility' => 'public',
+                    'inviteCode' => $outPublic->inviteCode,
+                    'turnDuration' => $outPublic->turnDurationSec,
+                ];
+
+                // Private game
+                $outPrivate = ($this->createGame)(
+                    new CreateGameInput($user->getId() ?? '', 60, 'private'),
+                    $user
+                );
+                $createdGamesData[] = [
+                    'owner' => $email,
+                    'gameId' => $outPrivate->gameId,
+                    'visibility' => 'private',
+                    'inviteCode' => $outPrivate->inviteCode,
+                    'turnDuration' => $outPrivate->turnDurationSec,
+                ];
+            } catch (\Throwable $e) {
+                // Continuer même si la création de game échoue pour un utilisateur
+                $io->warning(sprintf('Game creation failed for %s: %s', $email, $e->getMessage()));
+            }
+
             $io->progressAdvance();
         }
 
@@ -77,6 +113,20 @@ class CreateTestUsersCommand extends Command
         $io->success(sprintf('%d test users have been created with default password "password".', $count));
         $io->text('Here are the credentials for the created users:');
         $io->table(['Email', 'Password', 'Display Name'], $createdUsersData);
+
+        if (!empty($createdGamesData)) {
+            $io->section('Games created for test users');
+            $io->table(
+                ['Owner Email', 'Game ID', 'Visibility', 'Invite Code', 'Turn Duration (s)'],
+                array_map(static fn(array $g) => [
+                    $g['owner'],
+                    $g['gameId'],
+                    $g['visibility'],
+                    $g['inviteCode'],
+                    (string) $g['turnDuration'],
+                ], $createdGamesData)
+            );
+        }
 
         return Command::SUCCESS;
     }
