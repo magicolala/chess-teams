@@ -6,6 +6,15 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  statuses: write
+  checks: write
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tests:
     name: 🧪 Tests & Quality
@@ -14,10 +23,15 @@ jobs:
     strategy:
       matrix:
         php-version: ['8.1', '8.2', '8.3']
-        
+    env:
+      APP_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/chess_teams_test
+      REDIS_URL: redis://redis:6379/1
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
     services:
       postgres:
-        image: postgres:15
+        image: postgres:16-alpine
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: chess_teams_test
@@ -26,8 +40,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        ports:
-          - 5432:5432
           
       redis:
         image: redis:7
@@ -36,8 +48,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        ports:
-          - 6379:6379
 
     steps:
     - name: 📥 Checkout code
@@ -54,26 +64,22 @@ jobs:
     - name: 📋 Validate composer.json
       run: composer validate --strict
 
-    - name: 💾 Cache Composer dependencies
-      uses: actions/cache@v3
+    - name: 📦 Install PHP dependencies (cached)
+      uses: ramsey/composer-install@v3
       with:
-        path: /tmp/composer-cache
-        key: ${{ runner.os }}-php${{ matrix.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-php${{ matrix.php-version }}-composer-
+        composer-options: --prefer-dist --no-progress --optimize-autoloader
 
-    - name: 📦 Install PHP dependencies
-      run: composer install --prefer-dist --no-progress --optimize-autoloader
-
-    - name: 🔧 Setup environment
+    - name: 🔧 Show environment
       run: |
-        cp .env.test .env.test.local
-        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/chess_teams_test" >> .env.test.local
-        echo "REDIS_URL=redis://localhost:6379/1" >> .env.test.local
+        php -v
+        composer --version
+        echo "APP_ENV=$APP_ENV"
+        echo "DATABASE_URL=$DATABASE_URL"
+        echo "REDIS_URL=$REDIS_URL"
 
     - name: 🗄️ Setup database
       run: |
-        php bin/console doctrine:database:create --env=test
+        php bin/console doctrine:database:create --if-not-exists --env=test
         php bin/console doctrine:migrations:migrate --no-interaction --env=test
 
     - name: 🧪 Run unit tests
@@ -83,11 +89,13 @@ jobs:
       run: ./vendor/bin/phpunit --testsuite=functional
 
     - name: 📊 Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      if: ${{ env.CODECOV_TOKEN != '' }}
+      uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
         flags: unittests
         name: codecov-umbrella
+        token: ${{ env.CODECOV_TOKEN }}
 
   code-quality:
     name: 📏 Code Quality
@@ -104,8 +112,10 @@ jobs:
         extensions: ctype, iconv, json
         tools: composer:v2
 
-    - name: 📦 Install dependencies
-      run: composer install --prefer-dist --no-progress
+    - name: 📦 Install dependencies (cached)
+      uses: ramsey/composer-install@v3
+      with:
+        composer-options: --prefer-dist --no-progress
 
     - name: 🎨 Check code style
       run: composer cs:check
@@ -132,10 +142,14 @@ jobs:
         php-version: '8.2'
         tools: composer:v2
 
-    - name: 📦 Install PHP dependencies
-      run: composer install --prefer-dist --no-progress
+    - name: 📦 Install PHP dependencies (cached)
+      uses: ramsey/composer-install@v3
+      with:
+        composer-options: --prefer-dist --no-progress
 
     - name: 🎨 Compile assets
+      env:
+        APP_ENV: prod
       run: php bin/console asset-map:compile --env=prod
 
     - name: ✅ Verify asset compilation
@@ -160,8 +174,10 @@ jobs:
         php-version: '8.2'
         tools: composer:v2
 
-    - name: 📦 Install dependencies
-      run: composer install --prefer-dist --no-progress
+    - name: 📦 Install dependencies (cached)
+      uses: ramsey/composer-install@v3
+      with:
+        composer-options: --prefer-dist --no-progress
 
     - name: 🛡️ Security audit
       run: |
@@ -187,8 +203,10 @@ jobs:
         php-version: '8.2'
         tools: composer:v2
 
-    - name: 📦 Install production dependencies
-      run: composer install --no-dev --optimize-autoloader --prefer-dist --no-progress
+    - name: 📦 Install production dependencies (cached)
+      uses: ramsey/composer-install@v3
+      with:
+        composer-options: --no-dev --optimize-autoloader --prefer-dist --no-progress
 
     - name: 🎨 Compile production assets
       run: php bin/console asset-map:compile --env=prod
@@ -204,7 +222,7 @@ jobs:
           .
 
     - name: 📤 Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: chess-teams-${{ github.sha }}
         path: chess-teams-${{ github.sha }}.tar.gz
@@ -234,3 +252,69 @@ jobs:
       run: |
         # Envoyer email en cas d'échec sur main
         echo "Critical build failure on main - would send email"
+
+  tests-full-docker:
+    name: 🐳 Tests (Full Docker)
+    runs-on: ubuntu-latest
+    # Peut être exécuté en parallèle des autres jobs, n'est pas requis par le déploiement par défaut
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐳 Show Docker versions
+        run: |
+          docker --version
+          docker compose version
+
+      - name: 🧱 Build PHP container (compose override)
+        run: |
+          docker compose -f compose.yaml -f compose.override.yaml build php
+
+      - name: 🗄️ Start database service
+        run: |
+          docker compose -f compose.yaml -f compose.override.yaml up -d database
+
+      - name: ⏱️ Wait for Postgres to be healthy
+        run: |
+          echo "Waiting for Postgres to be ready..."
+          for i in {1..30}; do
+            if docker compose -f compose.yaml -f compose.override.yaml exec -T database pg_isready -U app -h 127.0.0.1 -p 5432; then
+              echo "Postgres is ready"
+              break
+            fi
+            echo "Postgres not ready yet, retry $i/30" && sleep 2
+          done
+
+      - name: 📦 Install PHP dependencies
+        run: |
+          docker compose -f compose.yaml -f compose.override.yaml run --rm \
+            -e APP_ENV=test \
+            -e DATABASE_URL=postgresql://app:!ChangeMe!@database:5432/chess_teams_test \
+            php composer install --prefer-dist --no-progress --optimize-autoloader
+
+      - name: 🗃️ Setup test database (migrate)
+        run: |
+          docker compose -f compose.yaml -f compose.override.yaml run --rm \
+            -e APP_ENV=test \
+            -e DATABASE_URL=postgresql://app:!ChangeMe!@database:5432/chess_teams_test \
+            php sh -lc "php bin/console doctrine:database:create --if-not-exists --env=test && php bin/console doctrine:migrations:migrate -n --env=test"
+
+      - name: 🧪 Run tests inside container
+        run: |
+          docker compose -f compose.yaml -f compose.override.yaml run --rm \
+            -e APP_ENV=test \
+            -e XDEBUG_MODE=coverage \
+            -e DATABASE_URL=postgresql://app:!ChangeMe!@database:5432/chess_teams_test \
+            php ./vendor/bin/phpunit --testsuite=unit,functional --coverage-clover=coverage.xml
+
+      - name: 📤 Upload coverage artifact (Full Docker)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-full-docker-${{ github.sha }}
+          path: coverage.xml
+
+      - name: 🧹 Teardown
+        if: always()
+        run: |
+          docker compose -f compose.yaml -f compose.override.yaml down -v || true
