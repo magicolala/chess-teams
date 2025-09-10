@@ -339,6 +339,52 @@ export default class extends Controller {
         }
     }
 
+    // Détecte les changements de tour/joueur et déclenche les notifications
+    checkForTurnChange(gameState) {
+        if (!gameState || typeof gameState !== 'object') return
+
+        const prev = this.previousState || {}
+        const turnChanged = gameState.turnTeam && gameState.turnTeam !== prev.turnTeam
+        const prevPlayerId = prev.currentPlayer && prev.currentPlayer.id ? prev.currentPlayer.id : null
+        const curPlayerId = gameState.currentPlayer && gameState.currentPlayer.id ? gameState.currentPlayer.id : null
+        const playerChanged = curPlayerId !== prevPlayerId
+
+        // Mettre à jour l'UI liée au tour/joueur
+        if (turnChanged || playerChanged) {
+            this.updateCurrentTurn(gameState.turnTeam, gameState.currentPlayer || null)
+        }
+
+        // Déterminer si c'est le tour de l'utilisateur
+        const isMyTurnNow = this.isUserTurn(gameState.turnTeam)
+        const wasMyTurn = !!prev.isMyTurn
+
+        // Déclencher une notification uniquement lors du passage au tour de l'utilisateur
+        if (!wasMyTurn && isMyTurnNow) {
+            this.forceRefresh()
+        }
+
+        // Mettre à jour l'état précédent
+        this.previousState = {
+            turnTeam: gameState.turnTeam || prev.turnTeam || null,
+            currentPlayer: gameState.currentPlayer || null,
+            isMyTurn: isMyTurnNow,
+        }
+
+        // Si le statut de la partie a changé, synchroniser l'affichage du statut
+        if (typeof gameState.status === 'string') {
+            // Certains états peuvent inclure un résultat
+            this.updateGameStatus(gameState.status, gameState.result || null)
+        }
+    }
+
+    // Retourne true si l'utilisateur appartient à l'équipe dont c'est le tour
+    isUserTurn(turnTeam) {
+        const el = document.querySelector('[data-user-team]')
+        if (!el) return false
+        const userTeam = el.dataset.userTeam
+        return !!userTeam && !!turnTeam && userTeam === turnTeam
+    }
+
     getStatusClass(status) {
         switch (status) {
             case 'live': return 'success'
