@@ -277,15 +277,26 @@ jobs:
 
     - name: 📋 Create deployment artifact
       run: |
-        tar -czf chess-teams-${{ github.sha }}.tar.gz \
+        set -u
+        TAR_FILE="chess-teams-${{ github.sha }}.tar.gz"
+        tar -czf "$TAR_FILE" \
           --warning=no-file-changed \
-          --exclude="chess-teams-${{ github.sha }}.tar.gz" \
+          --ignore-failed-read \
+          --exclude="$TAR_FILE" \
           --exclude='.git' \
           --exclude='node_modules' \
           --exclude='tests' \
           --exclude='var/cache' \
           --exclude='var/log' \
-          .
+          . || {
+            status=$?
+            if [ "$status" -eq 1 ]; then
+              echo "tar completed with non-fatal warnings (exit code 1). Proceeding."
+            else
+              echo "tar failed with exit code $status" >&2
+              exit "$status"
+            fi
+          }
 
     - name: 📤 Upload artifact
       uses: actions/upload-artifact@v4
