@@ -100,6 +100,11 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y postgresql-client
 
+    - name: 🧪 Ensure test env variables
+      run: |
+        echo "DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/chess_teams_test?serverVersion=16&charset=utf8" > .env.test.local
+        echo "REDIS_URL=redis://127.0.0.1:6379/1" >> .env.test.local
+
     - name: 🗄️ Setup database (psql)
       env:
         PGPASSWORD: postgres
@@ -108,13 +113,15 @@ jobs:
         psql -h 127.0.0.1 -U postgres -p 5432 -tc "SELECT 1 FROM pg_database WHERE datname = 'chess_teams_test'" | grep -q 1 || \
           psql -h 127.0.0.1 -U postgres -p 5432 -c "CREATE DATABASE chess_teams_test;"
         # Run migrations via Symfony
-        php bin/console doctrine:migrations:migrate --no-interaction --env=test
+        DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/chess_teams_test?serverVersion=16&charset=utf8" php bin/console doctrine:migrations:migrate --no-interaction --env=test
 
     - name: 🧪 Run unit tests
-      run: ./vendor/bin/phpunit --testsuite=unit --coverage-clover=coverage.xml
+      run: |
+        DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/chess_teams_test?serverVersion=16&charset=utf8" ./vendor/bin/phpunit --testsuite=unit --coverage-clover=coverage.xml
 
     - name: 🔗 Run functional tests
-      run: ./vendor/bin/phpunit --testsuite=functional
+      run: |
+        DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/chess_teams_test?serverVersion=16&charset=utf8" ./vendor/bin/phpunit --testsuite=functional
 
     - name: 📊 Upload coverage to Codecov
       if: ${{ env.CODECOV_TOKEN != '' }}
