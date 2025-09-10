@@ -26,8 +26,8 @@ jobs:
         php-version: ['8.1', '8.2', '8.3']
     env:
       APP_ENV: test
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/chess_teams_test?serverVersion=16&charset=utf8
-      REDIS_URL: redis://redis:6379/1
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/chess_teams_test?serverVersion=16&charset=utf8
+      REDIS_URL: redis://127.0.0.1:6379/1
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     services:
@@ -41,6 +41,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          - 5432:5432
           
       redis:
         image: redis:7
@@ -49,6 +51,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          - 6379:6379
 
     steps:
     - name: 📥 Checkout code
@@ -91,8 +95,8 @@ jobs:
         PGPASSWORD: postgres
       run: |
         # Create test database if it does not exist using psql directly
-        psql -h postgres -U postgres -p 5432 -tc "SELECT 1 FROM pg_database WHERE datname = 'chess_teams_test'" | grep -q 1 || \
-          psql -h postgres -U postgres -p 5432 -c "CREATE DATABASE chess_teams_test;"
+        psql -h 127.0.0.1 -U postgres -p 5432 -tc "SELECT 1 FROM pg_database WHERE datname = 'chess_teams_test'" | grep -q 1 || \
+          psql -h 127.0.0.1 -U postgres -p 5432 -c "CREATE DATABASE chess_teams_test;"
         # Run migrations via Symfony
         php bin/console doctrine:migrations:migrate --no-interaction --env=test
 
