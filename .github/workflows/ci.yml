@@ -85,6 +85,16 @@ jobs:
         echo "DATABASE_URL=$DATABASE_URL"
         echo "REDIS_URL=$REDIS_URL"
 
+    - name: 🐘 PHP modules (PDO/pgsql)
+      run: |
+        php -m | grep -i -E 'pdo|pgsql' || true
+        php -r "echo 'pdo_pgsql? ', extension_loaded('pdo_pgsql') ? 'yes' : 'no', PHP_EOL;"
+
+    - name: 🧭 Debug Doctrine config (test)
+      run: |
+        php bin/console about --env=test || true
+        php bin/console debug:config doctrine --env=test || true
+
     - name: 🛠️ Install Postgres client
       run: |
         sudo apt-get update
