@@ -104,6 +104,7 @@ jobs:
       run: |
         echo "DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/chess_teams_test?serverVersion=16&charset=utf8" > .env.test.local
         echo "REDIS_URL=redis://127.0.0.1:6379/1" >> .env.test.local
+        php bin/console cache:clear --env=test || true
 
     - name: 🗄️ Setup database (psql)
       env:
