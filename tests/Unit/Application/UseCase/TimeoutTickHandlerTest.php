@@ -76,7 +76,8 @@ final class TimeoutTickHandlerTest extends TestCase
         $out = $handler(new TimeoutTickInput($g->getId(), $creator->getId() ?? ''), $creator);
 
         self::assertTrue($out->timedOutApplied);
-        self::assertSame('B', $out->turnTeam);
+        // The turn remains with the team that timed out until the opponent decides
+        self::assertSame('A', $out->turnTeam);
         self::assertSame(1, $out->ply);
     }
 }

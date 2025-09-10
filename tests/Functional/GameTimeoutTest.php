@@ -76,7 +76,7 @@ final class GameTimeoutTest extends WebTestCase
         $json = json_decode($client->getResponse()->getContent(), true);
         self::assertTrue($json['timedOutApplied']);
         self::assertSame(1, $json['ply']);
-        self::assertSame('B', $json['turnTeam']);
+        self::assertSame('A', $json['turnTeam']);
     }
 
     public function testTickNoopIfNotExpired(): void
