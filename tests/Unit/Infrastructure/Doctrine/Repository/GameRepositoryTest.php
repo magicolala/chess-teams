@@ -5,8 +5,8 @@ namespace App\Tests\Unit\Infrastructure\Doctrine\Repository;
 use App\Entity\Game;
 use App\Infrastructure\Doctrine\Repository\GameRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class GameRepositoryTest extends TestCase
@@ -42,4 +42,3 @@ final class GameRepositoryTest extends TestCase
         self::assertNull($result);
     }
 }
-

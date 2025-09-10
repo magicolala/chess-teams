@@ -55,7 +55,7 @@ final class PgnExporter
             }
 
             // Add move number for White moves (odd ply)
-            if ($ply % 2 === 1) {
+            if (1 === $ply % 2) {
                 $moveNumber = intdiv($ply + 1, 2);
                 $parts[] = $moveNumber.'.';
             }

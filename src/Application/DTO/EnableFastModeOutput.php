@@ -14,6 +14,6 @@ final class EnableFastModeOutput
         $this->enabled = $this->fastModeEnabled;
     }
 
-    /** @var bool mirrors $fastModeEnabled */
+    /** @var bool mirrors */
     public bool $enabled;
 }

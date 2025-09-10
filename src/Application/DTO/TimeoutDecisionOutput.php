@@ -17,6 +17,6 @@ final class TimeoutDecisionOutput
         $this->decisionPending = $this->pending;
     }
 
-    /** @var bool mirrors $pending */
+    /** @var bool mirrors */
     public bool $decisionPending;
 }

@@ -5,8 +5,8 @@ namespace App\Tests\Unit\Infrastructure\Doctrine\Repository;
 use App\Entity\Move;
 use App\Infrastructure\Doctrine\Repository\MoveRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\Persistence\ManagerRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class MoveRepositoryTest extends TestCase

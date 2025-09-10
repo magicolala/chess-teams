@@ -118,7 +118,7 @@ class CreateTestUsersCommand extends Command
             $io->section('Games created for test users');
             $io->table(
                 ['Owner Email', 'Game ID', 'Visibility', 'Invite Code', 'Turn Duration (s)'],
-                array_map(static fn(array $g) => [
+                array_map(static fn (array $g) => [
                     $g['owner'],
                     $g['gameId'],
                     $g['visibility'],

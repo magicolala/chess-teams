@@ -24,10 +24,10 @@ use Symfony\Component\Lock\LockInterface;
 final class DecideTimeoutHandlerTest extends TestCase
 {
     private function makeHandler(
-        & $game,
-        & $teams,
-        & $members,
-        & $user,
+        &$game,
+        &$teams,
+        &$members,
+        &$user,
         string $turnTeam = Team::NAME_A,
         string $timedOutTeam = Game::TEAM_A,
         string $decisionTeam = Game::TEAM_B,
