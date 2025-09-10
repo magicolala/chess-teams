@@ -277,35 +277,35 @@ jobs:
       - name: ⏱️ Wait for Postgres to be healthy
         run: |
           echo "Waiting for Postgres to be ready..."
-          for i in {1..30}; do
+          i=0
+          until [ "$i" -ge 30 ]; do
             if docker compose -f compose.yaml -f compose.override.yaml exec -T database pg_isready -U app -h 127.0.0.1 -p 5432; then
-              echo "Postgres is ready"
-              break
+              echo "Postgres is ready"; break;
             fi
-            echo "Postgres not ready yet, retry $i/30" && sleep 2
+            i=$((i+1)); echo "Postgres not ready yet, retry $i/30"; sleep 2;
           done
 
       - name: 📦 Install PHP dependencies
-        run: |
-          docker compose -f compose.yaml -f compose.override.yaml run --rm \
-            -e APP_ENV=test \
-            -e DATABASE_URL=postgresql://app:!ChangeMe!@database:5432/chess_teams_test?serverVersion=16&charset=utf8 \
-            php sh -lc "composer install --prefer-dist --no-progress --optimize-autoloader"
+        run: >
+          docker compose -f compose.yaml -f compose.override.yaml run --rm --entrypoint sh
+          -e APP_ENV=test
+          -e DATABASE_URL=postgresql://app:!ChangeMe!@database:5432/chess_teams_test?serverVersion=16&charset=utf8
+          php -lc "composer install --prefer-dist --no-progress --optimize-autoloader"
 
       - name: 🗃️ Setup test database (migrate)
-        run: |
-          docker compose -f compose.yaml -f compose.override.yaml run --rm \
-            -e APP_ENV=test \
-            -e DATABASE_URL=postgresql://app:!ChangeMe!@database:5432/chess_teams_test?serverVersion=16&charset=utf8 \
-            php sh -lc "php bin/console doctrine:database:create --if-not-exists --env=test && php bin/console doctrine:migrations:migrate -n --env=test"
+        run: >
+          docker compose -f compose.yaml -f compose.override.yaml run --rm --entrypoint sh
+          -e APP_ENV=test
+          -e DATABASE_URL=postgresql://app:!ChangeMe!@database:5432/chess_teams_test?serverVersion=16&charset=utf8
+          php -lc "php bin/console doctrine:database:create --if-not-exists --env=test && php bin/console doctrine:migrations:migrate -n --env=test"
 
       - name: 🧪 Run tests inside container
-        run: |
-          docker compose -f compose.yaml -f compose.override.yaml run --rm \
-            -e APP_ENV=test \
-            -e XDEBUG_MODE=coverage \
-            -e DATABASE_URL=postgresql://app:!ChangeMe!@database:5432/chess_teams_test?serverVersion=16&charset=utf8 \
-            php sh -lc "./vendor/bin/phpunit --testsuite=unit,functional --coverage-clover=coverage.xml"
+        run: >
+          docker compose -f compose.yaml -f compose.override.yaml run --rm --entrypoint sh
+          -e APP_ENV=test
+          -e XDEBUG_MODE=coverage
+          -e DATABASE_URL=postgresql://app:!ChangeMe!@database:5432/chess_teams_test?serverVersion=16&charset=utf8
+          php -lc "./vendor/bin/phpunit --testsuite=unit,functional --coverage-clover=coverage.xml"
 
       - name: 📤 Upload coverage artifact (Full Docker)
         if: always()
