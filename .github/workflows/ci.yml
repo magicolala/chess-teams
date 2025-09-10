@@ -61,6 +61,9 @@ jobs:
         coverage: xdebug
         tools: composer:v2
 
+    - name: 🔄 Sync composer.lock (metadata-only)
+      run: composer update --lock --no-scripts
+
     - name: 📋 Validate composer.json
       run: composer validate --strict
 
