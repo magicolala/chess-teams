@@ -44,7 +44,13 @@ export default class extends Controller {
     // --- Notifications & détection de tour ---
     initNotifications() {
         // Préférences locales (desktop/sound/flash)
-        this.notificationPrefs = this.getNotificationPreferences()
+        try {
+            this.notificationPrefs = (typeof this.getNotificationPreferences === 'function')
+                ? this.getNotificationPreferences()
+                : { desktop: false, sound: true, flash: true }
+        } catch (_) {
+            this.notificationPrefs = { desktop: false, sound: true, flash: true }
+        }
         // Écouter les changements de préférences provenant du panneau
         this._onNotifPrefsChanged = (e) => {
             const d = e?.detail || {}
@@ -60,7 +66,10 @@ export default class extends Controller {
 
     disconnect() {
         this.stopPolling()
-        document.removeEventListener('visibilitychange', this.handleVisibilityChange.bind(this))
+        if (this._onVisibility) {
+            document.removeEventListener('visibilitychange', this._onVisibility)
+            this._onVisibility = null
+        }
         if (this._onMercureConnected) {
             this.element.removeEventListener('game-mercure:connected', this._onMercureConnected)
             this._onMercureConnected = null
