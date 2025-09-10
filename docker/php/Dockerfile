@@ -7,6 +7,8 @@ WORKDIR /var/www/html
 RUN apk add --no-cache \
     build-base \
     autoconf \
+    $PHPIZE_DEPS \
+    linux-headers \
     libzip-dev \
     postgresql-dev \
     icu-dev \
@@ -28,9 +30,10 @@ RUN pecl install redis && docker-php-ext-enable redis
 # Install Xdebug for code coverage (and debugging if needed)
 RUN pecl install xdebug \
     && docker-php-ext-enable xdebug \
-    && echo "zend_extension=$(php -r 'echo ini_get("extension_dir");')/xdebug.so" > /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    && echo "xdebug.mode=${XDEBUG_MODE:-off}" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    && echo "xdebug.start_with_request=no" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+    && { \
+        echo "xdebug.mode=${XDEBUG_MODE:-off}"; \
+        echo "xdebug.start_with_request=no"; \
+      } > /usr/local/etc/php/conf.d/99-xdebug.ini
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

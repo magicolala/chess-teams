@@ -13,7 +13,7 @@ use App\Entity\Team;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 
-final class CreateGameHandler
+class CreateGameHandler
 {
     public function __construct(
         private GameRepositoryInterface $games,

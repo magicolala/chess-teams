@@ -12,5 +12,11 @@ final class TimeoutDecisionOutput
         public ?string $turnTeam,
         public ?int $turnDeadlineTs
     ) {
+        // Backward/forward-compat: expose both property names used across tests
+        // Some tests use `$pending`, others expect `$decisionPending`.
+        $this->decisionPending = $this->pending;
     }
+
+    /** @var bool mirrors $pending */
+    public bool $decisionPending;
 }

@@ -7,6 +7,7 @@ use App\Entity\Game;
 use App\Entity\Invite;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Ramsey\Uuid\Uuid;
 
 final class GameRepository extends ServiceEntityRepository implements GameRepositoryInterface
 {
@@ -22,6 +23,11 @@ final class GameRepository extends ServiceEntityRepository implements GameReposi
 
     public function get(string $id): ?Game
     {
+        // Avoid DBAL ConversionException when an arbitrary string is passed as ID
+        if (!Uuid::isValid($id)) {
+            return null;
+        }
+
         return $this->find($id);
     }
 
