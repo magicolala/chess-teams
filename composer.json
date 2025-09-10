@@ -1,4 +1,6 @@
 {
+    "name": "magicolala/chess-teams",
+    "description": "Application web d’échecs collaboratifs (Symfony 6.4, PHP 8.1+).",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
@@ -59,7 +61,7 @@
             "symfony/runtime": true
         },
         "sort-packages": true,
-        "secure-http": false
+        "secure-http": true
     },
     "autoload": {
         "psr-4": {
@@ -122,7 +124,7 @@
     "repositories": {
         "packagist": {
             "type": "composer",
-            "url": "http://repo.packagist.org"
+            "url": "https://repo.packagist.org"
         }
     }
 }
