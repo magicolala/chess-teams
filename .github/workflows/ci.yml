@@ -179,13 +179,38 @@ jobs:
       with:
         composer-options: --prefer-dist --no-progress
 
+    - name: 🔐 Harden env file permissions
+      run: |
+        # Durcir les permissions des fichiers .env* sous notre contrôle (hors vendor/.git/node_modules)
+        umask 027
+        find . \
+          -path './vendor/*' -prune -o \
+          -path './.git/*' -prune -o \
+          -path './node_modules/*' -prune -o \
+          -type f \( -name '.env*' -o -name '*.env*' \) \
+          -exec chmod go-r {} +
+
+    - name: 🔐 Ensure Composer uses HTTPS
+      run: |
+        composer config -g secure-http true
+        composer config -g repos.packagist composer https://repo.packagist.org
+
     - name: 🛡️ Security audit
       run: |
         # Composer audit pour les vulnérabilités connues
         composer audit
         
-        # Vérifier les permissions des fichiers sensibles
-        find . -name "*.env*" -type f -perm /o+r && echo "❌ Environment files are world-readable" && exit 1 || echo "✅ Environment files permissions OK"
+        # Vérifier les permissions des fichiers sensibles (exclure vendor/.git/node_modules)
+        if find . \
+          -path './vendor/*' -prune -o \
+          -path './.git/*' -prune -o \
+          -path './node_modules/*' -prune -o \
+          -type f \( -name '.env*' -o -name '*.env*' \) -perm /o+r -print -quit | grep -q .; then
+          echo "❌ Environment files are world-readable"
+          exit 1
+        else
+          echo "✅ Environment files permissions OK"
+        fi
 
   deployment:
     name: 🚀 Deployment
@@ -290,14 +315,14 @@ jobs:
           docker compose -f compose.yaml -f compose.override.yaml run --rm --entrypoint sh
           -e APP_ENV=test
           -e DATABASE_URL=postgresql://app:!ChangeMe!@database:5432/chess_teams_test?serverVersion=16&charset=utf8
-          php -lc "composer install --prefer-dist --no-progress --optimize-autoloader"
+          -lc "composer install --prefer-dist --no-progress --optimize-autoloader"
 
       - name: 🗃️ Setup test database (migrate)
         run: >
           docker compose -f compose.yaml -f compose.override.yaml run --rm --entrypoint sh
           -e APP_ENV=test
           -e DATABASE_URL=postgresql://app:!ChangeMe!@database:5432/chess_teams_test?serverVersion=16&charset=utf8
-          php -lc "php bin/console doctrine:database:create --if-not-exists --env=test && php bin/console doctrine:migrations:migrate -n --env=test"
+          -lc "php bin/console doctrine:database:create --if-not-exists --env=test && php bin/console doctrine:migrations:migrate -n --env=test"
 
       - name: 🧪 Run tests inside container
         run: >
@@ -305,7 +330,7 @@ jobs:
           -e APP_ENV=test
           -e XDEBUG_MODE=coverage
           -e DATABASE_URL=postgresql://app:!ChangeMe!@database:5432/chess_teams_test?serverVersion=16&charset=utf8
-          php -lc "./vendor/bin/phpunit --testsuite=unit,functional --coverage-clover=coverage.xml"
+          -lc "./vendor/bin/phpunit --testsuite=unit,functional --coverage-clover=coverage.xml"
 
       - name: 📤 Upload coverage artifact (Full Docker)
         if: always()
