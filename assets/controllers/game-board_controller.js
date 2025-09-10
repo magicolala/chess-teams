@@ -735,6 +735,17 @@ export default class extends Controller {
         // Gate "Prêt" par tour: on stocke l'état 'ready' par (gameId, ply)
         this.currentPly = null
         this.turnReady = false
+
+        // Charger la liste des coups avec fenAfter pour permettre la navigation PGN
+        // Cela remplace la liste SSR par une liste enrichie (data-fen-after)
+        this.reloadMoves().catch(() => {})
+
+        // Écouteur délégué pour gérer les clics sur les coups (navigation PGN)
+        this._onMoveItemClick = this.onMoveItemClick.bind(this)
+        const movesList = document.getElementById('moves-list')
+        if (movesList) {
+            movesList.addEventListener('click', this._onMoveItemClick)
+        }
     }
 
     disconnect() {
@@ -743,6 +754,14 @@ export default class extends Controller {
         // Nettoyer les listeners
         if (this._onFenUpdated) this.element.removeEventListener('game-poll:fenUpdated', this._onFenUpdated)
         if (this._onGameUpdated) this.element.removeEventListener('game-poll:gameUpdated', this._onGameUpdated)
+        const movesList = document.getElementById('moves-list')
+        if (movesList && this._onMoveItemClick) {
+            movesList.removeEventListener('click', this._onMoveItemClick)
+        }
+        if (this._pgnKeyHandler) {
+            window.removeEventListener('keydown', this._pgnKeyHandler)
+            this._pgnKeyHandler = null
+        }
         console.debug('[game-board] disconnect()')
     }
 
@@ -1110,7 +1129,7 @@ export default class extends Controller {
         // Mettre à jour interactivité selon le tour ET le clic "Prêt"
         const isPlayerTurn = this.isCurrentPlayerTurn()
         this.turnReady = this.isTurnReady()
-        const canInteract = this.statusValue === 'live' && isPlayerTurn && this.turnReady
+        let canInteract = this.statusValue === 'live' && isPlayerTurn && this.turnReady
 
         // Gérer la décision de timeout en attente
         const td = gs.timeoutDecision || {}
@@ -1140,6 +1159,22 @@ export default class extends Controller {
             }
             this.checkForTurnChange(minimalState)
         } catch (_) {}
+
+        // Si la partie est terminée, retirer les overlays, rendre le board visible et désactiver toute interaction
+        if (this.statusValue !== 'live') {
+            try { this.board.setInteractive(false) } catch (_) {}
+            this._hideStatusOverlay()
+            const boardEl = this.element.querySelector('#board')
+            const canvas = boardEl?.querySelector('canvas')
+            if (canvas) canvas.style.visibility = 'visible'
+            // Nettoyer tout panneau de décision timeout
+            if (this.hasTimeoutDecisionTarget) {
+                this.timeoutDecisionTarget.style.display = 'none'
+            }
+            this.setupBoardOverlay(false)
+            this.renderState()
+            return
+        }
 
         // 2) Puis activer l'interaction (et retirer l'overlay) juste après, pour garantir l'ordre
         //    Utilise requestAnimationFrame pour laisser le navigateur afficher la notif
@@ -1180,10 +1215,12 @@ export default class extends Controller {
         const res = await fetch(`/games/${this.gameIdValue}/moves`, { headers: { 'Accept': 'application/json' } })
         if (!res.ok) return
         const json = await res.json()
+        // Mémoriser pour navigation PGN
+        this._movesCache = Array.isArray(json.moves) ? json.moves : []
         const list = document.getElementById('moves-list')
         if (!list) return
         list.innerHTML = ''
-        const moves = Array.isArray(json.moves) ? json.moves : []
+        const moves = this._movesCache
         for (const m of moves) {
             const li = document.createElement('li')
             li.className = 'move-item slide-up'
@@ -1193,6 +1230,10 @@ export default class extends Controller {
                 continue
             }
             const teamName = this.normalizeTeamName(m.team)
+            li.setAttribute('data-ply', String(m.ply))
+            if (m.fenAfter && typeof m.fenAfter === 'string') {
+                li.setAttribute('data-fen-after', m.fenAfter)
+            }
             li.innerHTML = `
                 <span class="move-notation">#${m.ply}: ${notation}</span>
                 <span class="move-team team-${teamName}">${teamName.toUpperCase()}</span>
@@ -1203,6 +1244,114 @@ export default class extends Controller {
         if (list.lastElementChild) {
             list.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'end' })
         }
+
+        // Si la partie est finie, injecter des contrôles de navigation basiques
+        if (this.statusValue !== 'live') {
+            this.ensurePgnControls()
+        }
+    }
+
+    async onMoveItemClick(e) {
+        const item = e.target?.closest?.('.move-item')
+        if (!item) return
+        const fen = item.getAttribute('data-fen-after')
+        const plyAttr = item.getAttribute('data-ply')
+        let fenToLoad = fen
+        if (!fenToLoad) {
+            // Fallback: récupérer la liste complète et trouver le FEN
+            try {
+                const res = await fetch(`/games/${this.gameIdValue}/moves`, { headers: { 'Accept': 'application/json' } })
+                if (res.ok) {
+                    const json = await res.json()
+                    const moves = Array.isArray(json.moves) ? json.moves : []
+                    const target = moves.find(m => String(m.ply) === String(plyAttr))
+                    fenToLoad = target?.fenAfter || null
+                    if (fenToLoad) {
+                        item.setAttribute('data-fen-after', fenToLoad)
+                    }
+                }
+            } catch (_) {}
+        }
+        if (!fenToLoad || typeof fenToLoad !== 'string') return
+
+        // Charger la position sur chess.js et le canvas
+        this.chessJs.load(fenToLoad === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : fenToLoad)
+        this.board.setPosition(fenToLoad === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : fenToLoad)
+
+        // Mettre en surbrillance l'élément sélectionné
+        try {
+            const list = document.getElementById('moves-list')
+            list?.querySelectorAll?.('.move-item.active')?.forEach(el => el.classList.remove('active'))
+            item.classList.add('active')
+        } catch (_) {}
+    }
+
+    ensurePgnControls() {
+        const container = document.getElementById('moves-list')?.parentElement
+        if (!container) return
+        if (container.querySelector('.pgn-controls')) return
+        const controls = document.createElement('div')
+        controls.className = 'pgn-controls'
+        controls.style.cssText = 'display:flex;gap:8px;justify-content:center;margin-top:8px;'
+        controls.innerHTML = `
+            <button type="button" class="neo-btn neo-btn-secondary neo-btn-sm" data-role="pgn-prev">◀️ Précédent</button>
+            <button type="button" class="neo-btn neo-btn-secondary neo-btn-sm" data-role="pgn-next">Suivant ▶️</button>
+        `
+        container.appendChild(controls)
+        controls.querySelector('[data-role="pgn-prev"]').addEventListener('click', () => this.prevMove())
+        controls.querySelector('[data-role="pgn-next"]').addEventListener('click', () => this.nextMove())
+
+        // Support touches clavier ← →
+        if (!this._pgnKeyHandler) {
+            this._pgnKeyHandler = (ev) => {
+                if (this.statusValue === 'live') return
+                if (ev.key === 'ArrowLeft') { this.prevMove() }
+                if (ev.key === 'ArrowRight') { this.nextMove() }
+            }
+            window.addEventListener('keydown', this._pgnKeyHandler)
+        }
+    }
+
+    getActivePly() {
+        const list = document.getElementById('moves-list')
+        const active = list?.querySelector('.move-item.active')
+        if (active) {
+            const p = parseInt(active.getAttribute('data-ply') || '0', 10)
+            if (!Number.isNaN(p)) return p
+        }
+        // Si aucun actif, retourner le dernier ply
+        return (this._movesCache && this._movesCache.length) ? this._movesCache[this._movesCache.length - 1].ply : 0
+    }
+
+    goToPly(ply) {
+        const list = document.getElementById('moves-list')
+        if (!list) return
+        const item = list.querySelector(`.move-item[data-ply="${ply}"]`)
+        if (!item) return
+        const fen = item.getAttribute('data-fen-after')
+        if (fen) {
+            this.chessJs.load(fen === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : fen)
+            this.board.setPosition(fen === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : fen)
+        }
+        list.querySelectorAll('.move-item.active').forEach(el => el.classList.remove('active'))
+        item.classList.add('active')
+        item.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+
+    nextMove() {
+        if (!this._movesCache || !this._movesCache.length) return
+        const current = this.getActivePly()
+        const idx = this._movesCache.findIndex(m => m.ply === current)
+        const next = (idx >= 0 && idx < this._movesCache.length - 1) ? this._movesCache[idx + 1].ply : current
+        if (next !== current) this.goToPly(next)
+    }
+
+    prevMove() {
+        if (!this._movesCache || !this._movesCache.length) return
+        const current = this.getActivePly()
+        const idx = this._movesCache.findIndex(m => m.ply === current)
+        const prev = (idx > 0) ? this._movesCache[idx - 1].ply : current
+        if (prev !== current) this.goToPly(prev)
     }
 
     // Normalise une équipe retournée potentiellement sous forme d'objet ou de string

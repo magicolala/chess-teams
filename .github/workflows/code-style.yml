@@ -32,5 +32,17 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add .
-        git diff --staged --quiet || git commit -m "Fix code style"
-        git push
+        git diff --staged --quiet || git commit -m "Apply PHP CS Fixer"
+
+    - name: 'Push changes'
+      if: always()
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        # N'effectue le push que s'il y a des commits en avance
+        if [ -n "$(git log @{u}.. 2>/dev/null)" ]; then
+          git push "https://${{ secrets.ACTIONS_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:${{ github.ref }}
+        else
+          echo "Nothing to push"
+        fi

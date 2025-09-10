@@ -249,6 +249,11 @@ export default class extends Controller {
             resultElement.textContent = result
             resultElement.className = 'neo-badge neo-badge-success neo-ml-sm'
         }
+
+        // Si la partie est terminée, arrêter le polling pour éviter des requêtes inutiles
+        if (status === 'finished' || status === 'ended') {
+            this.stopPolling()
+        }
     }
 
     updateCurrentTurn(turnTeam, currentPlayer = null) {
@@ -389,6 +394,7 @@ export default class extends Controller {
         switch (status) {
             case 'live': return 'success'
             case 'ended': return 'secondary'
+            case 'finished': return 'secondary'
             case 'waiting': return 'warning'
             default: return 'secondary'
         }
