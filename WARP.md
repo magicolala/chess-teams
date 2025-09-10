@@ -8,8 +8,8 @@ Chess-Teams is a real-time team-based chess application built with Symfony 6.4. 
 
 ## Technology Stack
 
-- **Backend**: PHP 8.1+, Symfony 6.4, Doctrine ORM, API Platform
-- **Frontend**: JavaScript, Stimulus, Asset Mapper (no Webpack)
+- **Backend**: PHP 8.1+, Symfony 6.4, Doctrine ORM
+- **Frontend**: JavaScript, Stimulus, AssetMapper (no Webpack)
 - **Database**: PostgreSQL (production), SQLite (testing)
 - **Real-time**: Symfony Mercure for real-time updates
 - **Chess Engine**: chesslablab/php-chess via P-Chess wrapper
@@ -66,27 +66,41 @@ docker compose up -d
 ```bash
 # Run tests
 ./vendor/bin/phpunit
+# Or via Docker
+docker compose exec php ./vendor/bin/phpunit
 
 # Run single test
 ./vendor/bin/phpunit tests/RegistrationControllerTest.php
 
 # Code style check
 composer cs:check
+# Or via Docker
+docker compose exec php composer cs:check
 
 # Fix code style
 composer cs:fix
+# Or via Docker
+docker compose exec php composer cs:fix
 
 # Clear cache
 php bin/console cache:clear
+# Or via Docker
+docker compose exec php php bin/console cache:clear
 
 # Generate migration after entity changes
 php bin/console doctrine:migrations:diff
+# Or via Docker
+docker compose exec php php bin/console doctrine:migrations:diff
 
 # Debug routes
 php bin/console debug:router
+# Or via Docker
+docker compose exec php php bin/console debug:router
 
 # Debug services
 php bin/console debug:container
+# Or via Docker
+docker compose exec php php bin/console debug:container
 ```
 
 ### Database Commands
@@ -114,6 +128,7 @@ Key environment variables:
 - `DATABASE_URL` - Database connection string
 - `MERCURE_URL` - Mercure hub URL for real-time features
 - `APP_ENV` - Environment mode (dev/prod/test)
+ - `MERCURE_JWT_SECRET` - Secret key for Mercure (see compose.yaml)
 
 ## Testing Strategy
 
@@ -149,7 +164,7 @@ The application uses **Symfony Mercure** for real-time updates:
 
 ## Frontend Integration
 
-- **Asset Mapper**: Modern asset management without Webpack
+- **AssetMapper**: Modern asset management without Webpack
 - **ImportMap**: Handles JavaScript dependencies (chess.js, chessboardjs, jQuery)
 - **Stimulus**: JavaScript framework for progressive enhancement
 - **Turbo**: For SPA-like navigation
@@ -172,5 +187,9 @@ The application uses **Symfony Mercure** for real-time updates:
 - `config/services.yaml` - Dependency injection setup
 - `compose.yaml` - Docker services (PostgreSQL, Mercure)
 - `importmap.php` - Frontend dependency mapping
+
+---
+
+For operational guides and Docker-based workflows, see `README.md` (Installation & Quickstart). For Windows/PowerShell commands, best practices, and troubleshooting, see `AGENT_GUIDE.md`.
 
 When working with this codebase, prioritize understanding the game flow through the use case handlers and how the hexagonal architecture maintains clean separation between business logic and external concerns.

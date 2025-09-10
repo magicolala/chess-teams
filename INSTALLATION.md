@@ -131,7 +131,7 @@ GRANT ALL PRIVILEGES ON DATABASE chess_teams TO chess_user;
 ### 1. Cloner le repository
 ```bash
 git clone https://github.com/magicolala/chess-teams.git
-cd chess-teams/api
+cd chess-teams
 ```
 
 ### 2. Installer les dépendances
@@ -368,3 +368,10 @@ php bin/console asset-map:compile --env=prod
 🎉 **Félicitations !** Votre installation de Chess-Teams est maintenant prête.
 
 Pour plus d'aide, consultez le [README.md](README.md) ou créez une [issue GitHub](https://github.com/magicolala/chess-teams/issues).
+
+---
+
+Ressources complémentaires:
+
+- Guide rapide et commandes Docker: voir `README.md` (sections Installation et Démarrage Rapide).
+- Guide détaillé pour agents IA et contributeurs (Windows/PowerShell, Docker, bonnes pratiques): voir `AGENT_GUIDE.md`.

@@ -4,8 +4,48 @@
 ![Symfony](https://img.shields.io/badge/Symfony-6.4-green?style=for-the-badge&logo=symfony)
 ![PHP](https://img.shields.io/badge/PHP-8.1+-777BB4?style=for-the-badge&logo=php&logoColor=white)
 ![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)
+[![CI](https://github.com/magicolala/chess-teams/actions/workflows/ci.yml/badge.svg)](https://github.com/magicolala/chess-teams/actions/workflows/ci.yml)
+[![Code Style](https://github.com/magicolala/chess-teams/actions/workflows/code-style.yml/badge.svg)](https://github.com/magicolala/chess-teams/actions/workflows/code-style.yml)
 
 **Chess-Teams** est une application web moderne et innovante pour jouer aux échecs en équipe. Elle permet à plusieurs joueurs de collaborer au sein de deux équipes (Blancs et Noirs) pour décider du meilleur coup à jouer collectivement. L'application offre une expérience de jeu immersive avec un échiquier interactif en temps réel, un système de notation avancé et une interface utilisateur élégante.
+
+## ⚡ Getting started (60s)
+
+```bash
+# Cloner & installer
+git clone https://github.com/magicolala/chess-teams.git && cd chess-teams
+composer install && cp .env .env.local
+
+# Lancer l'infra et l'app
+docker compose up -d database mercure php nginx
+
+# Init DB + assets
+docker compose exec php php bin/console doctrine:database:create
+docker compose exec php php bin/console doctrine:migrations:migrate -n
+docker compose exec php php bin/console asset-map:compile
+
+# Ouvrir l'app
+start http://localhost:8000
+```
+
+## Table des matières
+
+- [✨ Fonctionnalités Principales](#-fonctionnalités-principales)
+- [🛠️ Stack Technique](#️-stack-technique)
+- [Prérequis](#prérequis)
+- [Installation](#installation)
+- [🚀 Démarrage Rapide](#-démarrage-rapide)
+- [🧪 Tests](#-tests)
+- [📚 Architecture](#-architecture)
+- [🎮 Comment Jouer](#-comment-jouer)
+- [🛠️ Configuration](#️-configuration)
+- [🔧 Développement](#-développement)
+- [🔍 API](#-api)
+- [🐛 Contribuer](#-contribuer)
+- [📝 Changelog](#-changelog)
+- [📞 Support](#-support)
+- [📋 Licence](#-licence)
+- [📗 Guide Agent](#-guide-agent)
 
 ## ✨ Fonctionnalités Principales
 
@@ -67,87 +107,76 @@
 
 - PHP 8.1 ou supérieur
 - Composer
-- Symfony CLI
-- Node.js et npm (ou yarn)
+- Docker Desktop (recommandé pour Postgres + Mercure)
+- Symfony CLI (optionnel si vous ne lancez pas Nginx via Docker)
+- Node.js et npm (optionnel — AssetMapper fonctionne sans bundler)
 
 ## Installation
 
-1. Clonez le dépôt :
+1) Cloner le dépôt
 
-    ```bash
-    git clone https://github.com/votre-utilisateur/chess-teams.git
-    cd chess-teams
-    ```
+```bash
+git clone https://github.com/magicolala/chess-teams.git
+cd chess-teams
+```
 
-2. Installez les dépendances PHP :
+2) Installer les dépendances PHP
 
-    ```bash
-    composer install
-    ```
+```bash
+composer install
+```
 
-3. Installez les dépendances frontend :
+3) Configurer l’environnement
 
-    ```bash
-    npm install
-    # ou
-    yarn install
-    ```
+```bash
+cp .env .env.local
+# Ouvrez .env.local et adaptez DATABASE_URL si besoin
+```
 
-4. Compilez les assets frontend :
+4) Lancer l’infra (Docker) et initialiser la base
 
-    ```bash
-    npm run build
-    # ou pour le développement avec surveillance des fichiers
-    npm run watch
-    ```
+```bash
+docker compose up -d database mercure
+docker compose up -d php nginx
 
-5. Configurez vos variables d'environnement. Copiez `.env` vers `.env.local` et personnalisez-le, notamment la `DATABASE_URL` :
+# Dans le conteneur php
+docker compose exec php php bin/console doctrine:database:create
+docker compose exec php php bin/console doctrine:migrations:migrate -n
+```
 
-    ```bash
-    cp .env .env.local
-    # ouvrez .env.local et modifiez DATABASE_URL
-    ```
+5) Compiler les assets (AssetMapper)
 
-6. Initialisez la base de données :
+```bash
+docker compose exec php php bin/console asset-map:compile
+```
 
-    ```bash
-    php bin/console doctrine:database:create
-    php bin/console doctrine:migrations:migrate
-    ```
+Alternative locale (sans Docker) — si PHP et DB sont installés localement:
 
-7. Démarrez le serveur web local :
-
-    ```bash
-    symfony server:start -d
-    ```
-
-    L'application devrait être accessible à l'adresse `https://127.0.0.1:8000`.
+```bash
+php bin/console doctrine:database:create
+php bin/console doctrine:migrations:migrate -n
+php bin/console asset-map:compile
+symfony server:start -d
+```
 
 ## 🚀 Démarrage Rapide
 
-### Installation Express
-
 ```bash
-# Cloner et installer
-git clone https://github.com/magicolala/chess-teams.git
-cd chess-teams/api
-composer install
+# 1) Cloner
+git clone https://github.com/magicolala/chess-teams.git && cd chess-teams
 
-# Configurer la base de données
-cp .env .env.local
-# Éditez .env.local avec vos paramètres DB
+# 2) Dépendances
+composer install && cp .env .env.local
 
-# Initialiser
-php bin/console doctrine:database:create
-php bin/console doctrine:migrations:migrate
+# 3) Infra & App
+docker compose up -d database mercure php nginx
 
-# Compiler les assets
-php bin/console asset-map:compile
+# 4) Base + Assets
+docker compose exec php php bin/console doctrine:database:create
+docker compose exec php php bin/console doctrine:migrations:migrate -n
+docker compose exec php php bin/console asset-map:compile
 
-# Lancer le serveur
-symfony server:start
-# ou
-php -S localhost:8000 -t public/
+# Accès: http://localhost:8000
 ```
 
 ## 🧪 Tests
@@ -156,52 +185,47 @@ php -S localhost:8000 -t public/
 
 ```bash
 # Tests complets
-./vendor/bin/phpunit
+docker compose exec php ./vendor/bin/phpunit
 
 # Tests avec couverture
-./vendor/bin/phpunit --coverage-html coverage/
+docker compose exec php ./vendor/bin/phpunit --coverage-html coverage/
 
 # Tests spécifiques
-./vendor/bin/phpunit tests/Unit/
-./vendor/bin/phpunit tests/Functional/
+docker compose exec php ./vendor/bin/phpunit tests/Unit/
+docker compose exec php ./vendor/bin/phpunit tests/Controller/
 ```
 
 ### Qualité du Code
 
 ```bash
-# Vérifier le style de code
+# Vérifier le style de code (via scripts composer.json)
 composer cs:check
 
 # Corriger automatiquement
 composer cs:fix
+
+# Depuis Docker
+docker compose exec php composer cs:check
+docker compose exec php composer cs:fix
 ```
 
 ## 📚 Architecture
 
 ```
 src/
-├── Controller/          # Contrôleurs HTTP
-│   ├── GameController.php
-│   └── GameWebController.php
-├── Entity/             # Entités Doctrine
-│   ├── Game.php
-│   ├── Move.php
-│   └── User.php
-├── Repository/         # Repositories Doctrine
-└── Service/            # Services métier
+├── Application/          # Services/DTO/Ports applicatifs
+├── Command/              # Commandes (CLI)
+├── Controller/           # Contrôleurs HTTP (ex: GameController.php)
+├── Entity/               # Entités Doctrine
+└── ...
 
 assets/
-├── controllers/        # Stimulus Controllers
-│   └── game-board_controller.js
-└── styles/             # Feuilles de style
-    ├── app.css
-    ├── neo-chess-framework.css
-    └── neo-components.css
+├── controllers/          # Stimulus Controllers (ex: game-board_controller.js)
+└── styles/               # Feuilles de style (app.css, neo-*.css)
 
 templates/
-├── base.html.twig      # Layout de base
-├── game/               # Vues de jeu
-└── security/           # Authentification
+├── base.html.twig        # Layout de base
+└── game/                 # Vues de jeu
 ```
 
 ## 🎮 Comment Jouer
@@ -232,17 +256,18 @@ templates/
 ### Variables d'Environnement
 
 ```bash
-# Base de données
-DATABASE_URL=postgresql://user:pass@localhost:5432/chess_teams
+# Base de données (si Docker: host = database)
+DATABASE_URL=postgresql://app:!ChangeMe!@database:5432/app
 
-# Redis (optionnel)
-REDIS_URL=redis://localhost:6379
+# Mercure
+MERCURE_URL=https://localhost/.well-known/mercure
+MERCURE_JWT_SECRET=!ChangeThisMercureHubJWTSecretKey!
 
 # Environnement
 APP_ENV=dev
 APP_SECRET=your-secret-key
 
-# Sécurité
+# CORS (exemple)
 CORS_ALLOW_ORIGIN='^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'
 ```
 
@@ -373,3 +398,7 @@ Ce projet est sous licence propriétaire. Tous droits réservés.
 Développé avec ❤️ par l'équipe Chess-Teams
 
 Made with Symfony 🎵 PHP ⚡ Neo Chess Board
+
+## 📗 Guide Agent
+
+Pour les contributeurs et agents IA: voir `AGENT_GUIDE.md` pour un guide détaillé (stack, workflows, bonnes pratiques, dépannage).

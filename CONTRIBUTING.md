@@ -40,7 +40,7 @@ En participant à ce projet, vous acceptez de respecter notre [Code de Conduite]
    ```bash
    # Via l'interface GitHub, puis clonez votre fork
    git clone https://github.com/VOTRE-USERNAME/chess-teams.git
-   cd chess-teams/api
+   cd chess-teams
    ```
 
 2. **Installer les dépendances**
@@ -60,7 +60,11 @@ En participant à ce projet, vous acceptez de respecter notre [Code de Conduite]
 
 4. **Lancer les tests**
    ```bash
+   # Local
    ./vendor/bin/phpunit
+
+   # Ou via Docker (conteneur php)
+   docker compose exec php ./vendor/bin/phpunit
    ```
 
 ## 🔧 Types de Contributions
@@ -117,12 +121,18 @@ git checkout -b docs/api-examples
 ```bash
 # Tests unitaires et fonctionnels
 ./vendor/bin/phpunit
+# ou via Docker
+docker compose exec php ./vendor/bin/phpunit
 
 # Vérification de la qualité du code
 composer cs:check
+# ou via Docker
+docker compose exec php composer cs:check
 
 # Tests d'intégration
 php bin/console doctrine:schema:validate
+# ou via Docker
+docker compose exec php php bin/console doctrine:schema:validate
 ```
 
 ### 5. Soumettre une Pull Request
@@ -465,3 +475,10 @@ Merci à tous les contributeurs qui rendent Chess-Teams possible ! Votre passion
 **Questions ?** N'hésitez pas à ouvrir une [discussion GitHub](https://github.com/magicolala/chess-teams/discussions) ou à nous rejoindre sur [Discord](https://discord.gg/chess-teams).
 
 Happy coding! ♟️✨
+
+---
+
+Ressources complémentaires:
+
+- Guide opérationnel & commandes Docker: voir `README.md`.
+- Guide détaillé (Windows/PowerShell, bonnes pratiques, dépannage): voir `AGENT_GUIDE.md`.
