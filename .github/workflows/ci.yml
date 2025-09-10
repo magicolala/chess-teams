@@ -315,14 +315,14 @@ jobs:
           docker compose -f compose.yaml -f compose.override.yaml run --rm --entrypoint sh
           -e APP_ENV=test
           -e DATABASE_URL=postgresql://app:!ChangeMe!@database:5432/chess_teams_test?serverVersion=16&charset=utf8
-          -lc "composer install --prefer-dist --no-progress --optimize-autoloader"
+          php -lc "composer install --prefer-dist --no-progress --optimize-autoloader"
 
       - name: 🗃️ Setup test database (migrate)
         run: >
           docker compose -f compose.yaml -f compose.override.yaml run --rm --entrypoint sh
           -e APP_ENV=test
           -e DATABASE_URL=postgresql://app:!ChangeMe!@database:5432/chess_teams_test?serverVersion=16&charset=utf8
-          -lc "php bin/console doctrine:database:create --if-not-exists --env=test && php bin/console doctrine:migrations:migrate -n --env=test"
+          php -lc "php bin/console doctrine:database:create --if-not-exists --env=test && php bin/console doctrine:migrations:migrate -n --env=test"
 
       - name: 🧪 Run tests inside container
         run: >
@@ -330,7 +330,7 @@ jobs:
           -e APP_ENV=test
           -e XDEBUG_MODE=coverage
           -e DATABASE_URL=postgresql://app:!ChangeMe!@database:5432/chess_teams_test?serverVersion=16&charset=utf8
-          -lc "./vendor/bin/phpunit --testsuite=unit,functional --coverage-clover=coverage.xml"
+          php -lc "./vendor/bin/phpunit --testsuite=unit,functional --coverage-clover=coverage.xml"
 
       - name: 📤 Upload coverage artifact (Full Docker)
         if: always()
