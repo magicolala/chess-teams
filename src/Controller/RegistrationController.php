@@ -4,8 +4,10 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Form\RegistrationFormType;
+use App\Service\PseudoGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -42,6 +44,14 @@ class RegistrationController extends AbstractController
 
         return $this->render('registration/register.html.twig', [
             'registrationForm' => $form,
+        ]);
+    }
+
+    #[Route('/random-pseudo', name: 'app_random_pseudo', methods: ['GET'])]
+    public function randomPseudo(PseudoGenerator $pseudoGenerator): JsonResponse
+    {
+        return new JsonResponse([
+            'pseudo' => $pseudoGenerator->getRandomPseudo(),
         ]);
     }
 }

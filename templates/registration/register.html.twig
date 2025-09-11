@@ -44,13 +44,19 @@
 								<label class="neo-label">
 									👤 Pseudo
 								</label>
-								{{ form_widget(registrationForm.displayName, {
-									'attr': {
-										'placeholder': 'ChessPlayer123',
-										'maxlength': 50,
-										'class': 'neo-input'
-									}
-								}) }}
+								<div data-controller="pseudo-generator">
+									{{ form_widget(registrationForm.displayName, {
+										'attr': {
+											'placeholder': 'ChessPlayer123',
+											'maxlength': 50,
+											'class': 'neo-input',
+											'id': 'username'
+										}
+									}) }}
+									<button type="button" class="neo-btn neo-btn-secondary neo-mt-sm" data-action="click->pseudo-generator#generate">
+										🎲 Générer un pseudo aléatoire
+									</button>
+								</div>
 								<div class="neo-form-help">
 									ℹ️ Ce nom sera affiché aux autres joueurs dans les parties.
 								</div>
