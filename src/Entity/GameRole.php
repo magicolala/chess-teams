@@ -5,6 +5,8 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
+#[ORM\Table(name: 'game_role')]
+#[ORM\UniqueConstraint(name: 'uniq_game_user_role', columns: ['game_id', 'user_id'])]
 class GameRole
 {
     #[ORM\Id]
