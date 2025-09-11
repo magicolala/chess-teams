@@ -4,6 +4,7 @@ namespace App\Tests\Unit\Application\UseCase;
 
 use App\Application\DTO\StartGameInput;
 use App\Application\UseCase\StartGameHandler;
+use App\Application\Service\Werewolf\WerewolfRoleAssigner;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Domain\Repository\TeamMemberRepositoryInterface;
 use App\Domain\Repository\TeamRepositoryInterface;
@@ -26,8 +27,9 @@ final class StartGameHandlerTest extends TestCase
         $teams = $this->createMock(TeamRepositoryInterface::class);
         $members = $this->createMock(TeamMemberRepositoryInterface::class);
         $em = $this->createMock(EntityManagerInterface::class);
+        $assigner = $this->createMock(WerewolfRoleAssigner::class);
 
-        $handler = new StartGameHandler($games, $teams, $members, $em);
+        $handler = new StartGameHandler($games, $teams, $members, $em, $assigner);
 
         $creator = new User();
         $creator->setEmail('creator@test.io');

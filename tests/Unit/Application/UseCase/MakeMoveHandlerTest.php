@@ -5,6 +5,7 @@ namespace App\Tests\Unit\Application\UseCase;
 use App\Application\DTO\MakeMoveInput;
 use App\Application\Port\ChessEngineInterface;
 use App\Application\Service\GameEndEvaluator;
+use App\Application\Service\Werewolf\WerewolfVoteService;
 use App\Application\UseCase\MakeMoveHandler;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Domain\Repository\MoveRepositoryInterface;
@@ -45,13 +46,14 @@ final class MakeMoveHandlerTest extends TestCase
         // Pas de mock (classe finale) : on prend l’implé réelle.
         // Sur notre scénario (e2e4 depuis startpos), l’évaluateur ne finira pas la partie.
         $end = new GameEndEvaluator();
+        $werewolf = $this->createMock(WerewolfVoteService::class);
 
         // ⚠️ Vérifie l'ordre des arguments selon TA classe :
         // MakeMoveHandler::__construct(
         //   GameRepositoryInterface, TeamRepositoryInterface, TeamMemberRepositoryInterface,
-        //   MoveRepositoryInterface, ChessEngineInterface, LockFactory, EntityManagerInterface, GameEndEvaluator
+        //   MoveRepositoryInterface, ChessEngineInterface, LockFactory, EntityManagerInterface, GameEndEvaluator, WerewolfVoteService
         // )
-        $handler = new MakeMoveHandler($games, $teams, $members, $moves, $engine, $lockFactory, $em, $end);
+        $handler = new MakeMoveHandler($games, $teams, $members, $moves, $engine, $lockFactory, $em, $end, $werewolf);
 
         $uA = new User();
         $uA->setEmail('a@test.io');

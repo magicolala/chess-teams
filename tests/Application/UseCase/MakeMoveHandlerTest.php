@@ -5,6 +5,7 @@ namespace App\Tests\Application\UseCase;
 use App\Application\DTO\MakeMoveInput;
 use App\Application\Port\ChessEngineInterface;
 use App\Application\Service\GameEndEvaluator;
+use App\Application\Service\Werewolf\WerewolfVoteService;
 use App\Application\UseCase\MakeMoveHandler;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Domain\Repository\MoveRepositoryInterface;
@@ -41,6 +42,7 @@ class MakeMoveHandlerTest extends TestCase
         $lockFactory = $this->createMock(LockFactory::class);
         $em = $this->createMock(EntityManagerInterface::class);
         $evaluator = new GameEndEvaluator(); // final class: use real instance
+        $werewolf = $this->createMock(WerewolfVoteService::class);
 
         // Game mock minimal
         $game = $this->createMock(Game::class);
@@ -73,7 +75,7 @@ class MakeMoveHandlerTest extends TestCase
         $lock->method('acquire')->willReturn(true);
         $lockFactory->method('createLock')->willReturn($lock);
 
-        $handler = new MakeMoveHandler($games, $teams, $members, $moves, $engine, $lockFactory, $em, $evaluator);
+        $handler = new MakeMoveHandler($games, $teams, $members, $moves, $engine, $lockFactory, $em, $evaluator, $werewolf);
 
         $this->expectException(UnprocessableEntityHttpException::class);
         $this->expectExceptionMessage('invalid_uci');
@@ -91,6 +93,7 @@ class MakeMoveHandlerTest extends TestCase
         $lockFactory = $this->createMock(LockFactory::class);
         $em = $this->createMock(EntityManagerInterface::class);
         $evaluator = new GameEndEvaluator(); // final class: use real instance
+        $werewolf = $this->createMock(WerewolfVoteService::class);
 
         // Game mock with state changes allowed
         $game = $this->createMock(Game::class);
@@ -148,7 +151,7 @@ class MakeMoveHandlerTest extends TestCase
                 return 'e2e4' === $m->getSan() && 'e2e4' === $m->getUci();
             }));
 
-        $handler = new MakeMoveHandler($games, $teams, $members, $moves, $engine, $lockFactory, $em, $evaluator);
+        $handler = new MakeMoveHandler($games, $teams, $members, $moves, $engine, $lockFactory, $em, $evaluator, $werewolf);
         $out = ($handler)(new MakeMoveInput('g1', 'e2e4', 'u1'), $byUser);
 
         $this->assertSame('g1', $out->gameId);
