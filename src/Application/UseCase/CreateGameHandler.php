@@ -30,6 +30,8 @@ class CreateGameHandler
             ->setCreatedBy($creator)
             ->setTurnDurationSec(max(10, $in->turnDurationSec))
             ->setVisibility($in->visibility)
+            ->setMode($in->mode)
+            ->setTwoWolvesEnabled($in->twoWolvesPerTeams)
             ->setFen('startpos')
             ->setPly(0)
             ->setTurnTeam(Game::TEAM_A)

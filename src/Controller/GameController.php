@@ -62,10 +62,15 @@ final class GameController extends AbstractController
         $user = $this->getUser();
 
         $payload = $r->toArray();
+        $mode = isset($payload['mode']) ? (string) $payload['mode'] : 'classic';
+        $twoWolves = isset($payload['twoWolvesPerTeams']) ? (bool) $payload['twoWolvesPerTeams'] : false;
+
         $in = new CreateGameInput(
             creatorUserId: $user->getId(),
             turnDurationSec: isset($payload['turnDurationSec']) ? (int) $payload['turnDurationSec'] : 60,
-            visibility: $payload['visibility'] ?? 'private'
+            visibility: $payload['visibility'] ?? 'private',
+            mode: $mode,
+            twoWolvesPerTeams: $twoWolves,
         );
 
         $out = ($this->createGame)($in, $user);
@@ -74,6 +79,8 @@ final class GameController extends AbstractController
             'gameId' => $out->gameId,
             'inviteCode' => $out->inviteCode,
             'turnDurationSec' => $out->turnDurationSec,
+            'mode' => $mode,
+            'twoWolvesPerTeams' => $twoWolves,
         ], 201);
     }
 

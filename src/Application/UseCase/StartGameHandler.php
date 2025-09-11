@@ -4,6 +4,7 @@ namespace App\Application\UseCase;
 
 use App\Application\DTO\StartGameInput;
 use App\Application\DTO\StartGameOutput;
+use App\Application\Service\Werewolf\WerewolfRoleAssigner;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Domain\Repository\TeamMemberRepositoryInterface;
 use App\Domain\Repository\TeamRepositoryInterface;
@@ -22,6 +23,7 @@ final class StartGameHandler
         private TeamRepositoryInterface $teams,
         private TeamMemberRepositoryInterface $members,
         private EntityManagerInterface $em,
+        private WerewolfRoleAssigner $werewolfAssigner,
     ) {
     }
 
@@ -70,6 +72,19 @@ final class StartGameHandler
             ->setFastModeDeadline(null)
             ->setUpdatedAt($now)
         ;
+
+        // Assign werewolf roles if mode is enabled and there are enough players (>=4)
+        if ('werewolf' === $game->getMode()) {
+            $activeA = $this->members->findActiveOrderedByTeam($teamA); // TeamMember[]
+            $activeB = $this->members->findActiveOrderedByTeam($teamB); // TeamMember[]
+
+            $usersA = array_map(static fn($m) => $m->getUser(), $activeA);
+            $usersB = array_map(static fn($m) => $m->getUser(), $activeB);
+
+            if (count($usersA) + count($usersB) >= 4) {
+                $this->werewolfAssigner->assignForGame($game, $usersA, $usersB);
+            }
+        }
 
         $this->em->flush();
 

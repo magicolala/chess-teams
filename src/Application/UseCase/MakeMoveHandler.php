@@ -6,6 +6,7 @@ use App\Application\DTO\MakeMoveInput;
 use App\Application\DTO\MakeMoveOutput;
 use App\Application\Port\ChessEngineInterface;
 use App\Application\Service\GameEndEvaluator;
+use App\Application\Service\Werewolf\WerewolfVoteService;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Domain\Repository\MoveRepositoryInterface;
 use App\Domain\Repository\TeamMemberRepositoryInterface;
@@ -33,6 +34,7 @@ final class MakeMoveHandler
         private LockFactory $lockFactory,
         private EntityManagerInterface $em,
         private GameEndEvaluator $endEvaluator,
+        private WerewolfVoteService $werewolfVote,
     ) {
     }
 
@@ -151,6 +153,10 @@ final class MakeMoveHandler
                 // Plus de deadline quand la partie est finie
                 $game->setTurnDeadline(null);
                 $game->setFastModeDeadline(null);
+                // Ouvrir le vote si mode werewolf
+                if ('werewolf' === $game->getMode()) {
+                    $this->werewolfVote->openVote($game);
+                }
             } else {
                 // -> ici, on évalue la fin (nulle 50 coups, etc.)
                 $end = $this->endEvaluator->evaluateAndApply($game);
@@ -158,6 +164,10 @@ final class MakeMoveHandler
                     // si fini, plus de deadline
                     $game->setTurnDeadline(null);
                     $game->setFastModeDeadline(null);
+                    // Ouvrir le vote si mode werewolf
+                    if ('werewolf' === $game->getMode()) {
+                        $this->werewolfVote->openVote($game);
+                    }
                 }
             }
 
