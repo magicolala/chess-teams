@@ -19,6 +19,23 @@ export default class extends Controller {
     this.startPolling();
   }
 
+  async close() {
+    try {
+      this.statusTarget.textContent = 'Clôture du vote…';
+      const res = await fetch(`${this.apiBaseValue}/games/${this.gameIdValue}/votes/close`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'close_failed');
+      this.statusTarget.textContent = 'Vote clôturé';
+      await this.refresh();
+    } catch (e) {
+      this.statusTarget.textContent = `Erreur: ${e.message}`;
+    }
+  }
+
   disconnect() {
     this.stopPolling();
   }

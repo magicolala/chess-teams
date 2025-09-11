@@ -152,4 +152,14 @@
 			</div>
 		</div>
 	</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const werewolf = document.getElementById('werewolfMode');
+  const group = document.getElementById('twoWolvesGroup');
+  if (!werewolf || !group) return;
+  const refresh = () => { group.style.display = werewolf.checked ? '' : 'none'; };
+  werewolf.addEventListener('change', refresh);
+  refresh();
+});
+</script>
 {% endblock %}
