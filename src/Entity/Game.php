@@ -43,6 +43,14 @@ class Game
     #[ORM\Column(length: 16)]
     private string $visibility = 'private';
 
+    // Mode de jeu (classic | werewolf)
+    #[ORM\Column(length: 16, options: ['default' => 'classic'])]
+    private string $mode = 'classic';
+
+    // Option werewolf: 1 loup par équipe (si >= 6 joueurs)
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $twoWolvesEnabled = false;
+
     // état
     #[ORM\Column(type: 'text')]
     private string $fen = 'startpos';
@@ -55,6 +63,13 @@ class Game
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $turnDeadline = null;
+
+    // Phase de vote (werewolf)
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $voteOpen = false;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $voteStartedAt = null;
 
     // Gestion du mode rapide (chrono de 1 minute)
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
@@ -168,6 +183,30 @@ class Game
         return $this;
     }
 
+    public function getMode(): string
+    {
+        return $this->mode;
+    }
+
+    public function setMode(string $mode): self
+    {
+        $this->mode = $mode;
+
+        return $this;
+    }
+
+    public function isTwoWolvesEnabled(): bool
+    {
+        return $this->twoWolvesEnabled;
+    }
+
+    public function setTwoWolvesEnabled(bool $enabled): self
+    {
+        $this->twoWolvesEnabled = $enabled;
+
+        return $this;
+    }
+
     public function getFen(): string
     {
         return $this->fen;
@@ -212,6 +251,30 @@ class Game
     public function setTurnDeadline(?\DateTimeImmutable $d): self
     {
         $this->turnDeadline = $d;
+
+        return $this;
+    }
+
+    public function isVoteOpen(): bool
+    {
+        return $this->voteOpen;
+    }
+
+    public function setVoteOpen(bool $open): self
+    {
+        $this->voteOpen = $open;
+
+        return $this;
+    }
+
+    public function getVoteStartedAt(): ?\DateTimeImmutable
+    {
+        return $this->voteStartedAt;
+    }
+
+    public function setVoteStartedAt(?\DateTimeImmutable $at): self
+    {
+        $this->voteStartedAt = $at;
 
         return $this;
     }
