@@ -46,7 +46,18 @@ final class GameWebController extends AbstractController
         $turn = max(10, min(600, (int) $request->request->get('turnDuration', 60)));
         $vis = $request->request->get('visibility', 'private');
 
-        $out = ($this->createGame)(new CreateGameInput($user->getId() ?? '', $turn, $vis), $user);
+        // Werewolf options from form
+        $werewolfModeEnabled = (bool) $request->request->get('werewolfMode');
+        $twoWolvesPerTeams = (bool) $request->request->get('twoWolvesPerTeams');
+        $mode = $werewolfModeEnabled ? 'werewolf' : 'classic';
+
+        $out = ($this->createGame)(new CreateGameInput(
+            creatorUserId: $user->getId() ?? '',
+            turnDurationSec: $turn,
+            visibility: $vis,
+            mode: $mode,
+            twoWolvesPerTeams: $twoWolvesPerTeams,
+        ), $user);
 
         return $this->redirectToRoute('app_game_show_page', ['id' => $out->gameId]);
     }

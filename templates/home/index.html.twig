@@ -46,6 +46,29 @@
 							</select>
 						</div>
 
+						<div class="neo-form-group">
+							<label class="neo-label">🧩 Mode de jeu</label>
+							<div class="neo-flex neo-items-center neo-gap-sm">
+								<label class="neo-toggle">
+									<input type="checkbox" id="werewolfMode" name="werewolfMode">
+									<span class="neo-toggle-slider"></span>
+								</label>
+								<span class="neo-text-sm">Activer le mode Loup-Garou</span>
+							</div>
+							<div class="neo-form-help">Si activé, les rôles seront assignés au démarrage de la partie.</div>
+						</div>
+
+						<div class="neo-form-group" id="twoWolvesGroup" style="display:none;">
+							<div class="neo-flex neo-items-center neo-gap-sm">
+								<label class="neo-toggle">
+									<input type="checkbox" id="twoWolvesPerTeams" name="twoWolvesPerTeams">
+									<span class="neo-toggle-slider"></span>
+								</label>
+								<span class="neo-text-sm">Un loup par équipe</span>
+							</div>
+							<div class="neo-form-help">Recommandé pour ≥ 6 joueurs (équilibrage).</div>
+						</div>
+
 						<button type="submit" class="neo-btn neo-btn-primary neo-btn-full neo-animate-pulse">
 							🚀 Créer ma partie
 						</button>
