@@ -818,6 +818,7 @@
 									<h4 class="neo-text-sm neo-text-secondary neo-mb-sm">Résultats en direct</h4>
 									<div data-werewolf-vote-target="results"></div>
 									<div class="neo-text-xs neo-text-muted neo-mt-sm" data-werewolf-vote-target="status"></div>
+									<div class="neo-mt-sm" data-werewolf-vote-target="flash"></div>
 									{% if isCreator or is_granted('ROLE_ADMIN') %}
 										<div class="neo-flex neo-justify-end neo-mt-sm">
 											<button class="neo-btn neo-btn-warning" data-action="werewolf-vote#close">

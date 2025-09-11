@@ -6,6 +6,8 @@ export default class extends Controller {
     'container',
     'results',
     'status',
+    'flash',
+    'summary',
   ];
 
   static values = {
@@ -30,9 +32,11 @@ export default class extends Controller {
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'close_failed');
       this.statusTarget.textContent = 'Vote clôturé';
+      this.showFlash('success', '✅ Le vote a été clôturé.');
       await this.refresh();
     } catch (e) {
       this.statusTarget.textContent = `Erreur: ${e.message}`;
+      this.showFlash('error', `❌ Impossible de clôturer le vote (${e.message}).`);
     }
   }
 
@@ -88,6 +92,7 @@ export default class extends Controller {
       if (!data.voteOpen) {
         this.statusTarget.textContent = 'Vote clôturé';
         this.stopPolling();
+        this.renderSummary(data.results || {});
       }
     } catch (e) {
       // Silencieux pour éviter le spam d'erreurs transitoires
@@ -108,5 +113,41 @@ export default class extends Controller {
       })
       .join('');
     this.resultsTarget.innerHTML = list;
+  }
+
+  renderSummary(map) {
+    if (!this.hasSummaryTarget) return;
+    const entries = Object.entries(map);
+    const total = entries.reduce((acc, [, c]) => acc + (Number(c) || 0), 0);
+    if (total === 0) {
+      this.summaryTarget.innerHTML = '<div class="neo-text-sm neo-text-secondary neo-mt-sm">Aucun vote exprimé.</div>';
+      return;
+    }
+    let top = 0;
+    let leaders = [];
+    for (const [sid, cnt] of entries) {
+      const n = Number(cnt) || 0;
+      if (n > top) { top = n; leaders = [sid]; }
+      else if (n === top) { leaders.push(sid); }
+    }
+    const names = leaders.map((sid) => {
+      const el = this.element.querySelector(`[data-suspect-id="${sid}"]`);
+      return el?.dataset?.suspectName || sid;
+    });
+    const hasMajority = leaders.length === 1 && top > total / 2;
+    const text = hasMajority
+      ? `Majorité: ${names[0]} (${top}/${total})`
+      : `Pas de majorité (meilleur score: ${names.join(', ')} à ${top}/${total})`;
+    this.summaryTarget.innerHTML = `<div class="neo-alert neo-alert-secondary neo-mt-sm">${text}</div>`;
+  }
+
+  showFlash(type, message) {
+    if (!this.hasFlashTarget) return;
+    const cls = type === 'success' ? 'neo-alert neo-alert-success' : 'neo-alert neo-alert-error';
+    this.flashTarget.innerHTML = `<div class="${cls}"><span>${message}</span></div>`;
+    clearTimeout(this._flashTimer);
+    this._flashTimer = setTimeout(() => {
+      if (this.hasFlashTarget) this.flashTarget.innerHTML = '';
+    }, 4000);
   }
 }
