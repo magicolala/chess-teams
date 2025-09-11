@@ -71,7 +71,7 @@ final class GameWebController extends AbstractController
 
     // Affichage page partie
     #[Route('/{id}', name: 'show_page', methods: ['GET'])]
-    public function showPage(Request $request, ?string $id = null): Response
+    public function showPage(Request $request, ?string $id = null, EntityManagerInterface $em = null): Response
     {
         // Si on vient via ?code=XXXX, on retrouve la partie par code
         if (!$id && $request->query->get('code')) {
@@ -117,6 +117,16 @@ final class GameWebController extends AbstractController
         $allReady = $this->members->areAllActivePlayersReady($game);
         $canStart = $allReady && \App\Entity\Game::STATUS_LOBBY === $game->getStatus();
 
+        // Werewolf: récupérer le rôle personnel (si mode actif et participant)
+        $myRole = null;
+        if ('werewolf' === $game->getMode() && $userMembership && $em) {
+            $role = $em->getRepository(\App\Entity\GameRole::class)->findOneBy([
+                'game' => $game,
+                'user' => $this->getUser(),
+            ]);
+            $myRole = $role?->getRole();
+        }
+
         return $this->render('game/show.html.twig', [
             'game' => $game,
             'teamA' => $teamA,
@@ -127,6 +137,7 @@ final class GameWebController extends AbstractController
             'allReady' => $allReady,
             'canStart' => $canStart,
             'isCreator' => $this->getUser() && $game->getCreatedBy() === $this->getUser(),
+            'myRole' => $myRole,
             // Données utiles pour JS :
             'initial' => [
                 'gameId' => $game->getId(),
@@ -135,6 +146,7 @@ final class GameWebController extends AbstractController
                 'turnDeadline' => $game->getTurnDeadline()?->getTimestamp() * 1000,
                 'status' => $game->getStatus(),
                 'result' => $game->getResult(),
+                'mode' => $game->getMode(),
             ],
         ]);
     }

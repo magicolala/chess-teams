@@ -400,6 +400,25 @@
 							<span class="neo-text-sm neo-font-medium">Tour actuel:</span>
 							<span class="neo-badge neo-badge-primary" data-game-board-target="turnTeam">{{ initial.turnTeam }}</span>
 						</div>
+						{# Werewolf mode badge and personal role reminder #}
+						{% if initial.mode == 'werewolf' %}
+							<div class="neo-flex neo-justify-between neo-items-center neo-mb-sm neo-p-sm neo-bg-secondary neo-rounded">
+								<span class="neo-text-sm neo-font-medium">Mode:</span>
+								<span class="neo-badge neo-badge-warning">Loup-Garou</span>
+							</div>
+							{% if myRole %}
+								<div class="neo-flex neo-justify-between neo-items-center neo-mb-sm neo-p-sm neo-bg-info neo-rounded">
+									<span class="neo-text-sm neo-font-medium">Votre rôle:</span>
+									<span class="neo-text-sm">{{ myRole == 'werewolf' ? 'Loup-Garou' : 'Villageois' }}</span>
+								</div>
+							{% endif %}
+							{% if game.voteOpen %}
+								<div class="neo-alert neo-alert-info neo-mt-sm">
+									<i class="material-icons" style="margin-right: 0.5rem;">how_to_vote</i>
+									<span>Phase de vote Loup-Garou en cours. Choisissez le suspect depuis l'interface dédiée (à venir) ou via l'API.</span>
+								</div>
+							{% endif %}
+						{% endif %}
 						{% if currentPlayer and game.status == 'live' %}
 							<div class="neo-flex neo-justify-between neo-items-center neo-mb-sm neo-p-sm neo-bg-info neo-rounded">
 								<span class="neo-text-sm neo-font-medium">Joueur actuel:</span>
@@ -763,6 +782,43 @@
 							<div class="neo-alert neo-alert-warning neo-mt-lg">
 								<i class="material-icons" style="margin-right: 0.5rem;">hourglass_empty</i>
 								<span>En attente que le créateur démarre la partie</span>
+							</div>
+						{% endif %}
+
+						{# Werewolf voting UI (visible aux participants pendant la phase de vote) #}
+						{% if initial.mode == 'werewolf' and userMembership and game.voteOpen %}
+							<div class="neo-card neo-mt-lg" data-controller="werewolf-vote"
+								data-werewolf-vote-game-id-value="{{ game.id }}"
+								data-werewolf-vote-api-base-value="">
+								<div class="neo-card-header">
+									<h3 class="neo-card-title">
+										<i class="material-icons" style="margin-right: 0.5rem;">how_to_vote</i>
+										Vote Loup-Garou
+									</h3>
+								</div>
+								<div class="neo-card-content" data-werewolf-vote-target="container">
+									<div class="neo-text-sm neo-text-muted neo-mb-sm">Choisissez un suspect:</div>
+									<div class="neo-flex neo-flex-col neo-gap-sm">
+										{# Liste des joueurs des deux équipes #}
+										{% for member in teamA.members %}
+											<button class="neo-btn neo-btn-secondary neo-btn-full" data-action="werewolf-vote#vote" data-suspect-id="{{ member.user.id }}" data-suspect-name="{{ member.user.displayName ?? ('Joueur ' ~ member.user.id) }}">
+												{{ member.user.displayName ?? ('Joueur ' ~ member.user.id) }}
+												<span class="neo-badge" style="margin-left:auto">Équipe A</span>
+											</button>
+										{% endfor %}
+										{% for member in teamB.members %}
+											<button class="neo-btn neo-btn-secondary neo-btn-full" data-action="werewolf-vote#vote" data-suspect-id="{{ member.user.id }}" data-suspect-name="{{ member.user.displayName ?? ('Joueur ' ~ member.user.id) }}">
+												{{ member.user.displayName ?? ('Joueur ' ~ member.user.id) }}
+												<span class="neo-badge" style="margin-left:auto">Équipe B</span>
+											</button>
+										{% endfor %}
+									</div>
+
+									<div class="neo-divider neo-my-md"></div>
+									<h4 class="neo-text-sm neo-text-secondary neo-mb-sm">Résultats en direct</h4>
+									<div data-werewolf-vote-target="results"></div>
+									<div class="neo-text-xs neo-text-muted neo-mt-sm" data-werewolf-vote-target="status"></div>
+								</div>
 							</div>
 						{% endif %}
 

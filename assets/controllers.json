@@ -5,6 +5,12 @@
                 "enabled": true,
                 "fetch": "eager"
             }
+        },
+        "app": {
+            "werewolf-vote": {
+                "enabled": true,
+                "fetch": "eager"
+            }
         }
     },
     "entrypoints": []

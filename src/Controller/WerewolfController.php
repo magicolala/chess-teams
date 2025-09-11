@@ -131,10 +131,19 @@ final class WerewolfController extends AbstractController
     public function votesClose(string $id): JsonResponse
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        /** @var User $user */
+        $user = $this->getUser();
 
         $game = $this->em->getRepository(Game::class)->find($id);
         if (!$game) {
             return $this->json(['error' => 'game_not_found'], 404);
+        }
+
+        // Only creator or admin can close vote
+        $isCreator = $game->getCreatedBy()?->getId() === $user->getId();
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
+        if (!$isCreator && !$isAdmin) {
+            return $this->json(['error' => 'forbidden'], 403);
         }
 
         $this->voteService->closeVote($game);
