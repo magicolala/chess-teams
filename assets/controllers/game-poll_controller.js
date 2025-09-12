@@ -15,8 +15,6 @@ export default class extends Controller {
         this.element.addEventListener('game-board:drag-end', () => {
             console.debug('[game-poll] Drag ended, polling resumed')
             this.isDragging = false
-            // Rafraîchir immédiatement après le drop pour synchroniser
-            this.refresh()
         })
 
         // Initialiser les notifications

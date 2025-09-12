@@ -541,8 +541,8 @@ class SimpleNeoChessBoard {
     const piece = this.state.board[sqToFR(square).r][sqToFR(square).f];
     if (!piece) return;
 
-    // Dispatch event to pause auto-refresh
-    this.dispatch('drag-start', { bubbles: true, cancelable: false })
+    // Emit event to pause auto-refresh
+    this.emit('drag-start')
     
     this.selected = square;
     this.dragging = { from: square, piece: piece, x: pos.x, y: pos.y };
@@ -564,8 +564,8 @@ class SimpleNeoChessBoard {
   onPointerUp(e) {
     if (!this.dragging) return;
 
-    // Dispatch event to resume auto-refresh
-    this.dispatch('drag-end', { bubbles: true, cancelable: false })
+    // Emit event to resume auto-refresh
+    this.emit('drag-end')
     
     const pos = this.getEventPos(e);
     const toSquare = this.xyToSquare(pos.x, pos.y);
@@ -713,6 +713,10 @@ export default class extends Controller {
                 console.debug('[game-board] Neo Chess Board illegal move', { from, to, reason })
                 this.printDebug(`❌ Coup illégal: ${from}-${to} (${reason})`)
             })
+
+            // Dispatch drag events for other controllers to listen to
+            this.board.on('drag-start', () => this.dispatch('drag-start'))
+            this.board.on('drag-end', () => this.dispatch('drag-end'))
 
             console.debug('[game-board] Neo Chess Board prêt', this.board)
             this.printDebug('✅ Neo Chess Board initialisé (inline)')

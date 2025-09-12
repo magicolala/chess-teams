@@ -17,8 +17,6 @@ export default class extends Controller {
         this.element.addEventListener('game-board:drag-end', () => {
             console.debug('[mercure] Drag ended, resuming updates')
             this.isDragging = false
-            // Refresh state immediately after drop
-            this.refreshState()
         })
 
         if (!window.EventSource) {
