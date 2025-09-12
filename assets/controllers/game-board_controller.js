@@ -540,6 +540,9 @@ class SimpleNeoChessBoard {
     
     const piece = this.state.board[sqToFR(square).r][sqToFR(square).f];
     if (!piece) return;
+
+    // Dispatch event to pause auto-refresh
+    this.dispatch('drag-start', { bubbles: true, cancelable: false })
     
     this.selected = square;
     this.dragging = { from: square, piece: piece, x: pos.x, y: pos.y };
@@ -560,6 +563,9 @@ class SimpleNeoChessBoard {
 
   onPointerUp(e) {
     if (!this.dragging) return;
+
+    // Dispatch event to resume auto-refresh
+    this.dispatch('drag-end', { bubbles: true, cancelable: false })
     
     const pos = this.getEventPos(e);
     const toSquare = this.xyToSquare(pos.x, pos.y);
@@ -877,8 +883,10 @@ export default class extends Controller {
         this.board.setPosition(previewFen, true)
         this._showPendingControls(uci)
         this.printDebug(`📝 Coup en attente de validation: ${uci}`)
-        // Tant que l'utilisateur n'a pas validé/annulé, empêcher de jouer un autre coup
-        this.board.setInteractive(false)
+        
+        // Ne pas désactiver l'interaction ici pour permettre à l'utilisateur de voir le coup
+        // et de décider de valider ou d'annuler
+        // La validation/annulation sera gérée par les boutons de contrôle
     }
 
     async offerMove(e) {
@@ -898,36 +906,82 @@ export default class extends Controller {
             console.debug('[game-board] sendMove ignoré (soumission déjà en cours)')
             return false
         }
+        
         this._submittingMove = true
         this._setPendingDisabled(true)
         // Empêcher toute interaction pendant l'envoi au serveur
         this.board.setInteractive(false)
+        
         try {
+            // Sauvegarder l'état actuel pour restauration en cas d'échec
+            const previousFen = this.chessJs.fen()
+            
+            // 1. Mettre à jour l'état local immédiatement pour un retour visuel rapide
+            try {
+                // Appliquer le coup localement
+                const move = this.chessJs.move({
+                    from: uci.substring(0, 2),
+                    to: uci.substring(2, 4),
+                    promotion: uci.length > 4 ? uci.substring(4, 5) : undefined
+                });
+                
+                if (!move) {
+                    throw new Error('Coup invalide')
+                }
+                
+                // Mettre à jour l'affichage avec le nouvel état
+                this.board.setPosition(this.chessJs.fen(), true)
+            } catch (e) {
+                console.warn('Erreur lors de la mise à jour locale:', e)
+                // On continue quand même avec l'envoi au serveur
+            }
+            
+            // 2. Envoyer le coup au serveur
             const ok = await this.apiPost(`/games/${this.gameIdValue}/move`, { uci })
             if (!ok) { 
+                // En cas d'échec, restaurer l'état précédent
+                this.chessJs.load(previousFen)
+                this.board.setPosition(previousFen, true)
                 this.printDebug('❌ Move refusé par le serveur')
                 return false
             }
             
-            const g = await this.fetchGame()
-            console.debug('[game-board] state after move', g)
-            
-            this.fenValue = g.fen
-            this.turnTeamValue = g.turnTeam
-            this.deadlineTsValue = g.turnDeadline || 0
-            this.statusValue = g.status
-            
-            this.chessJs.load(g.fen === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : g.fen)
-            
-            this.board.setPosition(g.fen === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : g.fen)
-            
-            await this.reloadMoves()
-            this.printDebug('✅ Move OK, FEN mise à jour')
-            return true
+            // 3. Mettre à jour l'état avec la réponse du serveur
+            try {
+                const g = await this.fetchGame()
+                console.debug('[game-board] state after move', g)
+                
+                // Mettre à jour les propriétés du contrôleur
+                this.fenValue = g.fen
+                this.turnTeamValue = g.turnTeam
+                this.deadlineTsValue = g.turnDeadline || 0
+                this.statusValue = g.status
+                
+                // Mettre à jour chess.js et l'affichage
+                const newFen = g.fen === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : g.fen
+                this.chessJs.load(newFen)
+                this.board.setPosition(newFen, true)
+                
+                // Rafraîchir la liste des coups
+                await this.reloadMoves()
+                this.printDebug('✅ Move OK, FEN mise à jour')
+                
+                return true
+            } catch (e) {
+                console.error('Erreur lors de la mise à jour après le coup:', e)
+                this.printDebug('⚠️ Erreur lors de la mise à jour après le coup')
+                return false
+            }
+        } catch (error) {
+            console.error('Erreur dans sendMove:', error)
+            this.printDebug('❌ Erreur lors de l\'envoi du coup')
+            return false
         } finally {
-            // Réactiver en cas d'échec; en cas de succès, les contrôles sont masqués plus loin
             this._submittingMove = false
             this._setPendingDisabled(false)
+            
+            // Ne pas réactiver l'interaction ici - elle sera gérée par le polling
+            // ou par la méthode qui a appelé sendMove
             // Si l'envoi a échoué, on pourra réactiver l'interaction plus tard (dans confirmPending on le gère)
         }
     }
@@ -1056,62 +1110,103 @@ export default class extends Controller {
         if (!this._pending) return
         const { uci } = this._pending
         this.printDebug(`✅ Validation du coup: ${uci}`)
+        
+        // Désactiver l'interaction pendant l'envoi
+        this.board.setInteractive(false)
+        this._setPendingDisabled(true)
+        
         // Afficher un loader pendant la validation côté serveur
         this._showStatusOverlay('Validation du coup…', 'autorenew', true)
-        const ok = await this.sendMove(uci)
-        if (!ok) {
-            // Revenir à l'état précédent si le serveur refuse
-            this.chessJs.load(this._pending.prevGameFen)
-            this.board.setPosition(this._pending.prevBoardFen, true)
-            this.printDebug('↩️ Retour à la position précédente (move refusé)')
-            // Retirer le loader et réactiver si c'est toujours mon tour et prêt
-            this._hideStatusOverlay()
+        
+        try {
+            const ok = await this.sendMove(uci)
+            if (!ok) {
+                // Revenir à l'état précédent si le serveur refuse
+                this.chessJs.load(this._pending.prevGameFen)
+                this.board.setPosition(this._pending.prevBoardFen, true)
+                this.printDebug('↩️ Retour à la position précédente (move refusé)')
+                // Réactiver l'interaction
+                const canInteract = this.statusValue === 'live' && this.isCurrentPlayerTurn() && this.isTurnReady()
+                if (canInteract) {
+                    this.board.setInteractive(true)
+                }
+            } else {
+                // Coup accepté par le serveur
+                this._hidePendingControls()
+                // On garde l'interaction désactivée en attendant le tour suivant
+                this.board.setInteractive(false)
+                // Mettre à jour le message pour indiquer l'attente de l'adversaire
+                this._showStatusOverlay(`En attente de l'adversaire…`, 'hourglass_empty', true)
+                this.printDebug('✅ Coup envoyé. En attente de l\'adversaire…')
+            }
+        } catch (error) {
+            console.error('Erreur lors de la confirmation du coup:', error)
+            this.printDebug('❌ Erreur lors de l\'envoi du coup')
+            // En cas d'erreur, on réactive l'interaction
             const canInteract = this.statusValue === 'live' && this.isCurrentPlayerTurn() && this.isTurnReady()
-            this.board.setInteractive(!!canInteract)
-        } else {
-            // Garder un overlay d'attente côté client jusqu'à la MAJ serveur
-            this._hidePendingControls()
+            if (canInteract) {
+                this.board.setInteractive(true)
+            }
+        } finally {
             this._pending = null
-            // Désactiver l'interaction immédiatement côté client
-            this.board.setInteractive(false)
-            // Mettre à jour le message pour indiquer l'attente de l'adversaire
-            this._showStatusOverlay(`En attente de l'adversaire…`, 'hourglass_empty', true)
-            // Masquer le canvas en attendant pour éviter toute confusion visuelle
-            const boardEl = this.element.querySelector('#board')
-            const canvas = boardEl?.querySelector('canvas')
-            if (canvas) canvas.style.visibility = 'hidden'
-            this.printDebug('✅ Coup envoyé. En attente de l\'adversaire…')
+            this._hideStatusOverlay()
+            this._hidePendingControls()
         }
-        this._pending = null
-        this._hidePendingControls()
     }
 
     cancelPending() {
         if (!this._pending) return
         this.printDebug(`⛔ Annulation du coup: ${this._pending.uci}`)
-        // Restaurer les positions d'origine
-        this.chessJs.load(this._pending.prevGameFen)
-        this.board.setPosition(this._pending.prevBoardFen, true)
-        this._pending = null
-        this._hidePendingControls()
-        // Redonner la main pour permettre de rejouer un autre coup
-        // Uniquement si c'est toujours mon tour et que je suis prêt
-        const canInteract = this.statusValue === 'live' && this.isCurrentPlayerTurn() && this.isTurnReady()
-        this.board.setInteractive(!!canInteract)
+        
+        // Désactiver l'interaction pendant la restauration
+        this.board.setInteractive(false)
+        this._setPendingDisabled(true)
+        
+        try {
+            // Restaurer les positions d'origine
+            this.chessJs.load(this._pending.prevGameFen)
+            this.board.setPosition(this._pending.prevBoardFen, true)
+            
+            // Réactiver l'interaction uniquement si c'est toujours le tour du joueur
+            const canInteract = this.statusValue === 'live' && this.isCurrentPlayerTurn() && this.isTurnReady()
+            if (canInteract) {
+                // Petit délai pour éviter les interactions non désirées
+                setTimeout(() => {
+                    this.board.setInteractive(true)
+                }, 100)
+            }
+        } catch (error) {
+            console.error('Erreur lors de l\'annulation du coup:', error)
+            this.printDebug('❌ Erreur lors de l\'annulation du coup')
+        } finally {
+            this._pending = null
+            this._hidePendingControls()
+            this._hideStatusOverlay()
+        }
     }
 
     // ----- Réactions aux événements du polling -----
     onPollFenUpdated(event) {
         const fen = event?.detail?.fen
         if (!fen) return
-        // Mettre à jour sources: chess.js + canvas
-        this.chessJs.load(fen === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : fen)
-        this.board.setPosition(fen === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : fen)
-        // Invalider un éventuel coup en attente si le board change côté serveur
+        
+        // Ne pas mettre à jour si on a un coup en attente de validation
         if (this._pending) {
-            this._pending = null
-            this._hidePendingControls()
-            this.printDebug('ℹ️ Coup en attente annulé (état serveur mis à jour)')
+            this.printDebug('ℹ️ Mise à jour FEN ignorée (coup en attente de validation)')
+            return
+        }
+        
+        // Mettre à jour les sources: chess.js + canvas
+        const normalizedFen = fen === 'startpos' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' : fen
+        
+        try {
+            // Mettre à jour chess.js
+            this.chessJs.load(normalizedFen)
+            // Mettre à jour l'affichage
+            this.board.setPosition(normalizedFen, true)
+        } catch (e) {
+            console.error('Erreur lors de la mise à jour de la position:', e)
+            this.printDebug('❌ Erreur de mise à jour de la position')
         }
     }
 

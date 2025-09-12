@@ -8,6 +8,19 @@ export default class extends Controller {
     static values = { url: String, gameId: String }
 
     connect() {
+        // Flag to prevent updates during drag-and-drop
+        this.isDragging = false
+        this.element.addEventListener('game-board:drag-start', () => {
+            console.debug('[mercure] Drag detected, updates paused')
+            this.isDragging = true
+        })
+        this.element.addEventListener('game-board:drag-end', () => {
+            console.debug('[mercure] Drag ended, resuming updates')
+            this.isDragging = false
+            // Refresh state immediately after drop
+            this.refreshState()
+        })
+
         if (!window.EventSource) {
             console.warn('[mercure] EventSource non supporté par ce navigateur')
             return
@@ -27,6 +40,12 @@ export default class extends Controller {
             }
 
             this.es.onmessage = (event) => {
+                // Do not process update if a piece is being dragged
+                if (this.isDragging) {
+                    console.debug('[mercure] Update ignored (drag in progress)')
+                    return
+                }
+
                 let data = null
                 try {
                     data = JSON.parse(event.data || '{}')

@@ -7,6 +7,18 @@ export default class extends Controller {
     connect() {
         console.log('🔄 Auto-refresh activé pour la partie', this.gameIdValue)
 
+        this.isDragging = false
+        this.element.addEventListener('game-board:drag-start', () => {
+            console.debug('[game-poll] Drag detected, polling paused')
+            this.isDragging = true
+        })
+        this.element.addEventListener('game-board:drag-end', () => {
+            console.debug('[game-poll] Drag ended, polling resumed')
+            this.isDragging = false
+            // Rafraîchir immédiatement après le drop pour synchroniser
+            this.refresh()
+        })
+
         // Initialiser les notifications
         this.initNotifications()
 
@@ -42,6 +54,16 @@ export default class extends Controller {
     }
 
     // --- Notifications & détection de tour ---
+    getNotificationPreferences() {
+        try {
+            const prefs = localStorage.getItem('notificationPrefs')
+            return prefs ? JSON.parse(prefs) : { desktop: false, sound: true, flash: true }
+        } catch (e) {
+            console.warn('Could not load notification preferences:', e)
+            return { desktop: false, sound: true, flash: true }
+        }
+    }
+
     initNotifications() {
         // Préférences locales (desktop/sound/flash)
         try {
@@ -101,6 +123,11 @@ export default class extends Controller {
     }
 
     async refresh() {
+        // Ne pas actualiser si un glisser-déposer est en cours
+        if (this.isDragging) {
+            return
+        }
+
         try {
             // 1) Appel léger pour détecter les changements
             const lightRes = await fetch(`/games/${this.gameIdValue}`, { headers: { 'Accept': 'application/json' } })
