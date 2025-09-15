@@ -54,7 +54,7 @@ final class WerewolfController extends AbstractController
     }
 
     /**
-     * POST /games/{id}/votes { suspectUserId }
+     * POST /games/{id}/votes { suspectUserId }.
      */
     #[Route('/{id}/votes', name: 'vote', methods: ['POST'])]
     public function vote(string $id, Request $r): JsonResponse
@@ -103,7 +103,7 @@ final class WerewolfController extends AbstractController
     }
 
     /**
-     * GET /games/{id}/votes - live tally
+     * GET /games/{id}/votes - live tally.
      */
     #[Route('/{id}/votes', name: 'votes', methods: ['GET'])]
     public function votes(string $id): JsonResponse
@@ -125,7 +125,7 @@ final class WerewolfController extends AbstractController
     }
 
     /**
-     * POST /games/{id}/votes/close - close voting (admin or game creator in future)
+     * POST /games/{id}/votes/close - close voting (admin or game creator in future).
      */
     #[Route('/{id}/votes/close', name: 'votes_close', methods: ['POST'])]
     public function votesClose(string $id): JsonResponse

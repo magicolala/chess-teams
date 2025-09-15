@@ -37,9 +37,28 @@ class GameWerewolfVote
         $this->createdAt = new \DateTimeImmutable();
     }
 
-    public function getId(): string { return $this->id; }
-    public function getGame(): Game { return $this->game; }
-    public function getVoter(): User { return $this->voter; }
-    public function getSuspect(): User { return $this->suspect; }
-    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    public function getGame(): Game
+    {
+        return $this->game;
+    }
+
+    public function getVoter(): User
+    {
+        return $this->voter;
+    }
+
+    public function getSuspect(): User
+    {
+        return $this->suspect;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
 }

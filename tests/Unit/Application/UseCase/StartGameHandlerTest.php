@@ -3,8 +3,8 @@
 namespace App\Tests\Unit\Application\UseCase;
 
 use App\Application\DTO\StartGameInput;
-use App\Application\UseCase\StartGameHandler;
 use App\Application\Service\Werewolf\WerewolfRoleAssigner;
+use App\Application\UseCase\StartGameHandler;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Domain\Repository\TeamMemberRepositoryInterface;
 use App\Domain\Repository\TeamRepositoryInterface;

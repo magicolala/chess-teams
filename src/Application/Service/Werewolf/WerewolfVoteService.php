@@ -50,7 +50,7 @@ class WerewolfVoteService
     }
 
     /**
-     * Return an array of [suspectUserId => count]
+     * Return an array of [suspectUserId => count].
      */
     public function getLiveResults(Game $game): array
     {
@@ -90,7 +90,7 @@ class WerewolfVoteService
                 $majoritySuspectId = null; // tie
             }
         }
-        $hasMajority = ($majoritySuspectId !== null) && ($top > ($totalVotes / 2));
+        $hasMajority = (null !== $majoritySuspectId) && ($top > ($totalVotes / 2));
 
         // Map roles to identify werewolves and their teams
         $roleRepo = $this->em->getRepository(GameRole::class);
@@ -113,7 +113,7 @@ class WerewolfVoteService
 
         if ($hasMajority) {
             // reward voters who picked the suspect if that suspect is a werewolf
-            $isWerewolf = isset($roleByUser[$majoritySuspectId]) && 'werewolf' === ($roleByUser[$majoritySuspectId]['role'] ?? null);
+            $isWerewolf = isset($roleByUser[$majoritySuspectId]) && 'werewolf' === $roleByUser[$majoritySuspectId]['role'];
             if ($isWerewolf) {
                 foreach ($votes as $v) {
                     if ($v->getSuspect()->getId() === $majoritySuspectId) {
@@ -161,7 +161,7 @@ class WerewolfVoteService
             return null;
         }
         if (preg_match('/^([AB])#$/', $result, $m)) {
-            return ($m[1] === Game::TEAM_A) ? Game::TEAM_B : Game::TEAM_A;
+            return (Game::TEAM_A === $m[1]) ? Game::TEAM_B : Game::TEAM_A;
         }
         if (str_starts_with($result, 'resignA') || str_starts_with($result, 'timeoutA')) {
             return Game::TEAM_A;

@@ -35,9 +35,6 @@ final class PgnExporter
         $moves = $this->moves->listByGameOrdered($game);
         $parts = [];
         foreach ($moves as $mv) {
-            if (!$mv instanceof Move) {
-                continue;
-            }
             // Ignore non-normal moves in PGN mainline, optionally annotate
             if (Move::TYPE_NORMAL !== $mv->getType()) {
                 // Add a comment to indicate timeout/pass without polluting mainline
@@ -48,7 +45,7 @@ final class PgnExporter
             $ply = $mv->getPly();
             $san = trim((string) $mv->getSan());
             if ('' === $san) {
-                $san = trim((string) $mv->getUci() ?? '');
+                $san = trim((string) $mv->getUci());
                 if ('' === $san) {
                     continue;
                 }

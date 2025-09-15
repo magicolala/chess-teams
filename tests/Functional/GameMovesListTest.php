@@ -61,8 +61,8 @@ final class GameMovesListTest extends WebTestCase
         // Mark players as ready
         /** @var MarkPlayerReadyHandler $markReady */
         $markReady = $c->get(MarkPlayerReadyHandler::class);
-        $markReady(new MarkPlayerReadyInput($game->getId(), true), $uA);
-        $markReady(new MarkPlayerReadyInput($game->getId(), true), $uB);
+        $markReady(new MarkPlayerReadyInput($game->getId(), $uA->getId()), $uA);
+        $markReady(new MarkPlayerReadyInput($game->getId(), $uB->getId()), $uB);
         $em->flush();
 
         // start

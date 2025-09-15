@@ -36,7 +36,7 @@ final class ClaimVictoryHandlerTest extends TestCase
         $lockFactory = $this->createMock(LockFactory::class);
         $lockFactory->method('createLock')->willReturn($lock);
 
-        $handler = new ClaimVictoryHandler($games, $teams, $members, $lockFactory, $em);
+        $handler = new ClaimVictoryHandler($games, $members, $lockFactory, $em);
 
         $creator = new User();
         $creator->setEmail('creator@test.io');

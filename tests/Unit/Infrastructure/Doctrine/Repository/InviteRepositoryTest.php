@@ -7,10 +7,14 @@ use App\Infrastructure\Doctrine\Repository\InviteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class InviteRepositoryTest extends TestCase
 {
+    /**
+     * @param EntityManagerInterface&MockObject $em
+     */
     private function createRepository(EntityManagerInterface $em): InviteRepository
     {
         $registry = $this->createMock(ManagerRegistry::class);

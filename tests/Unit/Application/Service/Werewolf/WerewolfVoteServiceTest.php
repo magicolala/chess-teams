@@ -2,7 +2,6 @@
 
 namespace App\Tests\Unit\Application\Service\Werewolf;
 
-use App\Application\Service\Werewolf\WerewolfScoringService;
 use App\Application\Service\Werewolf\WerewolfVoteService;
 use App\Domain\Repository\TeamMemberRepositoryInterface;
 use App\Entity\Game;
@@ -15,6 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
  * @internal
+ *
  * @covers \App\Application\Service\Werewolf\WerewolfVoteService
  */
 final class WerewolfVoteServiceTest extends KernelTestCase
@@ -31,14 +31,17 @@ final class WerewolfVoteServiceTest extends KernelTestCase
         $em->persist($g);
         $ta = new Team($g, Team::NAME_A);
         $tb = new Team($g, Team::NAME_B);
-        $em->persist($ta); $em->persist($tb);
+        $em->persist($ta);
+        $em->persist($tb);
 
         // users
         $suffix = bin2hex(random_bytes(4));
-        $u1 = (new User())->setEmail('u1+' . $suffix . '@t.io')->setPassword('x');
-        $u2 = (new User())->setEmail('u2+' . $suffix . '@t.io')->setPassword('x');
-        $u3 = (new User())->setEmail('u3+' . $suffix . '@t.io')->setPassword('x');
-        $em->persist($u1); $em->persist($u2); $em->persist($u3);
+        $u1 = (new User())->setEmail('u1+'.$suffix.'@t.io')->setPassword('x');
+        $u2 = (new User())->setEmail('u2+'.$suffix.'@t.io')->setPassword('x');
+        $u3 = (new User())->setEmail('u3+'.$suffix.'@t.io')->setPassword('x');
+        $em->persist($u1);
+        $em->persist($u2);
+        $em->persist($u3);
         $em->flush();
 
         // memberships: u1 in A, u2 in B ; u3 is outsider
@@ -87,13 +90,16 @@ final class WerewolfVoteServiceTest extends KernelTestCase
         $em->persist($g);
         $ta = new Team($g, Team::NAME_A);
         $tb = new Team($g, Team::NAME_B);
-        $em->persist($ta); $em->persist($tb);
+        $em->persist($ta);
+        $em->persist($tb);
 
         $suffix = bin2hex(random_bytes(4));
-        $a1 = (new User())->setEmail('a1+' . $suffix . '@t.io')->setPassword('x');
-        $a2 = (new User())->setEmail('a2+' . $suffix . '@t.io')->setPassword('x');
-        $b1 = (new User())->setEmail('b1+' . $suffix . '@t.io')->setPassword('x');
-        $em->persist($a1); $em->persist($a2); $em->persist($b1);
+        $a1 = (new User())->setEmail('a1+'.$suffix.'@t.io')->setPassword('x');
+        $a2 = (new User())->setEmail('a2+'.$suffix.'@t.io')->setPassword('x');
+        $b1 = (new User())->setEmail('b1+'.$suffix.'@t.io')->setPassword('x');
+        $em->persist($a1);
+        $em->persist($a2);
+        $em->persist($b1);
         $em->flush();
 
         /** @var TeamMemberRepositoryInterface $members */
@@ -135,12 +141,16 @@ final class WerewolfVoteServiceTest extends KernelTestCase
         $g = (new Game())->setMode('werewolf');
         $g->setResult('1/2-1/2');
         $em->persist($g);
-        $ta = new Team($g, Team::NAME_A); $tb = new Team($g, Team::NAME_B);
-        $em->persist($ta); $em->persist($tb);
+        $ta = new Team($g, Team::NAME_A);
+        $tb = new Team($g, Team::NAME_B);
+        $em->persist($ta);
+        $em->persist($tb);
         $suffix = bin2hex(random_bytes(4));
-        $wA = (new User())->setEmail('wa+' . $suffix . '@t.io')->setPassword('x');
-        $wB = (new User())->setEmail('wb+' . $suffix . '@t.io')->setPassword('x');
-        $em->persist($wA); $em->persist($wB); $em->flush();
+        $wA = (new User())->setEmail('wa+'.$suffix.'@t.io')->setPassword('x');
+        $wB = (new User())->setEmail('wb+'.$suffix.'@t.io')->setPassword('x');
+        $em->persist($wA);
+        $em->persist($wB);
+        $em->flush();
 
         // mark them as members
         /** @var TeamMemberRepositoryInterface $members */
@@ -179,13 +189,18 @@ final class WerewolfVoteServiceTest extends KernelTestCase
         $g = (new Game())->setMode('werewolf');
         $g->setResult('A#');
         $em->persist($g);
-        $ta = new Team($g, Team::NAME_A); $tb = new Team($g, Team::NAME_B);
-        $em->persist($ta); $em->persist($tb);
+        $ta = new Team($g, Team::NAME_A);
+        $tb = new Team($g, Team::NAME_B);
+        $em->persist($ta);
+        $em->persist($tb);
         $suffix = bin2hex(random_bytes(4));
-        $a1 = (new User())->setEmail('na-a1+' . $suffix . '@t.io')->setPassword('x');
-        $b1 = (new User())->setEmail('na-b1+' . $suffix . '@t.io')->setPassword('x');
-        $b2 = (new User())->setEmail('na-b2+' . $suffix . '@t.io')->setPassword('x');
-        $em->persist($a1); $em->persist($b1); $em->persist($b2); $em->flush();
+        $a1 = (new User())->setEmail('na-a1+'.$suffix.'@t.io')->setPassword('x');
+        $b1 = (new User())->setEmail('na-b1+'.$suffix.'@t.io')->setPassword('x');
+        $b2 = (new User())->setEmail('na-b2+'.$suffix.'@t.io')->setPassword('x');
+        $em->persist($a1);
+        $em->persist($b1);
+        $em->persist($b2);
+        $em->flush();
 
         /** @var TeamMemberRepositoryInterface $members */
         $members = $c->get(TeamMemberRepositoryInterface::class);
@@ -228,14 +243,20 @@ final class WerewolfVoteServiceTest extends KernelTestCase
         $g = (new Game())->setMode('werewolf');
         $g->setResult('B#');
         $em->persist($g);
-        $ta = new Team($g, Team::NAME_A); $tb = new Team($g, Team::NAME_B);
-        $em->persist($ta); $em->persist($tb);
+        $ta = new Team($g, Team::NAME_A);
+        $tb = new Team($g, Team::NAME_B);
+        $em->persist($ta);
+        $em->persist($tb);
         $suffix = bin2hex(random_bytes(4));
-        $a1 = (new User())->setEmail('tie-a1+' . $suffix . '@t.io')->setPassword('x');
-        $a2 = (new User())->setEmail('tie-a2+' . $suffix . '@t.io')->setPassword('x');
-        $b1 = (new User())->setEmail('tie-b1+' . $suffix . '@t.io')->setPassword('x');
-        $b2 = (new User())->setEmail('tie-b2+' . $suffix . '@t.io')->setPassword('x');
-        $em->persist($a1); $em->persist($a2); $em->persist($b1); $em->persist($b2); $em->flush();
+        $a1 = (new User())->setEmail('tie-a1+'.$suffix.'@t.io')->setPassword('x');
+        $a2 = (new User())->setEmail('tie-a2+'.$suffix.'@t.io')->setPassword('x');
+        $b1 = (new User())->setEmail('tie-b1+'.$suffix.'@t.io')->setPassword('x');
+        $b2 = (new User())->setEmail('tie-b2+'.$suffix.'@t.io')->setPassword('x');
+        $em->persist($a1);
+        $em->persist($a2);
+        $em->persist($b1);
+        $em->persist($b2);
+        $em->flush();
 
         /** @var TeamMemberRepositoryInterface $members */
         $members = $c->get(TeamMemberRepositoryInterface::class);
@@ -277,13 +298,18 @@ final class WerewolfVoteServiceTest extends KernelTestCase
         $g = (new Game())->setMode('werewolf');
         $g->setResult('A#');
         $em->persist($g);
-        $ta = new Team($g, Team::NAME_A); $tb = new Team($g, Team::NAME_B);
-        $em->persist($ta); $em->persist($tb);
+        $ta = new Team($g, Team::NAME_A);
+        $tb = new Team($g, Team::NAME_B);
+        $em->persist($ta);
+        $em->persist($tb);
         $suffix = bin2hex(random_bytes(4));
-        $a1 = (new User())->setEmail('mw-a1+' . $suffix . '@t.io')->setPassword('x');
-        $a2 = (new User())->setEmail('mw-a2+' . $suffix . '@t.io')->setPassword('x');
-        $b1 = (new User())->setEmail('mw-b1+' . $suffix . '@t.io')->setPassword('x');
-        $em->persist($a1); $em->persist($a2); $em->persist($b1); $em->flush();
+        $a1 = (new User())->setEmail('mw-a1+'.$suffix.'@t.io')->setPassword('x');
+        $a2 = (new User())->setEmail('mw-a2+'.$suffix.'@t.io')->setPassword('x');
+        $b1 = (new User())->setEmail('mw-b1+'.$suffix.'@t.io')->setPassword('x');
+        $em->persist($a1);
+        $em->persist($a2);
+        $em->persist($b1);
+        $em->flush();
 
         /** @var TeamMemberRepositoryInterface $members */
         $members = $c->get(TeamMemberRepositoryInterface::class);

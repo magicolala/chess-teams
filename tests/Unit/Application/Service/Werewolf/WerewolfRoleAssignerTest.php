@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
  * @internal
+ *
  * @covers \App\Application\Service\Werewolf\WerewolfRoleAssigner
  */
 final class WerewolfRoleAssignerTest extends KernelTestCase
@@ -40,7 +41,7 @@ final class WerewolfRoleAssignerTest extends KernelTestCase
         $roles = $assigner->assignForGame($g, [$users[0], $users[1]], [$users[2], $users[3]]);
 
         self::assertNotEmpty($roles);
-        $werewolves = array_filter($roles, static fn($r) => $r->getRole() === 'werewolf');
+        $werewolves = array_filter($roles, static fn ($r) => 'werewolf' === $r->getRole());
         self::assertCount(1, $werewolves, 'Should assign exactly one werewolf.');
     }
 
@@ -54,7 +55,8 @@ final class WerewolfRoleAssignerTest extends KernelTestCase
         $g->setMode('werewolf')->setTwoWolvesEnabled(true);
         $em->persist($g);
 
-        $a = [];$b = [];
+        $a = [];
+        $b = [];
         for ($i = 0; $i < 2; ++$i) {
             $u = new User();
             $u->setEmail('A'.$i.'@t.io');
@@ -75,7 +77,7 @@ final class WerewolfRoleAssignerTest extends KernelTestCase
         $assigner = $c->get(WerewolfRoleAssigner::class);
         $roles = $assigner->assignForGame($g, $a, $b);
 
-        $wolves = array_filter($roles, static fn($r) => $r->getRole() === 'werewolf');
+        $wolves = array_filter($roles, static fn ($r) => 'werewolf' === $r->getRole());
         self::assertCount(2, $wolves, 'Should assign one werewolf per team.');
     }
 }

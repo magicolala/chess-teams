@@ -53,10 +53,10 @@ class WerewolfRoleAssigner
             $wolfB = $teamBUsers[$idxB] ?? null;
 
             foreach ($roles as $r) {
-                if ($wolfA && $r->getUser()->getId() === $wolfA->getId() && $r->getTeamName() === Game::TEAM_A) {
+                if ($wolfA && $r->getUser()->getId() === $wolfA->getId() && Game::TEAM_A === $r->getTeamName()) {
                     $r->setRole('werewolf');
                 }
-                if ($wolfB && $r->getUser()->getId() === $wolfB->getId() && $r->getTeamName() === Game::TEAM_B) {
+                if ($wolfB && $r->getUser()->getId() === $wolfB->getId() && Game::TEAM_B === $r->getTeamName()) {
                     $r->setRole('werewolf');
                 }
             }
@@ -87,6 +87,7 @@ class WerewolfRoleAssigner
         if ($n <= 1) {
             return 0;
         }
+
         return random_int(0, $n - 1);
     }
 }

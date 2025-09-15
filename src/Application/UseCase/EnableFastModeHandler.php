@@ -68,8 +68,8 @@ final class EnableFastModeHandler
                 return new EnableFastModeOutput(
                     $game->getId(),
                     true,
-                    $game->getFastModeDeadline()?->getTimestamp() * 1000 ?? 0,
-                    $game->getTurnDeadline()?->getTimestamp() * 1000 ?? 0
+                    $game->getFastModeDeadline()?->getTimestamp() * 1000,
+                    $game->getTurnDeadline()?->getTimestamp() * 1000
                 );
             }
 
@@ -87,7 +87,7 @@ final class EnableFastModeHandler
                 $game->getId(),
                 true,
                 $fastModeDeadline->getTimestamp() * 1000,
-                $game->getTurnDeadline()?->getTimestamp() * 1000 ?? 0
+                $game->getTurnDeadline()?->getTimestamp() * 1000
             );
         } finally {
             $lock->release();

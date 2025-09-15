@@ -37,9 +37,28 @@ class GameWerewolfScoreLog
         $this->createdAt = new \DateTimeImmutable();
     }
 
-    public function getId(): string { return $this->id; }
-    public function getGame(): Game { return $this->game; }
-    public function getUser(): User { return $this->user; }
-    public function getReason(): string { return $this->reason; }
-    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    public function getGame(): Game
+    {
+        return $this->game;
+    }
+
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function getReason(): string
+    {
+        return $this->reason;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
 }

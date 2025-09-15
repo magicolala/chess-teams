@@ -6,7 +6,6 @@ use App\Application\DTO\CreateGameInput;
 use App\Application\UseCase\CreateGameHandler;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Domain\Repository\InviteRepositoryInterface;
-use App\Domain\Repository\MoveRepositoryInterface;
 use App\Domain\Repository\TeamMemberRepositoryInterface;
 use App\Domain\Repository\TeamRepositoryInterface;
 use App\Entity\Team;
@@ -29,7 +28,6 @@ final class GameWebController extends AbstractController
         private GameRepositoryInterface $games,
         private TeamRepositoryInterface $teams,
         private TeamMemberRepositoryInterface $members,
-        private MoveRepositoryInterface $moves,
         private CreateGameHandler $createGame,
         private InviteRepositoryInterface $invites,
     ) {
@@ -82,7 +80,7 @@ final class GameWebController extends AbstractController
 
     // Affichage page partie
     #[Route('/{id}', name: 'show_page', methods: ['GET'])]
-    public function showPage(Request $request, ?string $id = null, EntityManagerInterface $em = null): Response
+    public function showPage(Request $request, ?string $id = null, ?EntityManagerInterface $em = null): Response
     {
         // Si on vient via ?code=XXXX, on retrouve la partie par code
         if (!$id && $request->query->get('code')) {

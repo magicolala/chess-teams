@@ -47,9 +47,6 @@ final class TimeoutTickHandler
         if (!$lock->acquire()) {
             throw new ConflictHttpException('locked');
         }
-        if (Game::STATUS_FINISHED === $game->getStatus()) {
-            throw new ConflictHttpException('game_finished');
-        }
 
         try {
             $now = new \DateTimeImmutable();
@@ -131,7 +128,7 @@ final class TimeoutTickHandler
                 true,
                 $ply,
                 $game->getTurnTeam(),
-                $game->getTurnDeadline()?->getTimestamp() * 1000 ?? 0,
+                $game->getTurnDeadline()?->getTimestamp() * 1000,
                 $game->getFen()
             );
         } finally {

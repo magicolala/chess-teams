@@ -31,12 +31,44 @@ class UserWerewolfStats
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    public function getId(): string { return $this->id; }
-    public function getUser(): User { return $this->user; }
-    public function getCorrectIdentifications(): int { return $this->correctIdentifications; }
-    public function getWerewolfSuccesses(): int { return $this->werewolfSuccesses; }
-    public function getUpdatedAt(): \DateTimeImmutable { return $this->updatedAt; }
+    public function getId(): string
+    {
+        return $this->id;
+    }
 
-    public function addCorrectIdentification(): self { ++$this->correctIdentifications; $this->updatedAt = new \DateTimeImmutable(); return $this; }
-    public function addWerewolfSuccess(): self { ++$this->werewolfSuccesses; $this->updatedAt = new \DateTimeImmutable(); return $this; }
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function getCorrectIdentifications(): int
+    {
+        return $this->correctIdentifications;
+    }
+
+    public function getWerewolfSuccesses(): int
+    {
+        return $this->werewolfSuccesses;
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function addCorrectIdentification(): self
+    {
+        ++$this->correctIdentifications;
+        $this->updatedAt = new \DateTimeImmutable();
+
+        return $this;
+    }
+
+    public function addWerewolfSuccess(): self
+    {
+        ++$this->werewolfSuccesses;
+        $this->updatedAt = new \DateTimeImmutable();
+
+        return $this;
+    }
 }

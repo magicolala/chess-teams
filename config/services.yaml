@@ -10,6 +10,10 @@ services:
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    Symfony\Component\Security\Http\Authenticator\FormLoginAuthenticator:
+        alias: 'security.authenticator.form_login.main'
+
     App\Domain\Repository\GameRepositoryInterface: '@App\Infrastructure\Doctrine\Repository\GameRepository'
     App\Domain\Repository\TeamRepositoryInterface: '@App\Infrastructure\Doctrine\Repository\TeamRepository'
     App\Domain\Repository\InviteRepositoryInterface: '@App\Infrastructure\Doctrine\Repository\InviteRepository'

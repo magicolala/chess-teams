@@ -12,15 +12,21 @@ use App\Entity\Invite;
 use App\Entity\Team;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class CreateGameHandlerTest extends TestCase
 {
     private CreateGameHandler $handler;
+    /** @var GameRepositoryInterface&MockObject */
     private GameRepositoryInterface $gameRepo;
+    /** @var TeamRepositoryInterface&MockObject */
     private TeamRepositoryInterface $teamRepo;
+    /** @var InviteRepositoryInterface&MockObject */
     private InviteRepositoryInterface $inviteRepo;
+    /** @var EntityManagerInterface&MockObject */
     private EntityManagerInterface $em;
+    /** @var User&MockObject */
     private User $user;
 
     protected function setUp(): void

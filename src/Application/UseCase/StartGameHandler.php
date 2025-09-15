@@ -78,8 +78,8 @@ final class StartGameHandler
             $activeA = $this->members->findActiveOrderedByTeam($teamA); // TeamMember[]
             $activeB = $this->members->findActiveOrderedByTeam($teamB); // TeamMember[]
 
-            $usersA = array_map(static fn($m) => $m->getUser(), $activeA);
-            $usersB = array_map(static fn($m) => $m->getUser(), $activeB);
+            $usersA = array_map(static fn ($m) => $m->getUser(), $activeA);
+            $usersB = array_map(static fn ($m) => $m->getUser(), $activeB);
 
             if (count($usersA) + count($usersB) >= 4) {
                 $this->werewolfAssigner->assignForGame($game, $usersA, $usersB);

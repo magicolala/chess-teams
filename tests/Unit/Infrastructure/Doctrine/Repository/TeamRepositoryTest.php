@@ -7,10 +7,14 @@ use App\Infrastructure\Doctrine\Repository\TeamRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\Persistence\ManagerRegistry;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class TeamRepositoryTest extends TestCase
 {
+    /**
+     * @param EntityManagerInterface&MockObject $em
+     */
     private function createRepository(EntityManagerInterface $em): TeamRepository
     {
         $registry = $this->createMock(ManagerRegistry::class);

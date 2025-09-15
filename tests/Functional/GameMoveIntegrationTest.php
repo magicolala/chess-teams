@@ -190,8 +190,8 @@ final class GameMoveIntegrationTest extends WebTestCase
         // Mark players as ready
         /** @var MarkPlayerReadyHandler $markReady */
         $markReady = $c->get(MarkPlayerReadyHandler::class);
-        $markReady(new MarkPlayerReadyInput($game->getId(), true), $userA);
-        $markReady(new MarkPlayerReadyInput($game->getId(), true), $userB);
+        $markReady(new MarkPlayerReadyInput($game->getId(), $userA->getId()), $userA);
+        $markReady(new MarkPlayerReadyInput($game->getId(), $userB->getId()), $userB);
         $em->flush();
 
         // Démarrer la partie

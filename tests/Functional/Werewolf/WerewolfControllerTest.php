@@ -15,6 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 /**
  * @internal
+ *
  * @coversNothing
  */
 final class WerewolfControllerTest extends WebTestCase
@@ -31,7 +32,10 @@ final class WerewolfControllerTest extends WebTestCase
         $creator = (new User())->setEmail('w-host@t.io')->setPassword('x');
         $p1 = (new User())->setEmail('w-p1@t.io')->setPassword('x');
         $outsider = (new User())->setEmail('w-out@t.io')->setPassword('x');
-        $em->persist($creator); $em->persist($p1); $em->persist($outsider); $em->flush();
+        $em->persist($creator);
+        $em->persist($p1);
+        $em->persist($outsider);
+        $em->flush();
 
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);
@@ -75,7 +79,10 @@ final class WerewolfControllerTest extends WebTestCase
         $creator = (new User())->setEmail('w2-host@t.io')->setPassword('x');
         $a1 = (new User())->setEmail('w2-a1@t.io')->setPassword('x');
         $b1 = (new User())->setEmail('w2-b1@t.io')->setPassword('x');
-        $em->persist($creator); $em->persist($a1); $em->persist($b1); $em->flush();
+        $em->persist($creator);
+        $em->persist($a1);
+        $em->persist($b1);
+        $em->flush();
 
         /** @var CreateGameHandler $create */
         $create = $c->get(CreateGameHandler::class);

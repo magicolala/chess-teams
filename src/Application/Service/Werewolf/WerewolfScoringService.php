@@ -4,8 +4,8 @@ namespace App\Application\Service\Werewolf;
 
 use App\Entity\Game;
 use App\Entity\GameWerewolfScoreLog;
-use App\Entity\UserWerewolfStats;
 use App\Entity\User;
+use App\Entity\UserWerewolfStats;
 use Doctrine\ORM\EntityManagerInterface;
 
 class WerewolfScoringService

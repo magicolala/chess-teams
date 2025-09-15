@@ -47,9 +47,6 @@ final class MakeMoveHandler
         if (Game::STATUS_LIVE !== $game->getStatus()) {
             throw new ConflictHttpException('game_not_live');
         }
-        if (Game::STATUS_FINISHED === $game->getStatus()) {
-            throw new ConflictHttpException('game_finished');
-        }
         if ($game->isTimeoutDecisionPending()) {
             throw new ConflictHttpException('timeout_decision_pending');
         }
@@ -105,8 +102,8 @@ final class MakeMoveHandler
                 throw new UnprocessableEntityHttpException('illegal_move');
             }
 
-            $fenAfter = (string) ($result['fenAfter'] ?? '');
-            $san = \trim((string) ($result['san'] ?? ''));
+            $fenAfter = (string) $result['fenAfter'];
+            $san = trim((string) $result['san']);
             if ('' === $san) {
                 // Fallback: garantir que SAN ne soit pas null/empty pour les coups normaux
                 $san = $uci;
@@ -177,7 +174,7 @@ final class MakeMoveHandler
                 $game->getId(),
                 $ply,
                 $game->getTurnTeam(),
-                $game->getTurnDeadline()?->getTimestamp() * 1000 ?? 0,
+                $game->getTurnDeadline()?->getTimestamp() * 1000,
                 $game->getFen()
             );
         } finally {

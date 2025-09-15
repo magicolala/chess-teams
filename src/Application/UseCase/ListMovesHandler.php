@@ -37,7 +37,7 @@ class ListMovesHandler
                 'san' => $m->getSan(),
                 'type' => method_exists($m, 'getType') ? $m->getType() : null,
                 'fenAfter' => $m->getFenAfter(),
-                'createdAt' => $m->getCreatedAt()?->format(DATE_ATOM),
+                'createdAt' => $m->getCreatedAt()->format(DATE_ATOM),
             ];
         }
 

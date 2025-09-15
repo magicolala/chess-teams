@@ -38,12 +38,42 @@ class GameRole
         $this->role = $role;
     }
 
-    public function getId(): string { return $this->id; }
-    public function getGame(): Game { return $this->game; }
-    public function getUser(): User { return $this->user; }
-    public function getTeamName(): string { return $this->teamName; }
-    public function getRole(): string { return $this->role; }
+    public function getId(): string
+    {
+        return $this->id;
+    }
 
-    public function setTeamName(string $t): self { $this->teamName = $t; return $this; }
-    public function setRole(string $r): self { $this->role = $r; return $this; }
+    public function getGame(): Game
+    {
+        return $this->game;
+    }
+
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function getTeamName(): string
+    {
+        return $this->teamName;
+    }
+
+    public function getRole(): string
+    {
+        return $this->role;
+    }
+
+    public function setTeamName(string $t): self
+    {
+        $this->teamName = $t;
+
+        return $this;
+    }
+
+    public function setRole(string $r): self
+    {
+        $this->role = $r;
+
+        return $this;
+    }
 }

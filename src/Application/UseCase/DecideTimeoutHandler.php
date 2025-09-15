@@ -116,7 +116,7 @@ final class DecideTimeoutHandler
                 $game->getResult(),
                 false,
                 $game->getTurnTeam(),
-                $game->getTurnDeadline()?->getTimestamp() * 1000 ?? null,
+                                    $game->getTurnDeadline()?->getTimestamp() * 1000,
             );
         } finally {
             $lock->release();

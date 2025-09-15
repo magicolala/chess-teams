@@ -6,7 +6,6 @@ use App\Application\DTO\ClaimVictoryInput;
 use App\Application\DTO\ClaimVictoryOutput;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Domain\Repository\TeamMemberRepositoryInterface;
-use App\Domain\Repository\TeamRepositoryInterface;
 use App\Entity\Game;
 use App\Entity\Team;
 use App\Entity\User;
@@ -21,7 +20,6 @@ final class ClaimVictoryHandler
 {
     public function __construct(
         private GameRepositoryInterface $games,
-        private TeamRepositoryInterface $teams,
         private TeamMemberRepositoryInterface $members,
         #[Autowire(service: 'lock.factory')]
         private LockFactory $lockFactory,
