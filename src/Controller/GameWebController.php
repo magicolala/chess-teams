@@ -10,6 +10,7 @@ use App\Domain\Repository\TeamMemberRepositoryInterface;
 use App\Domain\Repository\TeamRepositoryInterface;
 use App\Entity\Team;
 use App\Entity\TeamMember;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -38,8 +39,10 @@ final class GameWebController extends AbstractController
     public function create(Request $request): RedirectResponse
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-        /** @var \App\Entity\User $user */
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw new \LogicException('Authenticated user must be an application user instance.');
+        }
 
         $turn = max(10, min(600, (int) $request->request->get('turnDuration', 60)));
         $vis = $request->request->get('visibility', 'private');
@@ -107,8 +110,9 @@ final class GameWebController extends AbstractController
 
         // Vérifie si l'utilisateur connecté fait déjà partie de cette partie
         $userMembership = null;
-        if ($this->getUser()) {
-            $userMembership = $this->members->findOneByGameAndUser($game, $this->getUser());
+        $symfonyUser = $this->getUser();
+        if ($symfonyUser instanceof User) {
+            $userMembership = $this->members->findOneByGameAndUser($game, $symfonyUser);
         }
 
         // Détermine le joueur actuel qui doit jouer
@@ -136,6 +140,8 @@ final class GameWebController extends AbstractController
             $myRole = $role?->getRole();
         }
 
+        $turnDeadline = $game->getTurnDeadline();
+
         return $this->render('game/show.html.twig', [
             'game' => $game,
             'teamA' => $teamA,
@@ -152,7 +158,7 @@ final class GameWebController extends AbstractController
                 'gameId' => $game->getId(),
                 'fen' => $game->getFen(),
                 'turnTeam' => $game->getTurnTeam(),
-                'turnDeadline' => $game->getTurnDeadline()?->getTimestamp() * 1000,
+                'turnDeadline' => $turnDeadline ? $turnDeadline->getTimestamp() * 1000 : null,
                 'status' => $game->getStatus(),
                 'result' => $game->getResult(),
                 'mode' => $game->getMode(),
@@ -168,16 +174,15 @@ final class GameWebController extends AbstractController
         EntityManagerInterface $em,
     ): RedirectResponse {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-        /** @var \App\Entity\User $user */
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw new \LogicException('Authenticated user must be an application user instance.');
+        }
 
-        $teamName = (string) $request->request->get('team', '');
-        dump($teamName); // DEBUG: Check what teamName is received
-        if (!\in_array($teamName, [Team::NAME_A, Team::NAME_B, 'A', 'B'], true)) {
+        $teamName = strtoupper((string) $request->request->get('team', ''));
+        if (!\in_array($teamName, [Team::NAME_A, Team::NAME_B], true)) {
             throw new BadRequestHttpException('invalid_team');
         }
-        // normalise
-        $teamName = 'A' === $teamName ? Team::NAME_A : ('B' === $teamName ? Team::NAME_B : $teamName);
 
         $token = new CsrfToken('join-team-'.$id.'-'.(Team::NAME_A === $teamName ? 'A' : 'B'), (string) $request->request->get('_token'));
         if (!$csrf->isTokenValid($token)) {
@@ -208,7 +213,7 @@ final class GameWebController extends AbstractController
 
         // Position = fin de file pour cette équipe
         $current = $this->members->findActiveOrderedByTeam($team);
-        $position = \is_array($current) ? \count($current) : 0;
+        $position = \count($current);
 
         $member = new TeamMember($team, $user, $position);
         $member->setActive(true);
@@ -228,8 +233,10 @@ final class GameWebController extends AbstractController
         EntityManagerInterface $em,
     ): RedirectResponse {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-        /** @var \App\Entity\User $user */
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw new \LogicException('Authenticated user must be an application user instance.');
+        }
 
         $token = new CsrfToken('toggle-ready-'.$id, (string) $request->request->get('_token'));
         if (!$csrf->isTokenValid($token)) {
@@ -270,8 +277,10 @@ final class GameWebController extends AbstractController
         EntityManagerInterface $em,
     ): RedirectResponse {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-        /** @var \App\Entity\User $user */
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw new \LogicException('Authenticated user must be an application user instance.');
+        }
 
         $token = new CsrfToken('start-game-'.$id, (string) $request->request->get('_token'));
         if (!$csrf->isTokenValid($token)) {

@@ -25,6 +25,9 @@ return [
     '@hotwired/turbo' => [
         'version' => '7.3.0',
     ],
+    '@magicolala/neo-chess-board' => [
+        'path' => './assets/vendor/neo-chess-board/index.js',
+    ],
     'chess.js' => [
         'version' => '1.4.0',
     ],

@@ -26,9 +26,15 @@ final class ChesslablabEngine implements ChessEngineInterface
         }
         try {
             // chesslablab expects long algebraic without dashes (e2e4) and a turn argument
-            $before = is_array($board->history) ? count($board->history) : 0;
+            /** @var array<int, array<string, mixed>> $historyBefore */
+            $historyBefore = $board->history;
+            $before = count($historyBefore);
+
             $board->playLan($board->turn, $uci);
-            $after = is_array($board->history) ? count($board->history) : 0;
+
+            /** @var array<int, array<string, mixed>> $historyAfter */
+            $historyAfter = $board->history;
+            $after = count($historyAfter);
             if ($after <= $before) {
                 throw new \InvalidArgumentException('illegal_move');
             }
@@ -36,6 +42,7 @@ final class ChesslablabEngine implements ChessEngineInterface
             throw new \InvalidArgumentException('illegal_move');
         }
 
+        /** @var array<string, mixed> $lastMove */
         $lastMove = end($board->history);
 
         // Ensure SAN includes '=' for promotions when input UCI has a promotion letter

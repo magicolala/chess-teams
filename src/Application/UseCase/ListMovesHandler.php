@@ -35,7 +35,7 @@ class ListMovesHandler
                 'byUserId' => $m->getByUser()?->getId(),
                 'uci' => $m->getUci(),
                 'san' => $m->getSan(),
-                'type' => method_exists($m, 'getType') ? $m->getType() : null,
+                'type' => $m->getType(),
                 'fenAfter' => $m->getFenAfter(),
                 'createdAt' => $m->getCreatedAt()->format(DATE_ATOM),
             ];

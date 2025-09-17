@@ -12,7 +12,6 @@ final class ChesslablabEngineTest extends TestCase
         $engine = new ChesslablabEngine();
         $out = $engine->applyUci('startpos', 'e2e4');
 
-        self::assertIsArray($out);
         self::assertArrayHasKey('fenAfter', $out);
         self::assertArrayHasKey('san', $out);
         self::assertNotSame('', (string) $out['fenAfter']);

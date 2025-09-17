@@ -63,8 +63,8 @@ class CreateGameHandlerTest extends TestCase
 
         $output = ($this->handler)($input, $this->user);
 
-        $this->assertNotNull($output->gameId);
-        $this->assertNotNull($output->inviteCode);
+        $this->assertNotSame('', $output->gameId);
+        $this->assertNotSame('', $output->inviteCode);
         $this->assertEquals(120, $output->turnDurationSec);
     }
 

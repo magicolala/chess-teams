@@ -68,10 +68,10 @@ final class ClaimVictoryHandlerTest extends TestCase
 
         self::assertTrue($out->claimed);
         self::assertSame(Game::STATUS_FINISHED, $out->status);
-        self::assertNotNull($out->result);
+        self::assertSame('B+Atimeout', $out->result);
         self::assertSame(Game::TEAM_B, $out->winnerTeam);
         self::assertSame(Game::STATUS_FINISHED, $g->getStatus());
-        self::assertNotNull($g->getResult());
+        self::assertSame('B+Atimeout', $g->getResult());
         self::assertNull($g->getTurnDeadline());
     }
 }

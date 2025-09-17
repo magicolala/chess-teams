@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -12,15 +13,20 @@ final class MeController extends AbstractController
     public function __invoke(): JsonResponse
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-        /** @var \App\Entity\User $user */
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw new \LogicException('Authenticated user must be an application user instance.');
+        }
+
+        $createdAt = $user->getCreatedAt();
+        $createdAtIso = $createdAt instanceof \DateTimeInterface ? $createdAt->format(DATE_ATOM) : null;
 
         return $this->json([
-            'id' => method_exists($user, 'getId') ? $user->getId() : null,
+            'id' => $user->getId(),
             'email' => $user->getUserIdentifier(),
-            'displayName' => method_exists($user, 'getDisplayName') ? $user->getDisplayName() : null,
+            'displayName' => $user->getDisplayName(),
             'roles' => $user->getRoles(),
-            'createdAt' => method_exists($user, 'getCreatedAt') ? $user->getCreatedAt()->format(DATE_ATOM) : null,
+            'createdAt' => $createdAtIso,
         ]);
     }
 }
