@@ -25,6 +25,9 @@ return [
     '@hotwired/turbo' => [
         'version' => '7.3.0',
     ],
+    '@magicolala/neo-chess-board' => [
+        'version' => '0.1.0',
+    ],
     'chess.js' => [
         'version' => '1.4.0',
     ],
