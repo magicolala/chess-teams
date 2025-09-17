@@ -20,7 +20,7 @@ class UserProfileControllerTest extends WebTestCase
     {
         $this->client = static::createClient();
         $container = static::getContainer();
-        $this->entityManager = $container->get('doctrine')->getManager();
+        $this->entityManager = $container->get(EntityManagerInterface::class);
         $userPasswordHasher = $container->get('security.user_password_hasher');
 
         // Create a test user

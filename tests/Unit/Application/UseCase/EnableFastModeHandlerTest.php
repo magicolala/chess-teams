@@ -63,12 +63,15 @@ final class EnableFastModeHandlerTest extends TestCase
 
         $em->expects(self::once())->method('flush');
 
+        $turnDeadline = $g->getTurnDeadline();
+        $expectedTurnDeadlineTs = $turnDeadline ? $turnDeadline->getTimestamp() * 1000 : 0;
+
         $out = $handler(new EnableFastModeInput($g->getId(), $user->getId() ?? ''), $user);
 
         self::assertTrue($out->enabled);
         self::assertGreaterThan(0, $out->fastModeDeadlineTs);
-        // turn deadline is preserved (free mode), but we just ensure it returns an int (could be 0 if null)
-        self::assertIsInt($out->turnDeadlineTs);
+        // turn deadline is preserved (free mode)
+        self::assertSame($expectedTurnDeadlineTs, $out->turnDeadlineTs);
         self::assertTrue($g->isFastModeEnabled(), 'Game should be in fast mode');
     }
 }

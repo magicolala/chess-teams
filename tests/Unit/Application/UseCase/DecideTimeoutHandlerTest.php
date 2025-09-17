@@ -84,7 +84,7 @@ final class DecideTimeoutHandlerTest extends TestCase
         $out = $handler(new TimeoutDecisionInput($g->getId(), $user->getId() ?? '', 'end'), $user);
 
         self::assertSame(Game::STATUS_FINISHED, $out->status);
-        self::assertNotNull($out->result);
+        self::assertSame('B+Atimeout', $out->result);
         self::assertFalse($out->decisionPending);
         self::assertNull($out->turnTeam);
         self::assertNull($out->turnDeadlineTs);
@@ -106,9 +106,11 @@ final class DecideTimeoutHandlerTest extends TestCase
         self::assertSame(Game::STATUS_LIVE, $out->status);
         self::assertFalse($out->decisionPending);
         self::assertSame(Team::NAME_A, $out->turnTeam, 'It should remain the timed-out team to play');
-        self::assertIsInt($out->turnDeadlineTs);
         self::assertFalse($g->isTimeoutDecisionPending());
         self::assertSame(Team::NAME_A, $g->getTurnTeam());
-        self::assertNotNull($g->getTurnDeadline());
+
+        $deadline = $g->getTurnDeadline();
+        self::assertInstanceOf(\DateTimeInterface::class, $deadline);
+        self::assertSame($deadline->getTimestamp() * 1000, $out->turnDeadlineTs);
     }
 }
