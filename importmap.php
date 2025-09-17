@@ -26,7 +26,7 @@ return [
         'version' => '7.3.0',
     ],
     '@magicolala/neo-chess-board' => [
-        'version' => '0.1.0',
+        'path' => './assets/vendor/neo-chess-board/index.js',
     ],
     'chess.js' => [
         'version' => '1.4.0',
