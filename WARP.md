@@ -13,7 +13,7 @@ Chess-Teams is a real-time team-based chess application built with Symfony 6.4. 
 - **Database**: PostgreSQL (production), SQLite (testing)
 - **Real-time**: Symfony Mercure for real-time updates
 - **Chess Engine**: chesslablab/php-chess via P-Chess wrapper
-- **Testing**: PHPUnit 9.5
+- **Testing**: PHPUnit 9.6
 
 ## Architecture
 
