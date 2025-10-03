@@ -4,6 +4,9 @@ framework:
         paths:
             - assets/
         missing_import_mode: strict
+        precompress:
+            formats: ['brotli', 'gzip']
+            extensions: ['css', 'js', 'json', 'svg', 'webmanifest', 'xml']
 
 when@prod:
     framework:

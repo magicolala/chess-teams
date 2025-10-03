@@ -369,6 +369,32 @@ php bin/console asset-map:compile --env=prod
 
 Pour plus d'aide, consultez le [README.md](README.md) ou créez une [issue GitHub](https://github.com/magicolala/chess-teams/issues).
 
+### Service des assets précompressés
+
+Les commandes ci-dessus génèrent désormais des variantes Brotli (`.br`) et Gzip (`.gz`) pour les assets statiques (CSS, JS, JSON, SVG, Webmanifest, XML). Configurez votre serveur web pour servir ces fichiers précompressés lorsqu'un client annonce le support des encodages `br` ou `gzip`.
+
+Exemples:
+
+- **Nginx**
+
+    ```nginx
+    location /assets/ {
+        try_files $uri$br $uri$gzip $uri =404;
+        add_header Vary Accept-Encoding;
+    }
+    ```
+
+- **Apache (mod_negotiation)**
+
+    ```apache
+    <Location "/assets/">
+        Options +MultiViews
+        AddEncoding br .br
+        AddEncoding gzip .gz
+        Header append Vary Accept-Encoding
+    </Location>
+    ```
+
 ---
 
 Ressources complémentaires:
