@@ -13,6 +13,9 @@ et ce projet adhère au [Versioning Sémantique](https://semver.org/spec/v2.0.0.
 - Chat vocal intégré
 - Application mobile (React Native)
 
+### 🔄 Modifié
+- Migration du backend vers Symfony 7 pour bénéficier des dernières améliorations du framework
+
 ---
 
 ## [2.0.0] - 2025-01-15
@@ -173,7 +176,7 @@ php bin/console cache:clear
 
 | Version | Status        | Support PHP | Support Symfony | Fin de Support |
 |---------|--------------|-------------|-----------------|----------------|
-| 2.0.x   | ✅ Actuel    | 8.4+        | 6.4+           | -              |
+| 2.0.x   | ✅ Actuel    | 8.4+        | 7.0+           | -              |
 | 1.2.x   | 🔄 LTS       | 8.4+        | 6.4            | 2025-06-01     |
 | 1.1.x   | ⚠️ Déprécié  | 8.0+        | 6.3+           | 2025-01-01     |
 | 1.0.x   | ❌ Obsolète  | 8.0+        | 6.3+           | 2024-12-01     |
