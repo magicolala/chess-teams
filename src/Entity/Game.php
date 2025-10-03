@@ -479,13 +479,10 @@ class Game
      */
     public function getTeamByName(string $name): ?Team
     {
-        foreach ($this->teams as $team) {
-            if ($team->getName() === $name) {
-                return $team;
-            }
-        }
-
-        return null;
+        return array_find(
+            $this->teams->toArray(), // Conversion Collection Doctrine -> array
+            fn (Team $team): bool => $team->getName() === $name
+        );
     }
 
     /**
