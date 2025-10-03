@@ -42,7 +42,7 @@ final class StartGameHandlerTest extends TestCase
             ->method('start')
             ->with($g, $creator)
             ->willReturn(new GameStartSummary(
-                gameId: $g->getId() ?? 'game-id',
+                gameId: $g->getId(),
                 status: Game::STATUS_LIVE,
                 turnTeam: Game::TEAM_A,
                 turnDeadline: $deadline,
