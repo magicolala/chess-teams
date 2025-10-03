@@ -31,8 +31,9 @@ final class TimeoutTickHandlerTest extends TestCase
 
         $result = new TimeoutResult($game, 99, true, new \DateTimeImmutable());
 
-        $input = new TimeoutTickInput('game-x');
         $user = $this->createMock(User::class);
+        $user->method('getId')->willReturn('user-x');
+        $input = new TimeoutTickInput('game-x', 'user-x');
 
         $service->expects($this->once())
             ->method('handle')
