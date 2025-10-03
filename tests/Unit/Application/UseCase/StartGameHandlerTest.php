@@ -3,15 +3,12 @@
 namespace App\Tests\Unit\Application\UseCase;
 
 use App\Application\DTO\StartGameInput;
-use App\Application\Service\Werewolf\WerewolfRoleAssigner;
+use App\Application\Service\Game\DTO\GameStartSummary;
+use App\Application\Service\Game\GameLifecycleService;
 use App\Application\UseCase\StartGameHandler;
 use App\Domain\Repository\GameRepositoryInterface;
-use App\Domain\Repository\TeamMemberRepositoryInterface;
-use App\Domain\Repository\TeamRepositoryInterface;
 use App\Entity\Game;
-use App\Entity\Team;
 use App\Entity\User;
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -24,12 +21,9 @@ final class StartGameHandlerTest extends TestCase
     public function testStartGameSetsLiveAndDeadline(): void
     {
         $games = $this->createMock(GameRepositoryInterface::class);
-        $teams = $this->createMock(TeamRepositoryInterface::class);
-        $members = $this->createMock(TeamMemberRepositoryInterface::class);
-        $em = $this->createMock(EntityManagerInterface::class);
-        $assigner = $this->createMock(WerewolfRoleAssigner::class);
+        $lifecycle = $this->createMock(GameLifecycleService::class);
 
-        $handler = new StartGameHandler($games, $teams, $members, $em, $assigner);
+        $handler = new StartGameHandler($games, $lifecycle);
 
         $creator = new User();
         $creator->setEmail('creator@test.io');
@@ -43,22 +37,21 @@ final class StartGameHandlerTest extends TestCase
 
         $games->method('get')->willReturn($g);
 
-        $ta = new Team($g, Team::NAME_A);
-        $tb = new Team($g, Team::NAME_B);
-
-        $teams->method('findOneByGameAndName')->willReturnMap([
-            [$g, Team::NAME_A, $ta],
-            [$g, Team::NAME_B, $tb],
-        ]);
-
-        $members->method('countActiveByTeam')->willReturn(1);
-        $members->method('areAllActivePlayersReady')->willReturn(true);
-        $em->expects(self::once())->method('flush');
+        $deadline = new \DateTimeImmutable('+60 seconds');
+        $lifecycle->expects($this->once())
+            ->method('start')
+            ->with($g, $creator)
+            ->willReturn(new GameStartSummary(
+                gameId: $g->getId() ?? 'game-id',
+                status: Game::STATUS_LIVE,
+                turnTeam: Game::TEAM_A,
+                turnDeadline: $deadline,
+            ));
 
         $out = $handler(new StartGameInput($g->getId(), $creator->getId() ?? ''), $creator);
 
         self::assertSame('live', $out->status);
         self::assertSame('A', $out->turnTeam);
-        self::assertGreaterThan(time() * 1000, $out->turnDeadlineTs - 1000); // ~now+60s
+        self::assertSame($deadline->getTimestamp() * 1000, $out->turnDeadlineTs);
     }
 }

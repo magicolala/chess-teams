@@ -52,7 +52,7 @@ final class GameTimeoutServiceTest extends TestCase
             new GameEndEvaluator(),
         );
 
-        $input = new TimeoutTickInput($game->getId());
+        $input = new TimeoutTickInput($game->getId(), 'system');
         $result = $service->handle($input);
 
         $this->assertFalse($result->timeoutTriggered);
@@ -104,7 +104,7 @@ final class GameTimeoutServiceTest extends TestCase
             new GameEndEvaluator(),
         );
 
-        $result = $service->handle(new TimeoutTickInput($game->getId()));
+        $result = $service->handle(new TimeoutTickInput($game->getId(), 'system'));
 
         $this->assertTrue($result->timeoutTriggered);
         $this->assertSame(1, $result->ply);

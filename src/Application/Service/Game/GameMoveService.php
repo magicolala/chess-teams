@@ -144,7 +144,11 @@ final class GameMoveService
         }
 
         $fenAfter = (string) $result['fenAfter'];
-        $san = trim((string) ($result['san'] ?? ''));
+        if (!array_key_exists('san', $result)) {
+            $san = '';
+        } else {
+            $san = trim((string) $result['san']);
+        }
 
         if ('' === $san) {
             $san = $uci;
