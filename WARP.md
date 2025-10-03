@@ -8,7 +8,7 @@ Chess-Teams is a real-time team-based chess application built with Symfony 6.4. 
 
 ## Technology Stack
 
-- **Backend**: PHP 8.1+, Symfony 6.4, Doctrine ORM
+- **Backend**: PHP 8.4+, Symfony 6.4, Doctrine ORM
 - **Frontend**: JavaScript, Stimulus, AssetMapper (no Webpack)
 - **Database**: PostgreSQL (production), SQLite (testing)
 - **Real-time**: Symfony Mercure for real-time updates
@@ -149,7 +149,7 @@ Example test run:
 
 ## Code Quality
 
-- **PHP-CS-Fixer**: Enforces Symfony coding standards + PHP 8.1 features
+- **PHP-CS-Fixer**: Enforces Symfony coding standards + PHP 8.4 features
 - **PHPStan**: Static analysis (configure in composer.json if needed)
 - **Doctrine**: Schema validation via migrations
 

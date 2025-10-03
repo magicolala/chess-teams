@@ -116,7 +116,7 @@ Cette version marque une refonte complète du système d'échiquier avec l'impl�
 
 #### 🛠️ Technique
 - **Symfony 6.4** : Framework backend moderne
-- **PHP 8.1+** : Support des dernières fonctionnalités PHP
+- **PHP 8.4+** : Support des dernières fonctionnalités PHP
 - **Webpack Encore** : Build system pour les assets frontend
 - **PHPUnit** : Suite de tests complète
 - **Docker** : Containerisation pour le développement
@@ -173,8 +173,8 @@ php bin/console cache:clear
 
 | Version | Status        | Support PHP | Support Symfony | Fin de Support |
 |---------|--------------|-------------|-----------------|----------------|
-| 2.0.x   | ✅ Actuel    | 8.1+        | 6.4+           | -              |
-| 1.2.x   | 🔄 LTS       | 8.1+        | 6.4            | 2025-06-01     |
+| 2.0.x   | ✅ Actuel    | 8.4+        | 6.4+           | -              |
+| 1.2.x   | 🔄 LTS       | 8.4+        | 6.4            | 2025-06-01     |
 | 1.1.x   | ⚠️ Déprécié  | 8.0+        | 6.3+           | 2025-01-01     |
 | 1.0.x   | ❌ Obsolète  | 8.0+        | 6.3+           | 2024-12-01     |
 

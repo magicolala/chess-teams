@@ -2,7 +2,7 @@
 
 ![Chess Teams Logo](https://img.shields.io/badge/Chess-Teams-blue?style=for-the-badge&logo=chess&logoColor=white)
 ![Symfony](https://img.shields.io/badge/Symfony-6.4-green?style=for-the-badge&logo=symfony)
-![PHP](https://img.shields.io/badge/PHP-8.1+-777BB4?style=for-the-badge&logo=php&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-8.4+-777BB4?style=for-the-badge&logo=php&logoColor=white)
 ![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)
 [![CI](https://github.com/magicolala/chess-teams/actions/workflows/ci.yml/badge.svg)](https://github.com/magicolala/chess-teams/actions/workflows/ci.yml)
 [![Code Style](https://github.com/magicolala/chess-teams/actions/workflows/code-style.yml/badge.svg)](https://github.com/magicolala/chess-teams/actions/workflows/code-style.yml)
@@ -82,7 +82,7 @@ start http://localhost:8000
 ### Backend
 
 - **Framework** : Symfony 6.4 (LTS)
-- **Langage** : PHP 8.1+
+- **Langage** : PHP 8.4+
 - **ORM** : Doctrine avec migrations
 - **Base de données** : PostgreSQL/MySQL compatible
 - **Moteur d'échecs** : chesslablab/php-chess
@@ -101,11 +101,11 @@ start http://localhost:8000
 - **Tests** : PHPUnit avec fixtures
 - **Code Quality** : PHP-CS-Fixer avec règles strictes
 - **CI/CD** : GitHub Actions ready
-- **Documentation** : Markdown avec diagrammes
+- **Documentation** : Markdown avec diagrammes (voir `docs/php84-upgrade.md` pour la migration PHP 8.4)
 
 ## Prérequis
 
-- PHP 8.1 ou supérieur
+- PHP 8.4 ou supérieur
 - Composer
 - Docker Desktop (recommandé pour Postgres + Mercure)
 - Symfony CLI (optionnel si vous ne lancez pas Nginx via Docker)
