@@ -35,6 +35,7 @@ Ce document récapitule la migration du projet Chess-Teams vers PHP 8.4. Il sert
   - `tests/Application/Service/Game/GameMoveServiceTest.php`
   - `tests/Application/Service/Game/GameTimeoutServiceTest.php`
   - Adaptation des tests de handlers (`MakeMoveHandlerTest`, `TimeoutTickHandlerTest`).
+- Les workflows GitHub Actions (`ci.yml`, `code-style.yml`) exécutent désormais PHP 8.4 pour rester cohérents avec la contrainte runtime.
 
 ### Refactorisation SOLID
 

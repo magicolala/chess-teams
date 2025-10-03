@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['8.1', '8.2', '8.3']
+        php-version: ['8.4']
     env:
       APP_ENV: test
       DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/chess_teams_test?serverVersion=16&charset=utf8
@@ -144,7 +144,7 @@ jobs:
     - name: 🐘 Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
+        php-version: '8.4'
         extensions: ctype, iconv, json
         tools: composer:v2
 
@@ -175,7 +175,7 @@ jobs:
     - name: 🐘 Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
+        php-version: '8.4'
         tools: composer:v2
 
     - name: 📦 Install PHP dependencies (cached)
@@ -207,7 +207,7 @@ jobs:
     - name: 🐘 Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
+        php-version: '8.4'
         tools: composer:v2
 
     - name: 📦 Install dependencies (cached)
@@ -261,7 +261,7 @@ jobs:
     - name: 🐘 Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
+        php-version: '8.4'
         tools: composer:v2
 
     - name: 📦 Install production dependencies (cached)
