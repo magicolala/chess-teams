@@ -214,7 +214,7 @@ final class GameMoveService
 }
 
 /**
- * @internal Small immutable helper carrying turn-related context.
+ * @internal small immutable helper carrying turn-related context
  */
 final class TurnContext
 {

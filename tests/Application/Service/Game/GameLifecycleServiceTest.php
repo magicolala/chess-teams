@@ -2,8 +2,8 @@
 
 namespace App\Tests\Application\Service\Game;
 
-use App\Application\Service\Game\GameLifecycleService;
 use App\Application\Service\Game\DTO\GameStartSummary;
+use App\Application\Service\Game\GameLifecycleService;
 use App\Application\Service\Werewolf\WerewolfRoleAssigner;
 use App\Domain\Repository\TeamMemberRepositoryInterface;
 use App\Domain\Repository\TeamRepositoryInterface;
@@ -57,7 +57,7 @@ final class GameLifecycleServiceTest extends TestCase
         $assigner = $this->createMock(WerewolfRoleAssigner::class);
         $assigner->expects($this->once())
             ->method('assignForGame')
-            ->with($game, $this->callback(fn ($list) => count($list) === 2), $this->callback(fn ($list) => count($list) === 2));
+            ->with($game, $this->callback(fn ($list) => 2 === count($list)), $this->callback(fn ($list) => 2 === count($list)));
 
         $service = new GameLifecycleService($teamRepo, $memberRepo, $em, $assigner);
         $summary = $service->start($game, $this->creator);
