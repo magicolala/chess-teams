@@ -1,0 +1,22 @@
+layout:
+    brand: '%app_name%'
+    slogan: "Jeu d'échecs en équipe"
+    console_brand_loaded: "🎯 NeoChess Framework chargé - %app_name%"
+
+auth:
+    login:
+        title: 'Connexion - %app_name%'
+    register:
+        title: 'Créer un compte - %app_name%'
+        hero_tagline: 'Rejoignez la communauté %app_name% et jouez en équipe !'
+
+page:
+    home:
+        title: 'Accueil – %app_name%'
+        hero_title: '🏆 %app_name%'
+        hero_tagline: 'Jouez aux échecs en équipe avec vos amis'
+    user_profile:
+        profile:
+            title: 'Mon Profil - %app_name%'
+        notifications:
+            title: 'Préférences de notifications - %app_name%'

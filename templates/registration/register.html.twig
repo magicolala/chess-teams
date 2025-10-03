@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Créer un compte - Chess Teams{% endblock %}
+{% block title %}{{ 'auth.register.title'|trans }}{% endblock %}
 
 
 {% block body %}
@@ -21,7 +21,7 @@
 					<div class="neo-card-header neo-text-center">
 						<div class="neo-text-4xl neo-mb-md">👥</div>
 						<h1 class="neo-card-title neo-text-xl">Créer un compte</h1>
-						<p class="neo-text-secondary">Rejoignez la communauté Chess Teams et jouez en équipe !</p>
+                                                <p class="neo-text-secondary">{{ 'auth.register.hero_tagline'|trans }}</p>
 					</div>
 					<div class="neo-card-content">
 						{{ form_start(registrationForm, {'attr': {'novalidate': 'novalidate'}}) }}

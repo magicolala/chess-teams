@@ -3,3 +3,6 @@ framework:
     translator:
         default_path: '%kernel.project_dir%/translations'
         providers:
+        globals:
+            app_name:
+                value: 'Chess Teams'
