@@ -2,7 +2,7 @@
 
 ## 📋 Vue d'ensemble
 
-Cette fonctionnalité ajoute un menu des préférences de notifications accessible via le profil utilisateur dans l'interface Chess Teams. Le menu est intégré dans le design NeoChess existant et utilise Symfony avec Stimulus pour les interactions.
+Cette fonctionnalité ajoute un menu des préférences de notifications accessible via le profil utilisateur dans l'interface Chess Teams. Le menu est intégré dans le design NeoChess existant et utilise Symfony 7 avec Stimulus pour les interactions.
 
 ## 🎯 Fonctionnalités
 
@@ -199,6 +199,6 @@ Pour contribuer à cette fonctionnalité :
 ---
 
 **Version** : 1.0.0  
-**Framework** : Symfony 6.x + Stimulus  
+**Framework** : Symfony 7 + Stimulus
 **Design** : NeoChess Framework  
 **Compatibilité** : Navigateurs modernes (ES6+)
