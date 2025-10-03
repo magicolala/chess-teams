@@ -285,8 +285,9 @@ Exemples typiques (si présents dans `composer.json`):
 - Jeu collaboratif: garder la logique de validation des coups cohérente entre client (hints) et serveur (vérité). Le serveur doit être source d’autorité.
 - Minuteur de tour: les endpoints côté serveur doivent rester atomiques et résistants aux rafraîchissements/latences.
 - Événements en temps réel: Mercure est utilisé pour pousser les mises à jour. Veiller aux CORS et aux clés JWT dans un `.env.local` sécurisé.
-- Dépendances PHP: `lcobucci/jwt` (via Mercure) reste verrouillé en 5.3.0 avec une contrainte PHP patchée pour 8.4. **Ne pas** regénérer
-  `composer.lock` sans vérifier si une version officielle ajoute 8.4. Conserver la modification documentée dans `docs/php84-upgrade.md`.
+- Dépendances PHP: `lcobucci/jwt` (via Mercure) reste verrouillé en 5.3.0 via un dépôt Composer custom étendant la contrainte
+  PHP à 8.4 (`composer.json`). Les `composer update` standards sont désormais supportés ; conserver le dépôt tant que la release
+  upstream n’expose pas officiellement PHP 8.4.
 
 ## 9) Workflow recommandé (IA Agent)
 

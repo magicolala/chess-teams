@@ -20,10 +20,13 @@ Ce document récapitule la migration du projet Chess-Teams vers PHP 8.4. Il sert
   - `friendsofphp/php-cs-fixer` → `^3.86`.
   - `symfony/phpunit-bridge` → `^7.1` (compatible PHPUnit 9.6 / PHP 8.4).
 - `composer.lock`
-  - Conserve `lcobucci/jwt` en version 5.3.0 mais **patche** sa contrainte PHP pour inclure `~8.4.0` (en attendant une
-    release amont). Ne pas regénérer le lock sans vérifier si une version officielle ajoute le support PHP 8.4.
-- Regénérer `composer.lock` avec `composer update --lock` après toute mise à jour (et supprimer le patch précédent si la
-  dépendance a été mise à niveau).
+  - `lcobucci/jwt` reste fixé en 5.3.0 mais la contrainte PHP est fournie via un dépôt Composer local (voir
+    `composer.json`) pour accepter `~8.4.0`.
+- `composer.json`
+  - Ajout d’un dépôt `type: package` dédié à `lcobucci/jwt` 5.3.0 afin de surcharger les métadonnées Packagist tant que la
+    version amont n’expose pas officiellement PHP 8.4.
+- Regénérer `composer.lock` avec `composer update --lock` après toute mise à jour (le dépôt custom garantit la
+  compatibilité PHP 8.4).
 
 ### Conteneurs & runtime
 
