@@ -28,7 +28,7 @@ En participant à ce projet, vous acceptez de respecter notre [Code de Conduite]
 ## 🚀 Comment Commencer
 
 ### Prérequis
-- PHP 8.1+
+- PHP 8.4+
 - Composer
 - Git
 - Compte GitHub
@@ -399,7 +399,7 @@ Si applicable, ajouter des captures d'écran pour expliquer le problème.
  - OS: [ex: Ubuntu 20.04]
  - Navigateur [ex: Chrome, Firefox]
  - Version [ex: 22]
- - PHP Version: [ex: 8.1]
+- PHP Version: [ex: 8.4]
  - Symfony Version: [ex: 6.4]
 
 **Contexte Additionnel**

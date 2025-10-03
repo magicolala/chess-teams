@@ -1,12 +1,12 @@
 {
     "name": "magicolala/chess-teams",
-    "description": "Application web d’échecs collaboratifs (Symfony 6.4, PHP 8.1+).",
+    "description": "Application web d’échecs collaboratifs (Symfony 6.4, PHP 8.4+).",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": ">=8.1",
+        "php": "^8.4",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "chesslablab/php-chess": "^1.6",
@@ -97,7 +97,7 @@
         "cs:fix": [
             "php tools/php-cs-fixer.phar fix --config=.php-cs-fixer.dist.php --allow-risky=yes"
         ],
-                "cs:check": [
+        "cs:check": [
             "php tools/php-cs-fixer.phar fix --config=.php-cs-fixer.dist.php --allow-risky=yes --dry-run --diff"
         ],
         "stan": [
@@ -114,17 +114,17 @@
         }
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.86",
+        "friendsofphp/php-cs-fixer": "^3.99",
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-doctrine": "^2.0",
         "phpstan/phpstan-symfony": "^2.0",
-        "phpunit/phpunit": "^9.5",
+        "phpunit/phpunit": "^11.1",
         "squizlabs/php_codesniffer": "^3.13",
         "symfony/browser-kit": "6.4.*",
         "symfony/css-selector": "6.4.*",
         "symfony/debug-bundle": "6.4.*",
         "symfony/maker-bundle": "^1.64",
-        "symfony/phpunit-bridge": "^7.3",
+        "symfony/phpunit-bridge": "^7.1",
         "symfony/stopwatch": "6.4.*",
         "symfony/web-profiler-bundle": "6.4.*"
     },

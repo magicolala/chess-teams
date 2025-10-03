@@ -5,14 +5,14 @@ Ce guide détaillé vous accompagne dans l'installation et la configuration de C
 ## 📋 Prérequis Système
 
 ### Minimaux Requis
-- **PHP** : 8.1+ avec extensions : `ctype`, `iconv`, `json`, `tokenizer`
+- **PHP** : 8.4+ avec extensions : `ctype`, `iconv`, `json`, `tokenizer`
 - **Composer** : 2.0+
 - **Base de données** : PostgreSQL 13+ ou MySQL 8.0+
 - **Serveur web** : Apache 2.4+ ou Nginx 1.18+
 - **Git** : Pour cloner le repository
 
 ### Recommandés
-- **PHP** : 8.2+ (performance améliorée)
+- **PHP** : 8.4+ (dernières optimisations)
 - **Redis** : 6.0+ (cache et sessions)
 - **Node.js** : 18+ (pour développement frontend)
 - **Symfony CLI** : Pour outils de développement
@@ -21,7 +21,7 @@ Ce guide détaillé vous accompagne dans l'installation et la configuration de C
 
 ### 1. Installer PHP avec XAMPP
 ```bash
-# Télécharger XAMPP avec PHP 8.1+
+# Télécharger XAMPP avec PHP 8.4+
 # https://www.apachefriends.org/download.html
 
 # Activer les extensions PHP dans php.ini
@@ -55,10 +55,10 @@ GRANT ALL PRIVILEGES ON chess_teams.* TO 'chess_user'@'localhost';
 # Mettre à jour les paquets
 sudo apt update && sudo apt upgrade -y
 
-# Installer PHP 8.1+
-sudo apt install php8.1 php8.1-fpm php8.1-cli php8.1-common \
-    php8.1-mysql php8.1-pgsql php8.1-xml php8.1-curl \
-    php8.1-gd php8.1-mbstring php8.1-zip php8.1-redis
+# Installer PHP 8.4+
+sudo apt install php8.4 php8.4-fpm php8.4-cli php8.4-common \
+    php8.4-mysql php8.4-pgsql php8.4-xml php8.4-curl \
+    php8.4-gd php8.4-mbstring php8.4-zip php8.4-redis
 
 # Installer Composer
 curl -sS https://getcomposer.org/installer | php
@@ -92,7 +92,7 @@ server {
     }
 
     location ~ ^/index\.php(/|$) {
-        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php8.4-fpm.sock;
         fastcgi_split_path_info ^(.+\.php)(/.*)$;
         include fastcgi_params;
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
@@ -109,7 +109,7 @@ server {
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
 # Installer PHP et dépendances
-brew install php@8.1 composer postgresql redis
+brew install php@8.4 composer postgresql redis
 
 # Démarrer les services
 brew services start postgresql
@@ -280,10 +280,10 @@ sudo chmod -R 775 var/
 ### Extension PHP manquante
 ```bash
 # Ubuntu/Debian
-sudo apt install php8.1-extension-name
+sudo apt install php8.4-extension-name
 
 # macOS
-brew install php@8.1
+brew install php@8.4
 # puis redémarrer le serveur
 ```
 
@@ -333,7 +333,7 @@ opcache.max_accelerated_files=4000
 ### APCu (optionnel)
 ```bash
 # Ubuntu/Debian
-sudo apt install php8.1-apcu
+sudo apt install php8.4-apcu
 
 # Configuration Symfony
 # config/packages/cache.yaml
