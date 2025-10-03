@@ -5,7 +5,7 @@ Ce document récapitule la migration du projet Chess-Teams vers PHP 8.4. Il sert
 ## Résumé des changements
 
 - **Runtime** : exigence PHP portée à 8.4+ (`composer.json`, Dockerfile, documentation utilisateur).
-- **Outillage QA** : mise à jour de PHPUnit vers la série 11.x, harmonisation de `phpunit.xml.dist` et des dépendances de dev compatibles PHP 8.4.
+- **Outillage QA** : stabilisation de la stack de tests autour de PHPUnit 9.6 (compatible PHP 8.4) et harmonisation de `phpunit.xml.dist`/dépendances de dev.
 - **Services applicatifs** : refactorisation des use cases `StartGame`, `MakeMove` et `TimeoutTick` vers de nouveaux services dédiés (`GameLifecycleService`, `GameMoveService`, `GameTimeoutService`) pour respecter SOLID.
 - **Tests** : ajout de batteries de tests unitaires ciblant les nouveaux services et adaptation des tests de handlers.
 - **Documentation** : harmonisation des guides (README, INSTALLATION, AGENT_GUIDE, GEMINI, WARP, CONTRIBUTING, CHANGELOG) et ajout de ce mémo.
@@ -16,9 +16,9 @@ Ce document récapitule la migration du projet Chess-Teams vers PHP 8.4. Il sert
 
 - `composer.json`
   - `"php": "^8.4"`.
-  - `phpunit/phpunit` → `^11.1`.
-  - `friendsofphp/php-cs-fixer` → `^3.99`.
-  - `symfony/phpunit-bridge` → `^7.1` (compatible PHPUnit 11 / PHP 8.4).
+  - `phpunit/phpunit` → `^9.6`.
+  - `friendsofphp/php-cs-fixer` → `^3.86`.
+  - `symfony/phpunit-bridge` → `^7.1` (compatible PHPUnit 9.6 / PHP 8.4).
 - Regénérer `composer.lock` avec `composer update --lock` après toute mise à jour.
 
 ### Conteneurs & runtime
@@ -28,8 +28,8 @@ Ce document récapitule la migration du projet Chess-Teams vers PHP 8.4. Il sert
 
 ### Qualité & tests
 
-- `phpunit.xml.dist` migré vers le schéma PHPUnit 11 (`https://schema.phpunit.de/11.0/phpunit.xsd`).
-- Suppression du listener `SymfonyTestsListener` (obsolète avec PHPUnit 11) au profit du bootstrap personnalisé `tests/bootstrap.php`.
+- `phpunit.xml.dist` aligné sur le schéma PHPUnit 9.6 (`https://schema.phpunit.de/9.6/phpunit.xsd`).
+- Suppression du listener `SymfonyTestsListener` (obsolète depuis PHPUnit 9.5+) au profit du bootstrap personnalisé `tests/bootstrap.php`.
 - Nouveaux tests :
   - `tests/Application/Service/Game/GameLifecycleServiceTest.php`
   - `tests/Application/Service/Game/GameMoveServiceTest.php`
