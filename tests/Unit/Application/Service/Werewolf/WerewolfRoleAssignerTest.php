@@ -40,9 +40,11 @@ final class WerewolfRoleAssignerTest extends KernelTestCase
         $assigner = $c->get(WerewolfRoleAssigner::class);
         $roles = $assigner->assignForGame($g, [$users[0], $users[1]], [$users[2], $users[3]]);
 
-        self::assertNotEmpty($roles);
+        self::assertCount(4, $roles, 'All players should receive a role.');
         $werewolves = array_filter($roles, static fn ($r) => 'werewolf' === $r->getRole());
         self::assertCount(1, $werewolves, 'Should assign exactly one werewolf.');
+        $villagers = array_filter($roles, static fn ($r) => 'villager' === $r->getRole());
+        self::assertCount(3, $villagers, 'All other players should remain villagers.');
     }
 
     public function testAssignTwoWerewolvesWhenOptionEnabled(): void
@@ -79,5 +81,16 @@ final class WerewolfRoleAssignerTest extends KernelTestCase
 
         $wolves = array_filter($roles, static fn ($r) => 'werewolf' === $r->getRole());
         self::assertCount(2, $wolves, 'Should assign one werewolf per team.');
+        $wolvesTeamA = array_filter(
+            $wolves,
+            static fn ($r) => Game::TEAM_A === $r->getTeamName()
+        );
+        $wolvesTeamB = array_filter(
+            $wolves,
+            static fn ($r) => Game::TEAM_B === $r->getTeamName()
+        );
+
+        self::assertCount(1, $wolvesTeamA, 'Team A should have exactly one werewolf.');
+        self::assertCount(1, $wolvesTeamB, 'Team B should have exactly one werewolf.');
     }
 }
