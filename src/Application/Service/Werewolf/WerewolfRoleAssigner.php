@@ -52,24 +52,36 @@ class WerewolfRoleAssigner
             $wolfA = $teamAUsers[$idxA] ?? null;
             $wolfB = $teamBUsers[$idxB] ?? null;
 
-            foreach ($roles as $r) {
-                if ($wolfA && $r->getUser()->getId() === $wolfA->getId() && Game::TEAM_A === $r->getTeamName()) {
-                    $r->setRole('werewolf');
-                }
-                if ($wolfB && $r->getUser()->getId() === $wolfB->getId() && Game::TEAM_B === $r->getTeamName()) {
-                    $r->setRole('werewolf');
-                }
+            $wolfRoleA = array_find(
+                $roles,
+                static fn (GameRole $role): bool => $wolfA
+                    && $role->getUser()->getId() === $wolfA->getId()
+                    && Game::TEAM_A === $role->getTeamName()
+            );
+            if ($wolfRoleA instanceof GameRole) {
+                $wolfRoleA->setRole('werewolf');
+            }
+
+            $wolfRoleB = array_find(
+                $roles,
+                static fn (GameRole $role): bool => $wolfB
+                    && $role->getUser()->getId() === $wolfB->getId()
+                    && Game::TEAM_B === $role->getTeamName()
+            );
+            if ($wolfRoleB instanceof GameRole) {
+                $wolfRoleB->setRole('werewolf');
             }
         } else {
             // single werewolf across all players
             $idx = $this->pickIndex(count($all));
             $wolf = $all[$idx] ?? null;
             if ($wolf) {
-                foreach ($roles as $r) {
-                    if ($r->getUser()->getId() === $wolf->getId()) {
-                        $r->setRole('werewolf');
-                        break;
-                    }
+                $wolfRole = array_find(
+                    $roles,
+                    static fn (GameRole $role): bool => $role->getUser()->getId() === $wolf->getId()
+                );
+                if ($wolfRole instanceof GameRole) {
+                    $wolfRole->setRole('werewolf');
                 }
             }
         }
