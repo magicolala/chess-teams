@@ -4,13 +4,13 @@ namespace App\Application\UseCase;
 
 use App\Application\DTO\TimeoutTickInput;
 use App\Application\DTO\TimeoutTickOutput;
-use App\Application\Service\Game\GameTimeoutService;
+use App\Application\Service\Game\GameTimeoutServiceInterface;
 use App\Entity\User;
 
 final class TimeoutTickHandler
 {
     public function __construct(
-        private GameTimeoutService $timeouts,
+        private GameTimeoutServiceInterface $timeouts,
     ) {
     }
 

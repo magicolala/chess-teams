@@ -4,11 +4,11 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Project Overview
 
-Chess-Teams is a real-time team-based chess application built with Symfony 7. Players collaborate in teams (White/Black) to make chess moves together, featuring an interactive chessboard, real-time updates, and turn timers.
+Chess-Teams is a real-time team-based chess application built with Symfony 7.3. Players collaborate in teams (White/Black) to make chess moves together, featuring an interactive chessboard, real-time updates, and turn timers.
 
 ## Technology Stack
 
-- **Backend**: PHP 8.4+, Symfony 7, Doctrine ORM
+- **Backend**: PHP 8.4+, Symfony 7.3, Doctrine ORM
 - **Frontend**: JavaScript, Stimulus, AssetMapper (no Webpack)
 - **Database**: PostgreSQL (production), SQLite (testing)
 - **Real-time**: Symfony Mercure for real-time updates

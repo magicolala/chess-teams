@@ -15,6 +15,7 @@ et ce projet adhère au [Versioning Sémantique](https://semver.org/spec/v2.0.0.
 
 ### 🔄 Modifié
 - Migration du backend vers Symfony 7 pour bénéficier des dernières améliorations du framework
+- Alignement des dépendances Symfony sur la série 7.3.x et synchronisation des recettes associées
 
 ---
 

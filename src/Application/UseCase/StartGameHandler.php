@@ -4,7 +4,7 @@ namespace App\Application\UseCase;
 
 use App\Application\DTO\StartGameInput;
 use App\Application\DTO\StartGameOutput;
-use App\Application\Service\Game\GameLifecycleService;
+use App\Application\Service\Game\GameLifecycleServiceInterface;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Entity\User;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -13,7 +13,7 @@ final class StartGameHandler
 {
     public function __construct(
         private GameRepositoryInterface $games,
-        private GameLifecycleService $lifecycle,
+        private GameLifecycleServiceInterface $lifecycle,
     ) {
     }
 

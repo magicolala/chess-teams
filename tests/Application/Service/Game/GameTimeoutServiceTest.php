@@ -17,7 +17,7 @@ use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Lock\LockFactory;
-use Symfony\Component\Lock\LockInterface;
+use Symfony\Component\Lock\SharedLockInterface;
 
 final class GameTimeoutServiceTest extends TestCase
 {
@@ -34,7 +34,7 @@ final class GameTimeoutServiceTest extends TestCase
         $moves = $this->createMock(MoveRepositoryInterface::class);
         $moves->expects($this->never())->method('add');
 
-        $lock = $this->createConfiguredMock(LockInterface::class, ['acquire' => true]);
+        $lock = $this->createConfiguredMock(SharedLockInterface::class, ['acquire' => true]);
         $lock->expects($this->once())->method('release');
         $lockFactory = $this->createMock(LockFactory::class);
         $lockFactory->method('createLock')->willReturn($lock);
@@ -86,7 +86,7 @@ final class GameTimeoutServiceTest extends TestCase
                 return Move::TYPE_TIMEOUT === $move->getType();
             }));
 
-        $lock = $this->createConfiguredMock(LockInterface::class, ['acquire' => true]);
+        $lock = $this->createConfiguredMock(SharedLockInterface::class, ['acquire' => true]);
         $lock->expects($this->once())->method('release');
         $lockFactory = $this->createMock(LockFactory::class);
         $lockFactory->method('createLock')->willReturn($lock);

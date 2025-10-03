@@ -4,7 +4,7 @@ namespace App\Tests\Unit\Application\UseCase;
 
 use App\Application\DTO\MakeMoveInput;
 use App\Application\Service\Game\DTO\MoveResult;
-use App\Application\Service\Game\GameMoveService;
+use App\Application\Service\Game\GameMoveServiceInterface;
 use App\Application\UseCase\MakeMoveHandler;
 use App\Entity\Game;
 use App\Entity\User;
@@ -19,7 +19,7 @@ final class MakeMoveHandlerTest extends TestCase
 {
     public function testMakeMoveHappyPath(): void
     {
-        $service = $this->createMock(GameMoveService::class);
+        $service = $this->createMock(GameMoveServiceInterface::class);
 
         $handler = new MakeMoveHandler($service);
 

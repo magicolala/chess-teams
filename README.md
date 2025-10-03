@@ -81,7 +81,7 @@ start http://localhost:8000
 
 ### Backend
 
-- **Framework** : Symfony 7
+- **Framework** : Symfony 7.3
 - **Langage** : PHP 8.4+
 - **ORM** : Doctrine avec migrations
 - **Base de données** : PostgreSQL/MySQL compatible

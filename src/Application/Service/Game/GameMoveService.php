@@ -23,7 +23,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\Lock\LockFactory;
 
-final class GameMoveService
+final class GameMoveService implements GameMoveServiceInterface
 {
     public function __construct(
         private readonly GameRepositoryInterface $games,

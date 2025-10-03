@@ -14,7 +14,7 @@ use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Lock\LockFactory;
-use Symfony\Component\Lock\LockInterface;
+use Symfony\Component\Lock\SharedLockInterface;
 
 /**
  * @internal
@@ -37,7 +37,7 @@ final class DecideTimeoutHandlerTest extends TestCase
         $members = $this->createMock(TeamMemberRepositoryInterface::class);
         $em = $this->createMock(EntityManagerInterface::class);
 
-        $lock = $this->createMock(LockInterface::class);
+        $lock = $this->createMock(SharedLockInterface::class);
         $lock->method('acquire')->willReturn(true);
         $lock->expects(self::once())->method('release');
         $lockFactory = $this->createMock(LockFactory::class);

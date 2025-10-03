@@ -26,11 +26,11 @@ Ce document explique la codebase, les conventions de code, l’architecture et l
 - Application web d’échecs collaboratifs (jeu en équipe) nommée `chess-teams`.
 - Objectif de ce guide: permettre à une IA Agent de comprendre rapidement le stack, la structure du dépôt et les conventions, pour proposer des changements, des diagnostics et des commandes adaptées à mon environnement.
 - Poste de dev: Windows PC, terminal par défaut PowerShell.
-- Dev local: Symfony 7 (PHP 8.4+), avec Docker pour les services d’infra (PostgreSQL, Mercure), et AssetMapper pour les assets.
+- Dev local: Symfony 7.3 (PHP 8.4+), avec Docker pour les services d’infra (PostgreSQL, Mercure), et AssetMapper pour les assets.
 
 ## 2) Stack Technique
 
-- Backend: Symfony 7, PHP >= 8.4.
+- Backend: Symfony 7.3, PHP >= 8.4.
 - ORM & DB: Doctrine ORM 3.x, Migrations, PostgreSQL (via Docker).
 - Messaging/Realtime: Mercure (via Docker) + Symfony UX Turbo.
 - Cache/Queue (potentiel): Redis (Predis lib incluse, usage optionnel).

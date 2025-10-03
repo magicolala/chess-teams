@@ -20,7 +20,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\Lock\LockFactory;
-use Symfony\Component\Lock\LockInterface;
+use Symfony\Component\Lock\SharedLockInterface;
 
 final class GameMoveServiceTest extends TestCase
 {
@@ -50,7 +50,7 @@ final class GameMoveServiceTest extends TestCase
         $engine = $this->createMock(ChessEngineInterface::class);
         $engine->expects($this->never())->method('applyUci');
 
-        $lock = $this->createConfiguredMock(LockInterface::class, [
+        $lock = $this->createConfiguredMock(SharedLockInterface::class, [
             'acquire' => true,
         ]);
         $lock->expects($this->once())->method('release');
@@ -116,7 +116,7 @@ final class GameMoveServiceTest extends TestCase
             'san' => '',
         ]);
 
-        $lock = $this->createConfiguredMock(LockInterface::class, [
+        $lock = $this->createConfiguredMock(SharedLockInterface::class, [
             'acquire' => true,
         ]);
         $lock->expects($this->once())->method('release');

@@ -14,7 +14,7 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-final class GameLifecycleService
+final class GameLifecycleService implements GameLifecycleServiceInterface
 {
     public function __construct(
         private readonly TeamRepositoryInterface $teams,
