@@ -192,4 +192,7 @@ The application uses **Symfony Mercure** for real-time updates:
 
 For operational guides and Docker-based workflows, see `README.md` (Installation & Quickstart). For Windows/PowerShell commands, best practices, and troubleshooting, see `AGENT_GUIDE.md`.
 
+> **Note:** Mercure depends on `lcobucci/jwt` 5.3.0 avec une contrainte PHP patchée pour accepter 8.4. Vérifiez `docs/php84-upgrade.md`
+> avant toute régénération du `composer.lock` pour conserver cette adaptation.
+
 When working with this codebase, prioritize understanding the game flow through the use case handlers and how the hexagonal architecture maintains clean separation between business logic and external concerns.
