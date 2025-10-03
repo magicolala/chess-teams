@@ -7,7 +7,10 @@ use App\Application\UseCase\CreateGameHandler;
 use App\Command\CreateTestUsersCommand;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class CreateTestUsersCommandTest extends TestCase
@@ -31,11 +34,13 @@ final class CreateTestUsersCommandTest extends TestCase
         $em->expects(self::once())->method('flush');
 
         $cmd = new CreateTestUsersCommand($em, $hasher, $handler);
-        $tester = new CommandTester($cmd);
-        $status = $tester->execute([]);
+        $output = new BufferedOutput();
+        $io = new SymfonyStyle(new ArrayInput([]), $output);
 
-        self::assertSame(0, $status);
-        $display = $tester->getDisplay();
+        $status = $cmd($io);
+
+        self::assertSame(Command::SUCCESS, $status);
+        $display = $output->fetch();
         self::assertStringContainsString('test users have been created', $display);
         self::assertStringContainsString('Games created for test users', $display);
     }
