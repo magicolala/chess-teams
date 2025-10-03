@@ -19,7 +19,11 @@ Ce document récapitule la migration du projet Chess-Teams vers PHP 8.4. Il sert
   - `phpunit/phpunit` → `^9.6`.
   - `friendsofphp/php-cs-fixer` → `^3.86`.
   - `symfony/phpunit-bridge` → `^7.1` (compatible PHPUnit 9.6 / PHP 8.4).
-- Regénérer `composer.lock` avec `composer update --lock` après toute mise à jour.
+- `composer.lock`
+  - Conserve `lcobucci/jwt` en version 5.3.0 mais **patche** sa contrainte PHP pour inclure `~8.4.0` (en attendant une
+    release amont). Ne pas regénérer le lock sans vérifier si une version officielle ajoute le support PHP 8.4.
+- Regénérer `composer.lock` avec `composer update --lock` après toute mise à jour (et supprimer le patch précédent si la
+  dépendance a été mise à niveau).
 
 ### Conteneurs & runtime
 
