@@ -4,7 +4,7 @@ namespace App\Tests\Unit\Application\UseCase;
 
 use App\Application\DTO\TimeoutTickInput;
 use App\Application\Service\Game\DTO\TimeoutResult;
-use App\Application\Service\Game\GameTimeoutService;
+use App\Application\Service\Game\GameTimeoutServiceInterface;
 use App\Application\UseCase\TimeoutTickHandler;
 use App\Entity\Game;
 use App\Entity\User;
@@ -19,7 +19,7 @@ final class TimeoutTickHandlerTest extends TestCase
 {
     public function testHandlerBuildsOutputFromServiceResult(): void
     {
-        $service = $this->createMock(GameTimeoutService::class);
+        $service = $this->createMock(GameTimeoutServiceInterface::class);
         $handler = new TimeoutTickHandler($service);
 
         $game = $this->createMock(Game::class);

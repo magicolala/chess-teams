@@ -4,13 +4,13 @@ namespace App\Application\UseCase;
 
 use App\Application\DTO\MakeMoveInput;
 use App\Application\DTO\MakeMoveOutput;
-use App\Application\Service\Game\GameMoveService;
+use App\Application\Service\Game\GameMoveServiceInterface;
 use App\Entity\User;
 
 final class MakeMoveHandler
 {
     public function __construct(
-        private GameMoveService $gameMoves,
+        private GameMoveServiceInterface $gameMoves,
     ) {
     }
 

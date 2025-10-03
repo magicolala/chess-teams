@@ -17,7 +17,7 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Lock\LockFactory;
 
-final class GameTimeoutService
+final class GameTimeoutService implements GameTimeoutServiceInterface
 {
     public function __construct(
         private readonly GameRepositoryInterface $games,

@@ -4,7 +4,7 @@ namespace App\Tests\Unit\Application\UseCase;
 
 use App\Application\DTO\StartGameInput;
 use App\Application\Service\Game\DTO\GameStartSummary;
-use App\Application\Service\Game\GameLifecycleService;
+use App\Application\Service\Game\GameLifecycleServiceInterface;
 use App\Application\UseCase\StartGameHandler;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Entity\Game;
@@ -21,7 +21,7 @@ final class StartGameHandlerTest extends TestCase
     public function testStartGameSetsLiveAndDeadline(): void
     {
         $games = $this->createMock(GameRepositoryInterface::class);
-        $lifecycle = $this->createMock(GameLifecycleService::class);
+        $lifecycle = $this->createMock(GameLifecycleServiceInterface::class);
 
         $handler = new StartGameHandler($games, $lifecycle);
 
