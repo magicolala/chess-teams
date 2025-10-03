@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="fr">
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>
-			{% block title %}Chess Teams
-			{% endblock %}
-		</title>
+<html lang="{{ app.request.locale }}">
+        <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>
+                        {% block title %}{{ 'layout.brand'|trans }}
+                        {% endblock %}
+                </title>
 
 		{{ importmap('app') }}
 
@@ -28,11 +28,11 @@
 			<header class="neo-header neo-mb-xl">
 				<div>
 					<h1 class="neo-header-title">
-						<a href="{{ path('app_home') }}" class="neo-text-primary" style="text-decoration: none;">
-							Chess Teams
-						</a>
-					</h1>
-					<span class="neo-header-info">Jeu d'échecs en équipe</span>
+                                                <a href="{{ path('app_home') }}" class="neo-text-primary" style="text-decoration: none;">
+                                                        {{ 'layout.brand'|trans }}
+                                                </a>
+                                        </h1>
+                                        <span class="neo-header-info">{{ 'layout.slogan'|trans }}</span>
 				</div>
 				
 				{# User info section #}
@@ -175,7 +175,7 @@
 				<script>
 					document.addEventListener('DOMContentLoaded', function () {
 						// NeoChess Framework JavaScript helpers
-						console.log('🎯 NeoChess Framework chargé - Chess Teams');
+                                                console.log('{{ 'layout.console_brand_loaded'|trans }}');
 						
 						// Gestion des messages flash flottants améliorée
 						const flashMessages = document.querySelectorAll('.neo-flash');

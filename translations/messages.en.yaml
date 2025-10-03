@@ -1,0 +1,22 @@
+layout:
+    brand: '%app_name%'
+    slogan: 'Team chess with your friends'
+    console_brand_loaded: '🎯 NeoChess Framework loaded - %app_name%'
+
+auth:
+    login:
+        title: 'Login - %app_name%'
+    register:
+        title: 'Create an account - %app_name%'
+        hero_tagline: 'Join the %app_name% community and play as a team!'
+
+page:
+    home:
+        title: 'Home – %app_name%'
+        hero_title: '🏆 %app_name%'
+        hero_tagline: 'Play team chess with your friends'
+    user_profile:
+        profile:
+            title: 'My Profile - %app_name%'
+        notifications:
+            title: 'Notification preferences - %app_name%'

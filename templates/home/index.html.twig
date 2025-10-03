@@ -1,18 +1,18 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Accueil – Chess Teams
+{% block title %}{{ 'page.home.title'|trans }}
 {% endblock %}
 
 {% block body %}
 	<div class="neo-animate-fadeIn">
 		<!-- Hero Section -->
 		<div class="neo-text-center neo-mb-2xl">
-			<h2 class="neo-text-3xl neo-font-bold neo-text-primary neo-mb-md">
-				🏆 Chess Teams
-			</h2>
-			<p class="neo-text-lg neo-text-secondary neo-mb-xl">
-				Jouez aux échecs en équipe avec vos amis
-			</p>
+                        <h2 class="neo-text-3xl neo-font-bold neo-text-primary neo-mb-md">
+                                {{ 'page.home.hero_title'|trans }}
+                        </h2>
+                        <p class="neo-text-lg neo-text-secondary neo-mb-xl">
+                                {{ 'page.home.hero_tagline'|trans }}
+                        </p>
 		</div>
 
 
