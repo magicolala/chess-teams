@@ -7,7 +7,7 @@
 [![CI](https://github.com/magicolala/chess-teams/actions/workflows/ci.yml/badge.svg)](https://github.com/magicolala/chess-teams/actions/workflows/ci.yml)
 [![Code Style](https://github.com/magicolala/chess-teams/actions/workflows/code-style.yml/badge.svg)](https://github.com/magicolala/chess-teams/actions/workflows/code-style.yml)
 
-**Chess-Teams** est une application web moderne et innovante pour jouer aux échecs en équipe. Elle permet à plusieurs joueurs de collaborer au sein de deux équipes (Blancs et Noirs) pour décider du meilleur coup à jouer collectivement. L'application offre une expérience de jeu immersive avec un échiquier interactif en temps réel, un système de notation avancé et une interface utilisateur élégante.
+**Chess-Teams** est une application web moderne pour jouer aux échecs en équipe. Deux équipes (A et B) se constituent et chaque membre joue **son propre coup** lorsque c'est à sa rotation : le serveur impose l'ordre de passage et refuse les coups qui ne proviennent pas du bon joueur. L'application fournit un échiquier interactif, un suivi complet de la partie et toutes les règles nécessaires pour terminer une rencontre en ligne.
 
 ## ⚡ Getting started (60s)
 
@@ -51,31 +51,32 @@ start http://localhost:8000
 
 ### 🎮 Gameplay
 
-- **Jeu d'échecs collaboratif** : Plusieurs joueurs par équipe peuvent discuter et décider des coups ensemble
-- **Échiquier interactif** : Interface moderne avec pièces géométriques inspirées de Neo Chess Board
-- **Validation des coups** : Moteur d'échecs intégré avec Chess.js pour la validation complète des règles
-- **Support des coups spéciaux** : Roque, en passant, promotion automatique des pions
+- **Jeu d'échecs en rotation** : chaque équipe dispose d'un ordre de passage ; un seul joueur peut jouer à la fois et un coup venant du mauvais joueur est rejeté par `GameMoveService`.
+- **Échiquier interactif** : Neo Chess Board est utilisé côté front pour afficher et manipuler la position en direct (`assets/controllers/game-board_controller.js`).
+- **Validation des coups** : le moteur (`ChessEngineInterface`) vérifie la légalité de chaque coup avant de l'enregistrer (`GameMoveService::applyMoveWithEngine`).
+- **Règles complètes** : roque, prise en passant et promotions sont gérés par le moteur (`GameMoveService::applyMoveWithEngine`).
+- **Modes de jeu** : mode classique ou variante "Werewolf" avec attribution de rôles secrets lors du lancement (`GameLifecycleService`).
 
 ### ⏱️ Système de Temps
 
-- **Minuteur par tour** avec indicateurs visuels d'urgence (< 30 secondes)
-- **Gestion automatique** des timeouts et fins de partie
-- **Affichage en temps réel** du temps restant
+- **Deadline par tour** : une échéance est associée à l'équipe qui doit jouer, avec rappel visuel côté front (`game-board_controller.js::tickTimer`).
+- **Gestion des dépassements** : un service dédié enregistre un coup de type *timeout* et suspend la partie jusqu'à décision de l'équipe adverse (`GameTimeoutService`).
+- **Mode rapide** : possibilité d'activer un chrono court partagé (endpoint `/games/{id}/enable-fast-mode`).
 
 ### 🎨 Interface Utilisateur
 
-- **Design Neo-moderne** avec thème "midnight" élégant
-- **Pièces géométriques personnalisées** (identiques au Neo Chess Board Ts Library)
-- **Responsive design** adaptatif pour tous les écrans
-- **Animations fluides** pour les mouvements de pièces
+- **Design Neo-moderne** avec thème "midnight" appliqué aux pages Twig (`templates/home/index.html.twig`).
+- **Pièces géométriques personnalisées** rendues par Neo Chess Board.
+- **Responsive design** : grille CSS et composants adaptatifs (`templates/game/show.html.twig`).
+- **Feedback visuel** : états "urgent" du timer et superpositions de verrouillage côté front (`game-board_controller.js`).
 
 ### 📊 Fonctionnalités Avancées
 
-- **Historique complet** des coups avec notation SAN et UCI
-- **Auto-scroll** vers le dernier coup joué
-- **Système d'équipes** avec gestion des utilisateurs
-- **États de jeu** : live, finished, paused
-- **Export FEN** pour analyser les positions
+- **Historique complet** des coups avec notation SAN/UCI via `/games/{id}/moves`.
+- **Export PGN** prêt à l'emploi (`PgnExporter` et route `/games/{id}/pgn`).
+- **Système d'équipes persistant** : positions, statut prêt et rotation sont stockés en base (`Team`, `TeamMember`).
+- **États de jeu** : `lobby`, `waiting`, `live`, `finished`/`done` et suivi des résultats (`Game::STATUS_*`).
+- **Export FEN** et sauvegarde de la position après chaque coup (`Game::setFen`).
 
 ## 🛠️ Stack Technique
 
@@ -232,24 +233,30 @@ templates/
 
 ### Créer une Partie
 
-1. Connectez-vous à l'application
-2. Cliquez sur "Nouvelle Partie"
-3. Invitez d'autres joueurs dans votre équipe
-4. Attendez qu'une équipe adverse se forme
+1. Connectez-vous à l'application puis rendez-vous sur l'accueil.
+2. Renseignez la durée de tour, la visibilité et (facultativement) le mode Werewolf, puis validez le formulaire.
+3. Partagez le lien `/app/games?code=XXXX` ou le code d'invitation affiché pour permettre aux autres joueurs de vous rejoindre.
 
-### Jouer en Équipe
+### Organiser les équipes
 
-1. **Discutez** avec votre équipe via le chat intégré
-2. **Analysez** la position ensemble
-3. **Proposé** et évaluez différents coups
-4. **Jouez** le coup décidé collectivement
+1. Chaque joueur choisit l'équipe A ou B ; sa position dans la liste définit son ordre de passage (`TeamMember::getPosition`).
+2. Utilisez le bouton **Prêt** pour signaler que vous êtes disponible ; la partie ne peut démarrer que si tous les joueurs actifs sont prêts (`MarkPlayerReadyHandler`).
+3. L'hôte lance la partie une fois les deux équipes constituées (`GameLifecycleService::start`).
 
 ### Interface de l'Échiquier
 
-- 🔄 **Glisser-déposer** : Cliquez et glissez les pièces
-- ⏱️ **Minuteur** : Temps restant affiché en temps réel
-- 📜 **Historique** : Liste des coups avec notation
-- ⚠️ **Validation** : Coups illégaux rejetés automatiquement
+- 🔄 **Glisser-déposer** : Neo Chess Board permet de déplacer les pièces à la souris ou au doigt.
+- ⏱️ **Minuteur** : le contrôleur Stimulus `game-board` affiche le temps restant et souligne les dernières secondes.
+- 📜 **Historique** : la liste des coups est chargée à la volée via `/games/{id}/moves` et inclut la notation SAN/UCI.
+- 🔐 **Contrôle du tour** : si ce n'est pas votre tour, l'échiquier reste en lecture seule et tout coup est refusé côté serveur (`GameMoveService::buildTurnContext`).
+- ⚠️ **Validation** : coups illégaux ou hors rotation renvoient une erreur claire grâce au moteur et aux exceptions HTTP.
+
+### Déroulement d'une partie
+
+1. Quand la partie est en statut `live`, seul le joueur attendu peut interagir avec l'échiquier ; les autres voient une superposition de verrouillage.
+2. Après chaque coup, l'ordre de passage avance automatiquement (`Team::setCurrentIndex`) et la main passe à l'équipe adverse.
+3. En cas de dépassement du temps, un coup de type *timeout* est enregistré et l'équipe adverse doit décider de continuer ou de conclure la partie (`GameTimeoutService` et endpoint `/games/{id}/timeout-decision`).
+4. Les joueurs peuvent exporter la partie au format PGN via `/games/{id}/pgn`.
 
 ## 🛠️ Configuration
 
@@ -321,30 +328,37 @@ chmod +x .git/hooks/pre-commit
 ### Endpoints Principaux
 
 ```http
-# Jeu
-GET    /games/{id}           # Détails de la partie
-POST   /games/{id}/move      # Jouer un coup
-GET    /games/{id}/moves     # Historique des coups
-POST   /games/{id}/tick      # Mise à jour du timer
+# Gestion de partie
+POST   /games                     # Créer une partie (authentifié)
+POST   /games/join/{code}         # Rejoindre une partie via un code
+POST   /games/{id}/start          # Lancer la partie (créateur uniquement)
+POST   /games/{id}/ready          # Marquer un joueur prêt ou non
+POST   /games/{id}/move           # Jouer un coup (rotation et légalité vérifiées)
+POST   /games/{id}/tick           # Vérifier/appliquer un timeout sur le tour courant
+POST   /games/{id}/timeout-decision  # Décider du sort d'une équipe après timeout
+POST   /games/{id}/enable-fast-mode  # Activer le chrono rapide (1 minute)
+POST   /games/{id}/claim-victory     # Revendiquer la victoire après timeouts successifs
 
-# Utilisateurs
-GET    /api/users            # Liste des utilisateurs
-POST   /api/users            # Créer un utilisateur
+# Consultation
+GET    /games/{id}                # Détails de la partie (statut, équipes, deadline)
+GET    /games/{id}/moves          # Historique des coups (filtrable avec ?since={ply})
+GET    /games/{id}/state          # État complet pour l'auto-refresh (ETag + moves)
+GET    /games/{id}/pgn            # Export PGN de la partie
 ```
 
 ### Format des Réponses
 
 ```json
 {
-  "success": true,
-  "data": {
-    "game": {
-      "id": "uuid",
-      "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-      "status": "live",
-      "turnTeam": "WHITE",
-      "turnDeadline": 1640995200000
-    }
+  "id": "0bf6d5cb-...",
+  "status": "live",
+  "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  "ply": 4,
+  "turnTeam": "A",
+  "turnDeadline": 1700000000000,
+  "teams": {
+    "A": { "currentIndex": 1, "members": [{ "userId": "...", "displayName": "Alice", "position": 0, "ready": true }] },
+    "B": { "currentIndex": 0, "members": [{ "userId": "...", "displayName": "Bob", "position": 0, "ready": true }] }
   }
 }
 ```
