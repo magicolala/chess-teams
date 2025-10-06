@@ -6,6 +6,7 @@ use App\Application\DTO\MakeMoveInput;
 use App\Application\Port\ChessEngineInterface;
 use App\Application\Service\Game\GameLifecycleService;
 use App\Application\Service\Game\GameMoveService;
+use App\Application\Service\Game\HandBrain\HandBrainMoveInspector;
 use App\Application\Service\GameEndEvaluator;
 use App\Application\Service\Werewolf\WerewolfRoleAssigner;
 use App\Application\Service\Werewolf\WerewolfVoteService;
@@ -20,6 +21,7 @@ use App\Entity\TeamMember;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Lock\SharedLockInterface;
@@ -71,6 +73,7 @@ final class GameMoveServiceTest extends TestCase
             $members,
             $moves,
             $engine,
+            new HandBrainMoveInspector(),
             $lockFactory,
             $em,
             new GameEndEvaluator(),
@@ -137,6 +140,7 @@ final class GameMoveServiceTest extends TestCase
             $members,
             $moves,
             $engine,
+            new HandBrainMoveInspector(),
             $lockFactory,
             $em,
             new GameEndEvaluator(),
@@ -150,6 +154,202 @@ final class GameMoveServiceTest extends TestCase
         $this->assertSame('fen-after', $game->getFen());
         $this->assertSame(Game::TEAM_B, $game->getTurnTeam());
         $this->assertNotNull($game->getTurnDeadline());
+    }
+
+    public function testHandBrainMoveRejectedWhenHintMissing(): void
+    {
+        $game = $this->createLiveGame();
+        $game->setMode('hand_brain');
+
+        $teamA = new Team($game, Team::NAME_A);
+        $teamB = new Team($game, Team::NAME_B);
+        $player = $this->createUser();
+        $member = new TeamMember($teamA, $player, 0);
+
+        $game->setHandBrainMembers('brain-id', $member->getId());
+        $game->setHandBrainCurrentRole('hand');
+
+        $games = $this->createMock(GameRepositoryInterface::class);
+        $games->method('get')->with($game->getId())->willReturn($game);
+
+        $teams = $this->createMock(TeamRepositoryInterface::class);
+        $teams->method('findOneByGameAndName')->willReturnMap([
+            [$game, Team::NAME_A, $teamA],
+            [$game, Team::NAME_B, $teamB],
+        ]);
+
+        $members = $this->createMock(TeamMemberRepositoryInterface::class);
+        $members->method('findActiveOrderedByTeam')->with($teamA)->willReturn([$member]);
+
+        $moves = $this->createMock(MoveRepositoryInterface::class);
+        $moves->expects($this->never())->method('add');
+
+        $engine = $this->createMock(ChessEngineInterface::class);
+        $engine->expects($this->never())->method('applyUci');
+
+        $lock = $this->createConfiguredMock(SharedLockInterface::class, [
+            'acquire' => true,
+        ]);
+        $lock->expects($this->once())->method('release');
+        $lockFactory = $this->createMock(LockFactory::class);
+        $lockFactory->method('createLock')->willReturn($lock);
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->never())->method('flush');
+
+        $werewolf = $this->createMock(WerewolfVoteService::class);
+
+        $service = new GameMoveService(
+            $games,
+            $teams,
+            $members,
+            $moves,
+            $engine,
+            new HandBrainMoveInspector(),
+            $lockFactory,
+            $em,
+            new GameEndEvaluator(),
+            $werewolf,
+        );
+
+        $input = new MakeMoveInput($game->getId(), 'e2e4', (string) $player->getId());
+
+        $this->expectException(UnprocessableEntityHttpException::class);
+        $this->expectExceptionMessage('hand_brain_missing_hint');
+
+        $service->play($input, $player);
+    }
+
+    public function testHandBrainMoveRejectedWhenPlayerIsNotAssignedHand(): void
+    {
+        $game = $this->createLiveGame();
+        $game->setMode('hand_brain');
+
+        $teamA = new Team($game, Team::NAME_A);
+        $teamB = new Team($game, Team::NAME_B);
+        $player = $this->createUser();
+        $member = new TeamMember($teamA, $player, 0);
+        $otherUser = $this->createUser();
+        $otherMember = new TeamMember($teamA, $otherUser, 1);
+
+        $game->setHandBrainMembers('brain-id', $otherMember->getId());
+        $game->setHandBrainPieceHint('pawn');
+        $game->setHandBrainCurrentRole('hand');
+
+        $games = $this->createMock(GameRepositoryInterface::class);
+        $games->method('get')->with($game->getId())->willReturn($game);
+
+        $teams = $this->createMock(TeamRepositoryInterface::class);
+        $teams->method('findOneByGameAndName')->willReturnMap([
+            [$game, Team::NAME_A, $teamA],
+            [$game, Team::NAME_B, $teamB],
+        ]);
+
+        $members = $this->createMock(TeamMemberRepositoryInterface::class);
+        $members->method('findActiveOrderedByTeam')->with($teamA)->willReturn([$member, $otherMember]);
+
+        $moves = $this->createMock(MoveRepositoryInterface::class);
+        $moves->expects($this->never())->method('add');
+
+        $engine = $this->createMock(ChessEngineInterface::class);
+        $engine->expects($this->never())->method('applyUci');
+
+        $lock = $this->createConfiguredMock(SharedLockInterface::class, [
+            'acquire' => true,
+        ]);
+        $lock->expects($this->once())->method('release');
+        $lockFactory = $this->createMock(LockFactory::class);
+        $lockFactory->method('createLock')->willReturn($lock);
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->never())->method('flush');
+
+        $werewolf = $this->createMock(WerewolfVoteService::class);
+
+        $service = new GameMoveService(
+            $games,
+            $teams,
+            $members,
+            $moves,
+            $engine,
+            new HandBrainMoveInspector(),
+            $lockFactory,
+            $em,
+            new GameEndEvaluator(),
+            $werewolf,
+        );
+
+        $input = new MakeMoveInput($game->getId(), 'e2e4', (string) $player->getId());
+
+        $this->expectException(AccessDeniedHttpException::class);
+        $this->expectExceptionMessage('hand_brain_not_assigned_hand');
+
+        $service->play($input, $player);
+    }
+
+    public function testHandBrainMoveRejectedWhenPieceDoesNotMatchHint(): void
+    {
+        $game = $this->createLiveGame();
+        $game->setMode('hand_brain');
+
+        $teamA = new Team($game, Team::NAME_A);
+        $teamB = new Team($game, Team::NAME_B);
+        $player = $this->createUser();
+        $member = new TeamMember($teamA, $player, 0);
+
+        $game->setHandBrainMembers('brain-id', $member->getId());
+        $game->setHandBrainPieceHint('knight');
+        $game->setHandBrainCurrentRole('hand');
+
+        $games = $this->createMock(GameRepositoryInterface::class);
+        $games->method('get')->with($game->getId())->willReturn($game);
+
+        $teams = $this->createMock(TeamRepositoryInterface::class);
+        $teams->method('findOneByGameAndName')->willReturnMap([
+            [$game, Team::NAME_A, $teamA],
+            [$game, Team::NAME_B, $teamB],
+        ]);
+
+        $members = $this->createMock(TeamMemberRepositoryInterface::class);
+        $members->method('findActiveOrderedByTeam')->with($teamA)->willReturn([$member]);
+
+        $moves = $this->createMock(MoveRepositoryInterface::class);
+        $moves->expects($this->never())->method('add');
+
+        $engine = $this->createMock(ChessEngineInterface::class);
+        $engine->expects($this->never())->method('applyUci');
+
+        $lock = $this->createConfiguredMock(SharedLockInterface::class, [
+            'acquire' => true,
+        ]);
+        $lock->expects($this->once())->method('release');
+        $lockFactory = $this->createMock(LockFactory::class);
+        $lockFactory->method('createLock')->willReturn($lock);
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->never())->method('flush');
+
+        $werewolf = $this->createMock(WerewolfVoteService::class);
+
+        $service = new GameMoveService(
+            $games,
+            $teams,
+            $members,
+            $moves,
+            $engine,
+            new HandBrainMoveInspector(),
+            $lockFactory,
+            $em,
+            new GameEndEvaluator(),
+            $werewolf,
+        );
+
+        $input = new MakeMoveInput($game->getId(), 'e2e4', (string) $player->getId());
+
+        $this->expectException(UnprocessableEntityHttpException::class);
+        $this->expectExceptionMessage('hand_brain_hint_mismatch');
+
+        $service->play($input, $player);
     }
 
     public function testHandBrainRolesRotateAcrossTurns(): void
@@ -216,9 +416,18 @@ final class GameMoveServiceTest extends TestCase
 
         $engine = $this->createMock(ChessEngineInterface::class);
         $engine->method('applyUci')->willReturnOnConsecutiveCalls(
-            ['fenAfter' => 'fen-1', 'san' => 'e4'],
-            ['fenAfter' => 'fen-2', 'san' => 'e5'],
-            ['fenAfter' => 'fen-3', 'san' => 'Nc3'],
+            [
+                'fenAfter' => 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1',
+                'san' => 'e4',
+            ],
+            [
+                'fenAfter' => 'rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2',
+                'san' => 'e5',
+            ],
+            [
+                'fenAfter' => 'rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2',
+                'san' => 'Nc3',
+            ],
         );
 
         $lock = $this->createMock(SharedLockInterface::class);
@@ -236,24 +445,31 @@ final class GameMoveServiceTest extends TestCase
             $membersRepo,
             $moves,
             $engine,
+            new HandBrainMoveInspector(),
             $lockFactory,
             $em,
             new GameEndEvaluator(),
             $werewolf,
         );
 
+        $game->setHandBrainPieceHint('pawn');
+        $game->setHandBrainCurrentRole('hand');
         $service->play(new MakeMoveInput($gameId, 'e2e4', (string) $membersA[0]->getUser()->getId()), $membersA[0]->getUser());
         $this->assertSame($membersB[0]->getId(), $game->getHandBrainHandMemberId());
         $this->assertSame($membersB[1]->getId(), $game->getHandBrainBrainMemberId());
         $this->assertSame('brain', $game->getHandBrainCurrentRole());
         $this->assertNull($game->getHandBrainPieceHint());
 
+        $game->setHandBrainPieceHint('pawn');
+        $game->setHandBrainCurrentRole('hand');
         $service->play(new MakeMoveInput($gameId, 'e7e5', (string) $membersB[0]->getUser()->getId()), $membersB[0]->getUser());
         $this->assertSame($membersA[1]->getId(), $game->getHandBrainHandMemberId());
         $this->assertSame($membersA[2]->getId(), $game->getHandBrainBrainMemberId());
         $this->assertSame('brain', $game->getHandBrainCurrentRole());
         $this->assertNull($game->getHandBrainPieceHint());
 
+        $game->setHandBrainPieceHint('knight');
+        $game->setHandBrainCurrentRole('hand');
         $service->play(new MakeMoveInput($gameId, 'g1f3', (string) $membersA[1]->getUser()->getId()), $membersA[1]->getUser());
         $this->assertSame($membersB[1]->getId(), $game->getHandBrainHandMemberId());
         $this->assertSame($membersB[2]->getId(), $game->getHandBrainBrainMemberId());
