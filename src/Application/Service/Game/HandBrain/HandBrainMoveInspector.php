@@ -13,7 +13,18 @@ final class HandBrainMoveInspector
         }
 
         $normalizedFen = $this->normalizeFen($fen);
-        $board = explode(' ', trim($normalizedFen))[0] ?? '';
+        $normalizedFen = trim($normalizedFen);
+        $spacePosition = strpos($normalizedFen, ' ');
+        if (false === $spacePosition) {
+            $board = $normalizedFen;
+        } else {
+            $board = substr($normalizedFen, 0, $spacePosition);
+        }
+
+        if ('' === $board) {
+            return null;
+        }
+
         $ranks = explode('/', $board);
         if (8 !== count($ranks)) {
             return null;
@@ -26,7 +37,7 @@ final class HandBrainMoveInspector
         }
 
         $rowIndex = 8 - $fromRank;
-        $row = $ranks[$rowIndex] ?? '';
+        $row = $ranks[$rowIndex];
         $column = 0;
         foreach (str_split($row) as $symbol) {
             if (ctype_digit($symbol)) {
