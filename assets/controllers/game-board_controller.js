@@ -1,11 +1,35 @@
 import { Controller } from '@hotwired/stimulus'
-import $ from 'jquery'
 import { NeoChessBoard } from '@magicolala/neo-chess-board'
 import { Chess as ChessJs } from 'chess.js'
 
 export default class extends Controller {
-    static values = { fen: String, gameId: String, turnTeam: String, deadlineTs: Number, status: String }
-    static targets = ['timer', 'turnTeam', 'status', 'result', 'timeoutDecision']
+    static values = {
+        fen: String,
+        gameId: String,
+        turnTeam: String,
+        deadlineTs: Number,
+        status: String,
+        mode: String,
+        membershipId: String,
+        handBrainCurrentRole: String,
+        handBrainPieceHint: String,
+        handBrainBrainMemberId: String,
+        handBrainHandMemberId: String,
+    }
+    static targets = [
+        'timer',
+        'turnTeam',
+        'status',
+        'result',
+        'timeoutDecision',
+        'handBrainPanel',
+        'handBrainPhase',
+        'handBrainHint',
+        'handBrainCountdown',
+        'handBrainRoleBrain',
+        'handBrainRoleHand',
+        'handBrainPieceButton',
+    ]
 
     connect() {
         console.debug('[game-board] connect() with Neo Chess Board (npm package)', {
@@ -22,6 +46,14 @@ export default class extends Controller {
 
         this.chessJs = new ChessJs(this.fenValue === 'startpos' ? undefined : this.fenValue)
 
+        this.handBrainState = {
+            currentRole: this.handBrainCurrentRoleValue || null,
+            pieceHint: this.handBrainPieceHintValue || null,
+            brainMemberId: this.handBrainBrainMemberIdValue || null,
+            handMemberId: this.handBrainHandMemberIdValue || null,
+        }
+        this.handBrainHintLoading = false
+
         try {
             // Configuration du Neo Chess Board
             // Déterminer l'orientation de l'échiquier selon la couleur du joueur
@@ -30,10 +62,14 @@ export default class extends Controller {
             
             // Au démarrage, si c'est mon tour et la partie est live, ne pas autoriser l'interaction tant que "Prêt" n'est pas cliqué
             const initialTurnReady = false
+            let initialCanInteract = this.statusValue === 'live' && isPlayerTurn && initialTurnReady
+            if (this.isHandBrainMode()) {
+                initialCanInteract = this.computeHandBrainInteractivity(initialCanInteract)
+            }
             this.board = new NeoChessBoard(boardEl, {
                 fen: this.fenValue === 'startpos' ? undefined : this.fenValue,
                 theme: 'midnight',
-                interactive: this.statusValue === 'live' && isPlayerTurn && initialTurnReady, // Interactif seulement si c'est le tour du joueur ET prêt
+                interactive: initialCanInteract, // Interactif seulement si c'est le tour du joueur ET prêt
                 showCoordinates: true,
                 orientation: playerColor
             })
@@ -48,7 +84,7 @@ export default class extends Controller {
             }
             
             // Ajouter overlay de grille si ce n'est pas le tour du joueur
-            this.setupBoardOverlay(isPlayerTurn)
+            this.setupBoardOverlay(isPlayerTurn, initialCanInteract)
 
             // Écouteurs d'événements Neo Chess Board
             this.board.on('move', ({ from, to, fen }) => {
@@ -88,6 +124,7 @@ export default class extends Controller {
         // Timer
         this.timerInterval = setInterval(() => this.tickTimer(), 250)
         this.renderState()
+        this.renderHandBrainPanel()
 
         // Gate "Prêt" par tour: on stocke l'état 'ready' par (gameId, ply)
         this.currentPly = null
@@ -177,7 +214,11 @@ export default class extends Controller {
         // Sauvegarder les positions originales (pour annuler au besoin)
         const originalPos = this.chessJs.fen()
         const originalBoardPos = this.board.getPosition()
-        
+
+        if (!this.validateHandBrainMove(from, originalBoardPos, originalPos)) {
+            return
+        }
+
         // Vérifier si c'est un coup légal avec chess.js aussi
         // Détecter si c'est un coup de promotion (pion à la 7e rangée qui va à la 8e)
         const isPotentialPromotion = () => {
@@ -477,7 +518,10 @@ export default class extends Controller {
                 this.board.setPosition(this._pending.prevBoardFen, true)
                 this.printDebug('↩️ Retour à la position précédente (move refusé)')
                 // Réactiver l'interaction
-                const canInteract = this.statusValue === 'live' && this.isCurrentPlayerTurn() && this.isTurnReady()
+                let canInteract = this.statusValue === 'live' && this.isCurrentPlayerTurn() && this.isTurnReady()
+                if (this.isHandBrainMode()) {
+                    canInteract = this.computeHandBrainInteractivity(canInteract)
+                }
                 if (canInteract) {
                     this.board.setInteractive(true)
                 }
@@ -572,10 +616,14 @@ export default class extends Controller {
         this.statusValue = gs.status || this.statusValue
         this.deadlineTsValue = (gs.turnDeadline ? gs.turnDeadline * 1000 : this.deadlineTsValue)
         this.currentPly = typeof gs.ply === 'number' ? gs.ply : this.currentPly
+        this.updateHandBrainStateFromPayload(gs)
         // Mettre à jour interactivité selon le tour ET le clic "Prêt"
         const isPlayerTurn = this.isCurrentPlayerTurn()
         this.turnReady = this.isTurnReady()
         let canInteract = this.statusValue === 'live' && isPlayerTurn && this.turnReady
+        if (this.isHandBrainMode()) {
+            canInteract = this.computeHandBrainInteractivity(canInteract)
+        }
 
         // Gérer la décision de timeout en attente
         const td = gs.timeoutDecision || {}
@@ -617,8 +665,9 @@ export default class extends Controller {
             if (this.hasTimeoutDecisionTarget) {
                 this.timeoutDecisionTarget.style.display = 'none'
             }
-            this.setupBoardOverlay(false)
+            this.setupBoardOverlay(false, false)
             this.renderState()
+            this.renderHandBrainPanel()
             return
         }
 
@@ -626,8 +675,9 @@ export default class extends Controller {
         //    Utilise requestAnimationFrame pour laisser le navigateur afficher la notif
         const enableInteraction = () => {
             this.board.setInteractive(!!canInteract)
-            this.setupBoardOverlay(isPlayerTurn)
+            this.setupBoardOverlay(isPlayerTurn, !!canInteract)
             this.renderState()
+            this.renderHandBrainPanel()
         }
         if (typeof window !== 'undefined' && window.requestAnimationFrame) {
             window.requestAnimationFrame(() => enableInteraction())
@@ -872,144 +922,481 @@ export default class extends Controller {
         return userTeam === currentTurnTeam
     }
     
-    setupBoardOverlay(isPlayerTurn) {
+    setupBoardOverlay(isPlayerTurn, canInteract) {
         const boardEl = this.element.querySelector('#board')
         if (!boardEl) return
-        
-        // Supprimer l'overlay existant s'il y en a un
+
         const existingOverlay = boardEl.querySelector('.board-overlay')
         if (existingOverlay) {
             existingOverlay.remove()
         }
-        // Déterminer l'état de visibilité du canvas selon le tour et l'état "Prêt"
-        const existingCanvas = boardEl.querySelector('canvas')
-        if (existingCanvas) {
-            const isLive = this.statusValue === 'live'
-            const ready = !!this.turnReady
-            if (isLive && isPlayerTurn && ready) {
-                existingCanvas.style.visibility = 'visible'
-            } else {
-                existingCanvas.style.visibility = 'hidden'
+
+        const canvas = boardEl.querySelector('canvas')
+        if (canvas) {
+            const shouldShow = this.statusValue === 'live' && !!canInteract
+            canvas.style.visibility = shouldShow ? 'visible' : 'hidden'
+        }
+
+        if (this.statusValue !== 'live') {
+            return
+        }
+
+        if (!isPlayerTurn) {
+            this.renderBoardOverlay(boardEl, {
+                icon: 'hourglass_empty',
+                title: 'En attente...',
+                text: "C'est au tour de l'adversaire",
+                spinning: true,
+            })
+            return
+        }
+
+        if (!this.turnReady) {
+            this.renderReadyOverlay(boardEl)
+            return
+        }
+
+        if (this.isHandBrainMode()) {
+            const overlay = this.resolveHandBrainOverlay(canInteract)
+            if (overlay) {
+                this.renderBoardOverlay(boardEl, overlay)
+                return
             }
         }
-        
-        if (!isPlayerTurn && this.statusValue === 'live') {
-            // Créer l'overlay quand ce n'est pas le tour du joueur
-            const overlay = document.createElement('div')
-            overlay.className = 'board-overlay'
-            overlay.innerHTML = `
-                <div class="overlay-content">
-                    <div class="waiting-message">
-                        <i class="material-icons">hourglass_empty</i>
-                        <h3>En attente...</h3>
-                        <p>C'est au tour de l'adversaire</p>
-                    </div>
-                </div>
-            `
-            
-            // Styles pour l'overlay
-            overlay.style.cssText = `
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 1);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 10;
-                border-radius: 8px;
-                backdrop-filter: blur(2px);
-            `
-            
-            const content = overlay.querySelector('.overlay-content')
-            content.style.cssText = `
-                text-align: center;
-                color: white;
-                padding: 2rem;
-            `
-            
-            const icon = overlay.querySelector('.material-icons')
-            icon.style.cssText = `
-                font-size: 3rem;
-                margin-bottom: 1rem;
-                opacity: 0.8;
-                animation: spin 2s linear infinite;
-            `
-            
-            // Ajouter l'animation de rotation
-            if (!document.querySelector('#board-overlay-styles')) {
-                const style = document.createElement('style')
-                style.id = 'board-overlay-styles'
-                style.textContent = `
-                    @keyframes spin {
-                        0% { transform: rotate(0deg); }
-                        100% { transform: rotate(360deg); }
-                    }
-                `
-                document.head.appendChild(style)
-            }
-            
-            boardEl.appendChild(overlay)
-        } else if (isPlayerTurn && this.statusValue === 'live') {
-            // Si c'est mon tour mais que je n'ai pas cliqué "Prêt", masquer le board jusqu'au clic
-            if (!this.turnReady) {
-                // Garantir aucune interaction tant que l'utilisateur n'a pas cliqué "Prêt"
-                this.board.setInteractive(false)
-                // Masquer totalement le canvas derrière l'overlay
-                const canvas = boardEl.querySelector('canvas')
-                if (canvas) {
-                    canvas.style.visibility = 'hidden'
-                }
-                const overlay = document.createElement('div')
-                overlay.className = 'board-overlay'
-                overlay.innerHTML = `
-                    <div class="overlay-content">
-                        <div class="waiting-message">
-                            <i class="material-icons">bolt</i>
-                            <h3>Votre tour</h3>
-                            <p>Cliquez sur "Prêt" pour révéler l'échiquier et jouer votre coup</p>
-                            <button class="neo-btn neo-btn-primary neo-btn-lg" data-role="ready-to-play">Prêt</button>
-                        </div>
-                    </div>
-                `
-                overlay.style.cssText = `
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: rgba(0, 0, 0, 1);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    z-index: 10;
-                    border-radius: 8px;
-                    backdrop-filter: blur(2px);
-                `
-                const content = overlay.querySelector('.overlay-content')
-                content.style.cssText = `text-align:center;color:white;padding:2rem;`
-                const icon = overlay.querySelector('.material-icons')
-                icon.style.cssText = `font-size:3rem;margin-bottom:1rem;opacity:0.9;`
 
-                overlay.querySelector('[data-role="ready-to-play"]').addEventListener('click', () => {
-                    this.setTurnReady()
-                    // Autoriser l'interaction et retirer l'overlay
-                    this.board.setInteractive(true)
-                    // Réafficher le canvas
-                    if (canvas) {
-                        canvas.style.visibility = 'visible'
-                    }
-                    overlay.remove()
-                })
-                boardEl.appendChild(overlay)
-            } else {
-                // Déjà prêt -> aucune overlay, interactivité déjà gérée
-            }
+        if (!canInteract) {
+            this.renderBoardOverlay(boardEl, {
+                icon: 'hourglass_bottom',
+                title: 'Patientez…',
+                text: 'Une action est en cours pour ce tour.',
+                spinning: true,
+            })
         }
     }
 
+    renderBoardOverlay(boardEl, { icon, title, text, button, spinning } = {}) {
+        const overlay = document.createElement('div')
+        overlay.className = 'board-overlay'
+        overlay.innerHTML = `
+            <div class="overlay-content">
+                <div class="waiting-message">
+                    <i class="material-icons">${icon || 'hourglass_empty'}</i>
+                    ${title ? `<h3>${title}</h3>` : ''}
+                    ${text ? `<p>${text}</p>` : ''}
+                    ${button ? `<button type="button" class="neo-btn neo-btn-primary neo-btn-lg" data-role="overlay-button">${button}</button>` : ''}
+                </div>
+            </div>
+        `
+
+        overlay.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 8px;
+            backdrop-filter: blur(2px);
+        `
+
+        const content = overlay.querySelector('.overlay-content')
+        if (content) {
+            content.style.cssText = 'text-align:center;color:white;padding:2rem;'
+        }
+
+        const iconEl = overlay.querySelector('.material-icons')
+        if (iconEl) {
+            iconEl.style.cssText = `font-size:3rem;margin-bottom:1rem;opacity:0.85;${spinning ? 'animation: spin 2s linear infinite;' : ''}`
+        }
+
+        if (spinning && !document.querySelector('#board-overlay-styles')) {
+            const style = document.createElement('style')
+            style.id = 'board-overlay-styles'
+            style.textContent = `
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `
+            document.head.appendChild(style)
+        }
+
+        boardEl.appendChild(overlay)
+        return overlay
+    }
+
+    renderReadyOverlay(boardEl) {
+        const overlay = this.renderBoardOverlay(boardEl, {
+            icon: 'bolt',
+            title: 'Votre tour',
+            text: 'Cliquez sur « Prêt » pour révéler l\'échiquier et jouer votre coup',
+            button: 'Prêt',
+        })
+        const button = overlay?.querySelector('[data-role="overlay-button"]')
+        if (button) {
+            button.addEventListener('click', () => {
+                this.setTurnReady()
+                this.board.setInteractive(true)
+                const canvas = boardEl.querySelector('canvas')
+                if (canvas) {
+                    canvas.style.visibility = 'visible'
+                }
+                overlay.remove()
+            })
+        }
+    }
+
+    resolveHandBrainOverlay(canInteract) {
+        if (!this.isHandBrainMode()) {
+            return null
+        }
+        if (canInteract) {
+            return null
+        }
+
+        const state = this.handBrainState || {}
+        const isBrain = this.isCurrentUserBrain()
+        const isHand = this.isCurrentUserHand()
+
+        if (state.currentRole === 'brain') {
+            if (isBrain) {
+                return {
+                    icon: 'psychology',
+                    title: 'Choisissez une pièce',
+                    text: 'Sélectionnez un type de pièce dans le panneau Hand-Brain pour guider votre coéquipier.',
+                }
+            }
+
+            return {
+                icon: 'psychology',
+                title: 'Indice en préparation',
+                text: 'Le cerveau de votre équipe choisit une pièce.',
+                spinning: true,
+            }
+        }
+
+        if (state.currentRole === 'hand') {
+            const required = this.getHandBrainPieceCode()
+            if (!required) {
+                if (isHand) {
+                    return {
+                        icon: 'psychology_alt',
+                        title: 'Attendez l\'indice',
+                        text: 'Le cerveau doit choisir une pièce avant votre coup.',
+                        spinning: true,
+                    }
+                }
+
+                return {
+                    icon: 'psychology_alt',
+                    title: 'En attente de l\'indice',
+                    text: 'Le cerveau doit sélectionner une pièce avant le prochain coup.',
+                    spinning: true,
+                }
+            }
+
+            if (!isHand) {
+                return {
+                    icon: 'front_hand',
+                    title: 'Main désignée',
+                    text: 'La main de votre équipe prépare le coup demandé.',
+                }
+            }
+        }
+
+        return null
+    }
+    isHandBrainMode() {
+        return (this.modeValue || '').toLowerCase() === 'hand_brain'
+    }
+
+    getMembershipId() {
+        return this.membershipIdValue || ''
+    }
+
+    isCurrentUserBrain() {
+        if (!this.isHandBrainMode()) return false
+        const id = this.getMembershipId()
+        if (!id) return false
+        return !!this.handBrainState?.brainMemberId && id === this.handBrainState.brainMemberId
+    }
+
+    isCurrentUserHand() {
+        if (!this.isHandBrainMode()) return false
+        const id = this.getMembershipId()
+        if (!id) return false
+        return !!this.handBrainState?.handMemberId && id === this.handBrainState.handMemberId
+    }
+
+    getHandBrainPieceCode() {
+        const hint = this.handBrainState?.pieceHint
+        if (!hint) return null
+        const map = {
+            pawn: 'p',
+            knight: 'n',
+            bishop: 'b',
+            rook: 'r',
+            queen: 'q',
+            king: 'k',
+        }
+        return map[String(hint).toLowerCase()] || null
+    }
+
+    describeHandBrainPiece(code) {
+        const labels = {
+            p: 'pion',
+            n: 'cavalier',
+            b: 'fou',
+            r: 'tour',
+            q: 'dame',
+            k: 'roi',
+        }
+        return labels[code] || 'pièce'
+    }
+
+    computeHandBrainInteractivity(base) {
+        if (!base) return false
+        if (!this.isHandBrainMode()) return base
+
+        const state = this.handBrainState || {}
+        if (state.currentRole === 'brain') {
+            return false
+        }
+
+        if (state.currentRole === 'hand') {
+            if (!this.isCurrentUserHand()) {
+                return false
+            }
+            if (!state.pieceHint) {
+                return false
+            }
+            return true
+        }
+
+        return false
+    }
+
+    updateHandBrainStateFromPayload(payload) {
+        if (!this.isHandBrainMode()) {
+            return
+        }
+        if (!payload || typeof payload !== 'object') {
+            return
+        }
+
+        let source = null
+        if (payload.handBrain && typeof payload.handBrain === 'object') {
+            source = payload.handBrain
+        } else if (
+            Object.prototype.hasOwnProperty.call(payload, 'currentRole') ||
+            Object.prototype.hasOwnProperty.call(payload, 'pieceHint') ||
+            Object.prototype.hasOwnProperty.call(payload, 'brainMemberId') ||
+            Object.prototype.hasOwnProperty.call(payload, 'handMemberId')
+        ) {
+            source = payload
+        } else if (
+            Object.prototype.hasOwnProperty.call(payload, 'handBrainCurrentRole') ||
+            Object.prototype.hasOwnProperty.call(payload, 'handBrainPieceHint') ||
+            Object.prototype.hasOwnProperty.call(payload, 'handBrainBrainMemberId') ||
+            Object.prototype.hasOwnProperty.call(payload, 'handBrainHandMemberId')
+        ) {
+            source = {
+                currentRole: payload.handBrainCurrentRole,
+                pieceHint: payload.handBrainPieceHint,
+                brainMemberId: payload.handBrainBrainMemberId,
+                handMemberId: payload.handBrainHandMemberId,
+            }
+        }
+
+        if (!source) {
+            return
+        }
+
+        const normalized = {
+            currentRole: source.currentRole ?? null,
+            pieceHint: source.pieceHint ?? null,
+            brainMemberId: source.brainMemberId ?? null,
+            handMemberId: source.handMemberId ?? null,
+        }
+
+        const prev = this.handBrainState || {}
+        const changed = ['currentRole', 'pieceHint', 'brainMemberId', 'handMemberId'].some(
+            key => (prev[key] || null) !== (normalized[key] || null)
+        )
+
+        this.handBrainState = normalized
+
+        if (changed) {
+            this.renderHandBrainPanel()
+        }
+    }
+
+    renderHandBrainPanel() {
+        if (!this.hasHandBrainPanelTarget) return
+
+        const active = this.isHandBrainMode()
+        this.handBrainPanelTarget.style.display = active ? '' : 'none'
+        if (!active) {
+            return
+        }
+
+        const state = this.handBrainState || {}
+        const pieceCode = this.getHandBrainPieceCode()
+        const hintLabel = pieceCode ? this.describeHandBrainPiece(pieceCode) : '—'
+
+        if (this.hasHandBrainPhaseTarget) {
+            let phase = 'Mode Hand-Brain'
+            if (this.statusValue !== 'live') {
+                phase = 'Mode inactif'
+            } else if (state.currentRole === 'brain') {
+                phase = 'Phase cerveau'
+            } else if (state.currentRole === 'hand' && pieceCode) {
+                phase = `Phase main – ${hintLabel}`
+            } else if (state.currentRole === 'hand') {
+                phase = 'En attente de l\'indice'
+            } else {
+                phase = 'En attente de l\'activation'
+            }
+            this.handBrainPhaseTarget.textContent = phase
+        }
+
+        if (this.hasHandBrainHintTarget) {
+            this.handBrainHintTarget.textContent = pieceCode ? hintLabel : '—'
+        }
+
+        if (this.hasHandBrainRoleBrainTarget) {
+            const brainValue = state.brainMemberId ? (this.isCurrentUserBrain() ? 'Vous' : 'Coéquipier') : '—'
+            this.handBrainRoleBrainTarget.querySelector('.role-value').textContent = brainValue
+            this.handBrainRoleBrainTarget.classList.toggle('is-you', this.isCurrentUserBrain())
+        }
+
+        if (this.hasHandBrainRoleHandTarget) {
+            const handValue = state.handMemberId ? (this.isCurrentUserHand() ? 'Vous' : 'Coéquipier') : '—'
+            this.handBrainRoleHandTarget.querySelector('.role-value').textContent = handValue
+            this.handBrainRoleHandTarget.classList.toggle('is-you', this.isCurrentUserHand())
+        }
+
+        const shouldEnableButtons = this.isCurrentUserBrain() && state.currentRole === 'brain' && !this.handBrainHintLoading
+        if (this.hasHandBrainPieceButtonTarget) {
+            this.handBrainPieceButtonTargets.forEach(btn => {
+                const btnPiece = btn.dataset.piece || ''
+                const isSelected = state.pieceHint && state.pieceHint === btnPiece
+                btn.classList.toggle('is-active', !!isSelected)
+                btn.setAttribute('aria-pressed', isSelected ? 'true' : 'false')
+                btn.disabled = !shouldEnableButtons
+            })
+        }
+
+        this.handBrainPanelTarget.dataset.phase = state.currentRole || 'idle'
+    }
+
+    setHandBrainButtonsDisabled(disabled) {
+        if (!this.hasHandBrainPieceButtonTarget) return
+        this.handBrainPieceButtonTargets.forEach(btn => {
+            btn.disabled = !!disabled
+        })
+    }
+
+    async selectHandBrainPiece(event) {
+        const piece = event?.currentTarget?.dataset?.piece
+        if (!piece) return
+        if (!this.isHandBrainMode()) return
+        if (!this.isCurrentUserBrain()) {
+            this.printDebug('⚠️ Seul le cerveau peut sélectionner une pièce.')
+            return
+        }
+        if (this.handBrainState?.currentRole !== 'brain') {
+            this.printDebug('🧠 L\'indice a déjà été défini pour ce tour.')
+            return
+        }
+        if (this.handBrainHintLoading) {
+            return
+        }
+
+        this.handBrainHintLoading = true
+        this.setHandBrainButtonsDisabled(true)
+
+        try {
+            const res = await fetch(`/games/${this.gameIdValue}/hand-brain/hint`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
+                body: JSON.stringify({ piece }),
+            })
+
+            if (!res.ok) {
+                let message = res.statusText
+                try {
+                    const data = await res.json()
+                    message = data?.message || message
+                } catch (_) {}
+                this.printDebug('❌ Indice refusé: ' + message)
+                return
+            }
+
+            const data = await res.json()
+            this.updateHandBrainStateFromPayload(data)
+            this.printDebug(`🧠 Indice envoyé: ${piece}`)
+        } catch (error) {
+            console.error('[hand-brain] hint error', error)
+            this.printDebug('❌ Impossible d\'envoyer l\'indice Hand-Brain')
+        } finally {
+            this.handBrainHintLoading = false
+            this.renderHandBrainPanel()
+        }
+    }
+
+    validateHandBrainMove(from, originalBoardPos, originalFen) {
+        if (!this.isHandBrainMode()) {
+            return true
+        }
+
+        const state = this.handBrainState || {}
+        if (state.currentRole !== 'hand') {
+            if (this.isCurrentUserBrain()) {
+                this.printDebug('🧠 Sélectionnez une pièce dans le panneau Hand-Brain avant de jouer.')
+            } else if (this.isCurrentUserHand()) {
+                this.printDebug('🧠 Attendez l\'indice du cerveau avant de bouger une pièce.')
+            } else {
+                this.printDebug('🧠 En attente du duo Hand-Brain.')
+            }
+            this.board.setPosition(originalBoardPos, true)
+            return false
+        }
+
+        if (!this.isCurrentUserHand()) {
+            this.printDebug('🤚 Seule la main désignée peut jouer ce coup.')
+            this.board.setPosition(originalBoardPos, true)
+            return false
+        }
+
+        const requiredType = this.getHandBrainPieceCode()
+        if (!requiredType) {
+            this.printDebug('🧠 Attendez que le cerveau sélectionne une pièce.')
+            this.board.setPosition(originalBoardPos, true)
+            return false
+        }
+
+        const piece = this.chessJs.get(from)
+        if (!piece) {
+            this.printDebug('❌ Case vide: choisissez une pièce correspondant à l\'indice.')
+            this.board.setPosition(originalBoardPos, true)
+            return false
+        }
+
+        if (piece.type !== requiredType) {
+            const label = this.describeHandBrainPiece(requiredType)
+            this.printDebug(`❌ Le cerveau a demandé un ${label}.`)
+            this.board.setPosition(originalBoardPos, true)
+            return false
+        }
+
+        return true
+    }
     // --- Gestion de l'état "Prêt" par tour (localStorage) ---
     getTurnKey() {
         const ply = (typeof this.currentPly === 'number' && this.currentPly >= 0) ? this.currentPly : 0
