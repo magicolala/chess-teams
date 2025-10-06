@@ -212,6 +212,51 @@ Content-Type: application/json
 }
 ```
 
+### Activer le mode Hand & Brain
+
+```http
+POST /api/games/{gameId}/hand-brain/enable
+```
+
+**Accès :** membre actif de l'équipe dont c'est le tour.
+
+**Réponse :**
+
+```json
+{
+  "gameId": "game_123",
+  "currentRole": "brain",
+  "pieceHint": null,
+  "brainMemberId": "member_brain_uuid",
+  "handMemberId": "member_hand_uuid"
+}
+```
+
+### Définir l'indice Hand & Brain
+
+```http
+POST /api/games/{gameId}/hand-brain/hint
+Content-Type: application/json
+
+{
+  "piece": "knight" // pawn | knight | bishop | rook | queen | king
+}
+```
+
+**Accès :** joueur assigné au rôle "brain" pour l'équipe au trait.
+
+**Réponse :**
+
+```json
+{
+  "gameId": "game_123",
+  "currentRole": "hand",
+  "pieceHint": "knight",
+  "brainMemberId": "member_brain_uuid",
+  "handMemberId": "member_hand_uuid"
+}
+```
+
 ### Obtenir l'Historique des Coups
 
 ```http
@@ -443,6 +488,30 @@ const socket = new WebSocket('ws://localhost:8000/ws');
     "blackTime": 600000,
     "turnDeadline": 1640995200000
   }
+}
+```
+
+#### Hand & Brain - Rôles assignés
+```json
+{
+  "type": "hand_brain_roles_assigned",
+  "gameId": "game_123",
+  "currentRole": "brain",
+  "pieceHint": null,
+  "brainMemberId": "member_brain_uuid",
+  "handMemberId": "member_hand_uuid"
+}
+```
+
+#### Hand & Brain - Indice défini
+```json
+{
+  "type": "hand_brain_hint_set",
+  "gameId": "game_123",
+  "currentRole": "hand",
+  "pieceHint": "knight",
+  "brainMemberId": "member_brain_uuid",
+  "handMemberId": "member_hand_uuid"
 }
 ```
 
