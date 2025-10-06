@@ -5,6 +5,7 @@ namespace App\Application\Service\Game;
 use App\Application\DTO\MakeMoveInput;
 use App\Application\Port\ChessEngineInterface;
 use App\Application\Service\Game\DTO\MoveResult;
+use App\Application\Service\Game\HandBrain\HandBrainMoveInspector;
 use App\Application\Service\Game\Traits\HandBrainTurnHelper;
 use App\Application\Service\GameEndEvaluator;
 use App\Application\Service\Werewolf\WerewolfVoteService;
@@ -34,6 +35,7 @@ final class GameMoveService implements GameMoveServiceInterface
         private readonly TeamMemberRepositoryInterface $members,
         private readonly MoveRepositoryInterface $moves,
         private readonly ChessEngineInterface $engine,
+        private readonly HandBrainMoveInspector $handBrainInspector,
         private readonly LockFactory $lockFactory,
         private readonly EntityManagerInterface $em,
         private readonly GameEndEvaluator $endEvaluator,
@@ -62,6 +64,7 @@ final class GameMoveService implements GameMoveServiceInterface
             $this->guardDeadline($game, $now);
 
             $uci = $this->sanitizeUci($input->uci);
+            $this->guardHandBrainMove($game, $context, $uci);
             $engineResult = $this->applyMoveWithEngine($game, $uci);
 
             $move = $this->recordMove($game, $context->teamToPlay, $player, $uci, $engineResult['san'], $engineResult['fenAfter']);
@@ -168,6 +171,34 @@ final class GameMoveService implements GameMoveServiceInterface
         ];
     }
 
+    private function guardHandBrainMove(Game $game, TurnContext $context, string $uci): void
+    {
+        if ('hand_brain' !== $game->getMode()) {
+            return;
+        }
+
+        $hint = trim((string) $game->getHandBrainPieceHint());
+        if ('' === $hint) {
+            throw new UnprocessableEntityHttpException('hand_brain_missing_hint');
+        }
+
+        $handMemberId = $game->getHandBrainHandMemberId();
+        $currentPlayer = $context->order[$context->index] ?? null;
+
+        if (!$currentPlayer || null === $handMemberId || $currentPlayer->getId() !== $handMemberId) {
+            throw new AccessDeniedHttpException('hand_brain_not_assigned_hand');
+        }
+
+        $pieceType = $this->handBrainInspector->resolvePieceType($game->getFen(), $uci);
+        if (null === $pieceType) {
+            throw new UnprocessableEntityHttpException('hand_brain_unknown_piece');
+        }
+
+        if ($pieceType !== strtolower($hint)) {
+            throw new UnprocessableEntityHttpException('hand_brain_hint_mismatch');
+        }
+    }
+
     private function recordMove(Game $game, Team $team, User $byUser, string $uci, string $san, string $fenAfter): Move
     {
         $ply = $game->getPly() + 1;
@@ -196,6 +227,7 @@ final class GameMoveService implements GameMoveServiceInterface
         $game->setTurnTeam($context->otherTeam->getName());
 
         if ('hand_brain' === $game->getMode()) {
+            $game->setHandBrainPieceHint(null);
             $this->refreshHandBrainStateForTeam($game, $context->otherTeam);
         }
 
