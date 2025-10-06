@@ -78,6 +78,118 @@
 		#board canvas:hover {
 			box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
 		}
+		.hand-brain-panel {
+			width: 100%;
+		}
+		.hand-brain-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: var(--neo-spacing-md);
+		}
+		.hand-brain-header-icon {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 40px;
+			height: 40px;
+			border-radius: 9999px;
+			background: var(--neo-bg-secondary);
+			color: var(--neo-accent-primary);
+			flex-shrink: 0;
+		}
+		.hand-brain-header-text h3 {
+			margin: 0;
+		}
+		.hand-brain-phase {
+			margin: 0;
+			color: var(--neo-text-secondary);
+			font-size: var(--neo-font-size-sm);
+		}
+		.hand-brain-countdown {
+			font-variant-numeric: tabular-nums;
+			font-weight: var(--neo-font-weight-semibold);
+			color: var(--neo-text-secondary);
+		}
+		.hand-brain-content {
+			display: flex;
+			flex-direction: column;
+			gap: var(--neo-spacing-md);
+		}
+		.hand-brain-roles {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: var(--neo-spacing-sm);
+		}
+		.hand-brain-role {
+			display: flex;
+			flex-direction: column;
+			gap: 0.25rem;
+			background: var(--neo-bg-secondary);
+			border-radius: 12px;
+			border: 1px solid var(--neo-border-light);
+			padding: var(--neo-spacing-sm) var(--neo-spacing-md);
+		}
+		.hand-brain-role.is-you {
+			border-color: var(--neo-accent-primary);
+			box-shadow: 0 0 0 1px var(--neo-accent-primary) inset;
+		}
+		.hand-brain-role .role-label {
+			font-size: var(--neo-font-size-xs);
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+			color: var(--neo-text-muted);
+		}
+		.hand-brain-role .role-value {
+			font-weight: var(--neo-font-weight-semibold);
+			color: var(--neo-text-primary);
+		}
+		.hand-brain-hint {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: var(--neo-spacing-sm);
+			background: var(--neo-bg-secondary);
+			border-radius: 12px;
+			border: 1px solid var(--neo-border-light);
+			padding: var(--neo-spacing-sm) var(--neo-spacing-md);
+		}
+		.hand-brain-hint .hint-label {
+			color: var(--neo-text-secondary);
+			font-size: var(--neo-font-size-sm);
+		}
+		.hand-brain-hint .hint-value {
+			font-weight: var(--neo-font-weight-semibold);
+			font-size: var(--neo-font-size-base);
+		}
+		.hand-brain-pieces {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+			gap: var(--neo-spacing-sm);
+		}
+		.hand-brain-piece {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: var(--neo-spacing-sm);
+			transition: transform 0.15s ease, box-shadow 0.15s ease;
+		}
+		.hand-brain-piece .piece-icon {
+			font-size: 1.5rem;
+		}
+		.hand-brain-piece.is-active {
+			background: var(--neo-accent-primary);
+			color: white;
+		}
+		.hand-brain-piece:disabled {
+			opacity: 0.55;
+			cursor: not-allowed;
+		}
+		.hand-brain-piece:not(:disabled):hover {
+			transform: translateY(-2px);
+			box-shadow: var(--neo-shadow-sm);
+		}
+
 		.game-actions {
 			display: flex;
 			gap: 0.5rem;
@@ -369,16 +481,68 @@
 			data-controller="game-board game-poll game-mercure"
 			data-game-board-fen-value="{{ initial.fen }}"
 			data-game-board-game-id-value="{{ initial.gameId }}"
-			data-game-board-turn-team-value="{{ initial.turnTeam }}"
-			data-game-board-status-value="{{ initial.status }}"
-			data-game-board-deadline-ts-value="{{ initial.turnDeadline ?: 0 }}"
-			data-game-poll-game-id-value="{{ initial.gameId }}"
+                        data-game-board-turn-team-value="{{ initial.turnTeam }}"
+                        data-game-board-status-value="{{ initial.status }}"
+                        data-game-board-deadline-ts-value="{{ initial.turnDeadline ?: 0 }}"
+                        data-game-board-mode-value="{{ initial.mode }}"
+                        data-game-board-hand-brain-current-role-value="{{ initial.handBrainCurrentRole|default('') }}"
+                        data-game-board-hand-brain-piece-hint-value="{{ initial.handBrainPieceHint|default('') }}"
+                        data-game-board-hand-brain-brain-member-id-value="{{ initial.handBrainBrainMemberId|default('') }}"
+                        data-game-board-hand-brain-hand-member-id-value="{{ initial.handBrainHandMemberId|default('') }}"
+                        data-game-poll-game-id-value="{{ initial.gameId }}"
 			data-game-mercure-game-id-value="{{ initial.gameId }}"
 			data-game-mercure-url-value="{{ mercure(['/games/' ~ initial.gameId]) }}"
+			data-game-board-membership-id-value="{{ userMembership ? userMembership.id : '' }}"
 			{% if userMembership %}data-user-team="{{ userMembership.team.name }}"{% endif %}>
 			<!-- Section de gauche: Échiquier + Actions -->
 			<div class="board-section">
 				<div id="board" class="cg-wrap coordinates"></div>
+			{% if initial.mode == 'hand_brain' %}
+				{% set handBrainPieces = {
+					'pawn': '♙',
+					'knight': '♘',
+					'bishop': '♗',
+					'rook': '♖',
+					'queen': '♕',
+					'king': '♔'
+				} %}
+				<div class="neo-card hand-brain-panel" data-game-board-target="handBrainPanel">
+					<div class="neo-card-header hand-brain-header">
+						<div class="hand-brain-header-icon">
+							<i class="material-icons">psychology</i>
+						</div>
+						<div class="hand-brain-header-text">
+							<h3 class="neo-card-title">Mode Hand-Brain</h3>
+							<p class="hand-brain-phase" data-game-board-target="handBrainPhase">En attente d'activation</p>
+						</div>
+						<span class="hand-brain-countdown" data-game-board-target="handBrainCountdown">--</span>
+					</div>
+					<div class="neo-card-content hand-brain-content">
+						<div class="hand-brain-roles">
+							<div class="hand-brain-role" data-role="brain" data-game-board-target="handBrainRoleBrain">
+								<span class="role-label">Cerveau</span>
+								<span class="role-value">—</span>
+							</div>
+							<div class="hand-brain-role" data-role="hand" data-game-board-target="handBrainRoleHand">
+								<span class="role-label">Main</span>
+								<span class="role-value">—</span>
+							</div>
+						</div>
+						<div class="hand-brain-hint">
+							<span class="hint-label">Indice courant&nbsp;:</span>
+							<span class="hint-value" data-game-board-target="handBrainHint">—</span>
+						</div>
+						<div class="hand-brain-pieces" role="group" aria-label="Choisir une pièce">
+							{% for key, icon in handBrainPieces %}
+								<button type="button" class="hand-brain-piece neo-btn neo-btn-secondary neo-btn-sm" data-piece="{{ key }}" data-game-board-target="handBrainPieceButton" data-action="game-board#selectHandBrainPiece" disabled>
+									<span class="piece-icon">{{ icon }}</span>
+									<span class="piece-label">{{ key|capitalize }}</span>
+								</button>
+							{% endfor %}
+						</div>
+					</div>
+				</div>
+			{% endif %}
 				<div class="game-actions">
 					<button class="neo-btn neo-btn-secondary neo-btn-sm" data-action="game-board#offerMove" data-uci="e2e4">
 						▶️ Jouer e2e4 (démo)

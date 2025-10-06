@@ -162,6 +162,10 @@ final class GameWebController extends AbstractController
                 'status' => $game->getStatus(),
                 'result' => $game->getResult(),
                 'mode' => $game->getMode(),
+                'handBrainCurrentRole' => $game->getHandBrainCurrentRole(),
+                'handBrainPieceHint' => $game->getHandBrainPieceHint(),
+                'handBrainBrainMemberId' => $game->getHandBrainBrainMemberId(),
+                'handBrainHandMemberId' => $game->getHandBrainHandMemberId(),
             ],
         ]);
     }
