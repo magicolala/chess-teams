@@ -131,7 +131,7 @@ final class HandBrainControllerTest extends WebTestCase
     {
         $client = self::createClient();
         $container = self::getContainer();
-        $em = $container->get('doctrine')->getManager();
+        $em = $container->get(EntityManagerInterface::class);
 
         $users = [];
         for ($i = 0; $i < 4; ++$i) {
