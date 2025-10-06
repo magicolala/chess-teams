@@ -32,6 +32,9 @@ final class MakeMoveHandlerTest extends TestCase
             ->setFen('fen-after')
             ->setTurnDeadline(new \DateTimeImmutable('+15 minutes'))
             ->setPly(1)
+            ->setHandBrainCurrentRole('brain')
+            ->setHandBrainPieceHint('knight')
+            ->setHandBrainMembers('member-brain', 'member-hand')
         ;
 
         $result = new MoveResult($game, 42, new \DateTimeImmutable());
@@ -47,5 +50,9 @@ final class MakeMoveHandlerTest extends TestCase
         self::assertSame(Game::TEAM_B, $out->turnTeam);
         self::assertSame('fen-after', $out->fen);
         self::assertSame($game->getTurnDeadline()?->getTimestamp() * 1000, $out->turnDeadlineTs);
+        self::assertSame('brain', $out->handBrainCurrentRole);
+        self::assertSame('knight', $out->handBrainPieceHint);
+        self::assertSame('member-brain', $out->handBrainBrainMemberId);
+        self::assertSame('member-hand', $out->handBrainHandMemberId);
     }
 }

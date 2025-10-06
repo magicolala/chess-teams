@@ -28,6 +28,10 @@ final class TimeoutTickHandlerTest extends TestCase
         $game->method('getFen')->willReturn('fen');
         $deadline = new \DateTimeImmutable('+5 minutes');
         $game->method('getTurnDeadline')->willReturn($deadline);
+        $game->method('getHandBrainCurrentRole')->willReturn('hand');
+        $game->method('getHandBrainPieceHint')->willReturn('pawn');
+        $game->method('getHandBrainBrainMemberId')->willReturn('brain-1');
+        $game->method('getHandBrainHandMemberId')->willReturn('hand-1');
 
         $result = new TimeoutResult($game, 99, true, new \DateTimeImmutable());
 
@@ -47,5 +51,9 @@ final class TimeoutTickHandlerTest extends TestCase
         $this->assertSame('A', $output->turnTeam);
         $this->assertSame($deadline->getTimestamp() * 1000, $output->turnDeadlineTs);
         $this->assertSame('fen', $output->fen);
+        $this->assertSame('hand', $output->handBrainCurrentRole);
+        $this->assertSame('pawn', $output->handBrainPieceHint);
+        $this->assertSame('brain-1', $output->handBrainBrainMemberId);
+        $this->assertSame('hand-1', $output->handBrainHandMemberId);
     }
 }

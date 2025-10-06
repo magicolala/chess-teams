@@ -55,6 +55,10 @@ class ShowGameHandler
             turnDeadlineTs: $g->getTurnDeadline()?->getTimestamp() * 1000,
             teamA: ['currentIndex' => $ta->getCurrentIndex(), 'members' => $map($listA)],
             teamB: ['currentIndex' => $tb->getCurrentIndex(), 'members' => $map($listB)],
+            handBrainCurrentRole: $g->getHandBrainCurrentRole(),
+            handBrainPieceHint: $g->getHandBrainPieceHint(),
+            handBrainBrainMemberId: $g->getHandBrainBrainMemberId(),
+            handBrainHandMemberId: $g->getHandBrainHandMemberId(),
         );
     }
 }
