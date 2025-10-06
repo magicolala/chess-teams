@@ -13,6 +13,10 @@ final class ShowGameOutput
         public readonly ?int $turnDeadlineTs,
         public readonly array $teamA, // ['currentIndex'=>int, 'members'=>[...]]
         public readonly array $teamB,
+        public readonly ?string $handBrainCurrentRole = null,
+        public readonly ?string $handBrainPieceHint = null,
+        public readonly ?string $handBrainBrainMemberId = null,
+        public readonly ?string $handBrainHandMemberId = null,
     ) {
     }
 }

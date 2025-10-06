@@ -98,6 +98,19 @@ class Game
     #[ORM\Column(length: 1, nullable: true)]
     private ?string $lastTimeoutTeam = null; // 'A' ou 'B' - pour tracker les timeouts consécutifs
 
+    // Hand & Brain mode metadata
+    #[ORM\Column(length: 16, nullable: true)]
+    private ?string $handBrainCurrentRole = null;
+
+    #[ORM\Column(length: 32, nullable: true)]
+    private ?string $handBrainPieceHint = null;
+
+    #[ORM\Column(type: 'uuid', nullable: true)]
+    private ?string $handBrainBrainMemberId = null;
+
+    #[ORM\Column(type: 'uuid', nullable: true)]
+    private ?string $handBrainHandMemberId = null;
+
     #[ORM\OneToOne(mappedBy: 'game', targetEntity: Invite::class, cascade: ['persist', 'remove'])]
     private ?Invite $invite = null;
 
@@ -425,6 +438,72 @@ class Game
     public function setLastTimeoutTeam(?string $team): self
     {
         $this->lastTimeoutTeam = $team;
+
+        return $this;
+    }
+
+    public function getHandBrainCurrentRole(): ?string
+    {
+        return $this->handBrainCurrentRole;
+    }
+
+    public function setHandBrainCurrentRole(?string $role): self
+    {
+        $this->handBrainCurrentRole = $role;
+
+        return $this;
+    }
+
+    public function getHandBrainPieceHint(): ?string
+    {
+        return $this->handBrainPieceHint;
+    }
+
+    public function setHandBrainPieceHint(?string $hint): self
+    {
+        $this->handBrainPieceHint = $hint;
+
+        return $this;
+    }
+
+    public function getHandBrainBrainMemberId(): ?string
+    {
+        return $this->handBrainBrainMemberId;
+    }
+
+    public function setHandBrainBrainMemberId(?string $memberId): self
+    {
+        $this->handBrainBrainMemberId = $memberId;
+
+        return $this;
+    }
+
+    public function getHandBrainHandMemberId(): ?string
+    {
+        return $this->handBrainHandMemberId;
+    }
+
+    public function setHandBrainHandMemberId(?string $memberId): self
+    {
+        $this->handBrainHandMemberId = $memberId;
+
+        return $this;
+    }
+
+    public function setHandBrainMembers(?string $brainMemberId, ?string $handMemberId): self
+    {
+        $this->handBrainBrainMemberId = $brainMemberId;
+        $this->handBrainHandMemberId = $handMemberId;
+
+        return $this;
+    }
+
+    public function resetHandBrainState(): self
+    {
+        $this->handBrainCurrentRole = null;
+        $this->handBrainPieceHint = null;
+        $this->handBrainBrainMemberId = null;
+        $this->handBrainHandMemberId = null;
 
         return $this;
     }

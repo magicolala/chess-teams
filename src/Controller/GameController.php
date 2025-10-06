@@ -151,6 +151,10 @@ final class GameController extends AbstractController
             'ply' => $out->ply,
             'turnTeam' => $out->turnTeam,
             'turnDeadline' => $out->turnDeadlineTs,
+            'handBrainCurrentRole' => $out->handBrainCurrentRole,
+            'handBrainPieceHint' => $out->handBrainPieceHint,
+            'handBrainBrainMemberId' => $out->handBrainBrainMemberId,
+            'handBrainHandMemberId' => $out->handBrainHandMemberId,
             'teams' => [
                 'A' => $out->teamA,
                 'B' => $out->teamB,
@@ -177,14 +181,20 @@ final class GameController extends AbstractController
         $uci = (string) ($payload['uci'] ?? '');
         $out = ($this->makeMove)(new MakeMoveInput($id, $uci, $user->getId() ?? ''), $user);
 
+        $game = $gameRepo->get($out->gameId);
+
         $response = $this->json([
             'gameId' => $out->gameId,
             'ply' => $out->ply,
             'turnTeam' => $out->turnTeam,
             'turnDeadline' => $out->turnDeadlineTs,
             'fen' => $out->fen,
-            'status' => $gameRepo->get($out->gameId)->getStatus(),
-            'result' => $gameRepo->get($out->gameId)->getResult(),
+            'status' => $game?->getStatus(),
+            'result' => $game?->getResult(),
+            'handBrainCurrentRole' => $out->handBrainCurrentRole,
+            'handBrainPieceHint' => $out->handBrainPieceHint,
+            'handBrainBrainMemberId' => $out->handBrainBrainMemberId,
+            'handBrainHandMemberId' => $out->handBrainHandMemberId,
         ], 201);
 
         // Publier un événement Mercure pour notifier les abonnés
@@ -196,8 +206,12 @@ final class GameController extends AbstractController
             'turnTeam' => $out->turnTeam,
             'turnDeadline' => $out->turnDeadlineTs,
             'fen' => $out->fen,
-            'status' => $gameRepo->get($out->gameId)->getStatus(),
-            'result' => $gameRepo->get($out->gameId)->getResult(),
+            'status' => $game?->getStatus(),
+            'result' => $game?->getResult(),
+            'handBrainCurrentRole' => $out->handBrainCurrentRole,
+            'handBrainPieceHint' => $out->handBrainPieceHint,
+            'handBrainBrainMemberId' => $out->handBrainBrainMemberId,
+            'handBrainHandMemberId' => $out->handBrainHandMemberId,
         ]);
 
         return $response;
@@ -205,13 +219,15 @@ final class GameController extends AbstractController
 
     // POST /games/{id}/tick
     #[Route('/{id}/tick', name: 'tick', methods: ['POST'])]
-    public function tick(string $id): JsonResponse
+    public function tick(string $id, GameRepositoryInterface $gameRepo): JsonResponse
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
         /** @var User $user */
         $user = $this->getUser();
 
         $out = ($this->timeoutTick)(new TimeoutTickInput($id, $user->getId() ?? ''), $user);
+
+        $game = $gameRepo->get($out->gameId);
 
         $response = $this->json([
             'gameId' => $out->gameId,
@@ -220,6 +236,12 @@ final class GameController extends AbstractController
             'turnTeam' => $out->turnTeam,
             'turnDeadline' => $out->turnDeadlineTs,
             'fen' => $out->fen,
+            'status' => $game?->getStatus(),
+            'result' => $game?->getResult(),
+            'handBrainCurrentRole' => $out->handBrainCurrentRole,
+            'handBrainPieceHint' => $out->handBrainPieceHint,
+            'handBrainBrainMemberId' => $out->handBrainBrainMemberId,
+            'handBrainHandMemberId' => $out->handBrainHandMemberId,
         ], $out->timedOutApplied ? 201 : 200);
 
         // Publier un événement Mercure seulement si un timeout a été appliqué (changement réel)
@@ -231,6 +253,12 @@ final class GameController extends AbstractController
                 'turnTeam' => $out->turnTeam,
                 'turnDeadline' => $out->turnDeadlineTs,
                 'fen' => $out->fen,
+                'status' => $game?->getStatus(),
+                'result' => $game?->getResult(),
+                'handBrainCurrentRole' => $out->handBrainCurrentRole,
+                'handBrainPieceHint' => $out->handBrainPieceHint,
+                'handBrainBrainMemberId' => $out->handBrainBrainMemberId,
+                'handBrainHandMemberId' => $out->handBrainHandMemberId,
                 // client can refetch state to get detailed decision info
             ]);
         }
@@ -458,6 +486,13 @@ final class GameController extends AbstractController
                 'fastMode' => $fastModeInfo,
             ];
 
+            $handBrainInfo = [
+                'currentRole' => $game->getHandBrainCurrentRole(),
+                'pieceHint' => $game->getHandBrainPieceHint(),
+                'brainMemberId' => $game->getHandBrainBrainMemberId(),
+                'handMemberId' => $game->getHandBrainHandMemberId(),
+            ];
+
             // Informations de revendication de victoire
             $claimInfo = [
                 'canClaim' => $game->canClaimVictory(),
@@ -485,6 +520,10 @@ final class GameController extends AbstractController
                 (int) $game->getConsecutiveTimeouts(),
                 (string) $game->getLastTimeoutTeam(),
                 (string) $game->getResult(),
+                (string) $game->getHandBrainCurrentRole(),
+                (string) $game->getHandBrainPieceHint(),
+                (string) $game->getHandBrainBrainMemberId(),
+                (string) $game->getHandBrainHandMemberId(),
             ]);
             $etag = 'W/"'.substr(sha1($etagBase), 0, 16).'"';
 
@@ -507,6 +546,11 @@ final class GameController extends AbstractController
                 'claimVictory' => $claimInfo,
                 'timeoutDecision' => $timeoutDecision,
                 'lastUpdate' => time(),
+                'handBrain' => $handBrainInfo,
+                'handBrainCurrentRole' => $handBrainInfo['currentRole'],
+                'handBrainPieceHint' => $handBrainInfo['pieceHint'],
+                'handBrainBrainMemberId' => $handBrainInfo['brainMemberId'],
+                'handBrainHandMemberId' => $handBrainInfo['handMemberId'],
             ];
 
             $response = $this->json($payload);

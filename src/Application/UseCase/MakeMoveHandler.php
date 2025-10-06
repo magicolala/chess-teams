@@ -24,7 +24,11 @@ final class MakeMoveHandler
             $result->ply,
             $game->getTurnTeam(),
             $game->getTurnDeadline()?->getTimestamp() * 1000,
-            $game->getFen()
+            $game->getFen(),
+            $game->getHandBrainCurrentRole(),
+            $game->getHandBrainPieceHint(),
+            $game->getHandBrainBrainMemberId(),
+            $game->getHandBrainHandMemberId(),
         );
     }
 }
