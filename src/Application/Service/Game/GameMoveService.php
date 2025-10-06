@@ -5,6 +5,7 @@ namespace App\Application\Service\Game;
 use App\Application\DTO\MakeMoveInput;
 use App\Application\Port\ChessEngineInterface;
 use App\Application\Service\Game\DTO\MoveResult;
+use App\Application\Service\Game\Traits\HandBrainTurnHelper;
 use App\Application\Service\GameEndEvaluator;
 use App\Application\Service\Werewolf\WerewolfVoteService;
 use App\Domain\Repository\GameRepositoryInterface;
@@ -25,6 +26,8 @@ use Symfony\Component\Lock\LockFactory;
 
 final class GameMoveService implements GameMoveServiceInterface
 {
+    use HandBrainTurnHelper;
+
     public function __construct(
         private readonly GameRepositoryInterface $games,
         private readonly TeamRepositoryInterface $teams,
@@ -36,6 +39,11 @@ final class GameMoveService implements GameMoveServiceInterface
         private readonly GameEndEvaluator $endEvaluator,
         private readonly WerewolfVoteService $werewolfVote,
     ) {
+    }
+
+    protected function getTeamMemberRepository(): TeamMemberRepositoryInterface
+    {
+        return $this->members;
     }
 
     public function play(MakeMoveInput $input, User $player): MoveResult
@@ -186,6 +194,11 @@ final class GameMoveService implements GameMoveServiceInterface
         $teamToPlay->setCurrentIndex(($context->index + 1) % $orderSize);
 
         $game->setTurnTeam($context->otherTeam->getName());
+
+        if ('hand_brain' === $game->getMode()) {
+            $this->refreshHandBrainStateForTeam($game, $context->otherTeam);
+        }
+
         $game->resetConsecutiveTimeouts();
         $game->setFastModeEnabled(false);
         $game->setFastModeDeadline(null);
