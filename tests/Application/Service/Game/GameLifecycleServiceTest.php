@@ -69,6 +69,54 @@ final class GameLifecycleServiceTest extends TestCase
         $this->assertSame($summary->turnDeadline, $game->getTurnDeadline());
     }
 
+    public function testStartGameAssignsHandBrainRolesForStartingTeam(): void
+    {
+        $game = $this->createLobbyGame('hand_brain');
+        $teamA = new Team($game, Team::NAME_A);
+        $teamB = new Team($game, Team::NAME_B);
+
+        $teamRepo = $this->createMock(TeamRepositoryInterface::class);
+        $teamRepo->method('findOneByGameAndName')->willReturnMap([
+            [$game, Team::NAME_A, $teamA],
+            [$game, Team::NAME_B, $teamB],
+        ]);
+
+        $membersA = [];
+        for ($i = 0; $i < 3; ++$i) {
+            $membersA[] = new TeamMember($teamA, $this->createUser(sprintf('member-a%d@example.com', $i)), $i);
+        }
+
+        $membersB = [];
+        for ($i = 0; $i < 2; ++$i) {
+            $membersB[] = new TeamMember($teamB, $this->createUser(sprintf('member-b%d@example.com', $i)), $i);
+        }
+
+        $memberRepo = $this->createMock(TeamMemberRepositoryInterface::class);
+        $memberRepo->method('countActiveByTeam')->willReturnMap([
+            [$teamA, count($membersA)],
+            [$teamB, count($membersB)],
+        ]);
+        $memberRepo->method('areAllActivePlayersReady')->with($game)->willReturn(true);
+        $memberRepo->method('findActiveOrderedByTeam')->willReturnMap([
+            [$teamA, $membersA],
+            [$teamB, $membersB],
+        ]);
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->once())->method('flush');
+
+        $assigner = $this->createMock(WerewolfRoleAssigner::class);
+        $assigner->expects($this->never())->method('assignForGame');
+
+        $service = new GameLifecycleService($teamRepo, $memberRepo, $em, $assigner);
+        $service->start($game, $this->creator);
+
+        $this->assertSame('brain', $game->getHandBrainCurrentRole());
+        $this->assertNull($game->getHandBrainPieceHint());
+        $this->assertSame($membersA[1]->getId(), $game->getHandBrainBrainMemberId());
+        $this->assertSame($membersA[0]->getId(), $game->getHandBrainHandMemberId());
+    }
+
     public function testStartGameFailsForNonCreator(): void
     {
         $game = $this->createLobbyGame();

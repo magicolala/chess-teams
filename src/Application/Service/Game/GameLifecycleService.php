@@ -3,6 +3,7 @@
 namespace App\Application\Service\Game;
 
 use App\Application\Service\Game\DTO\GameStartSummary;
+use App\Application\Service\Game\Traits\HandBrainTurnHelper;
 use App\Application\Service\Werewolf\WerewolfRoleAssigner;
 use App\Domain\Repository\TeamMemberRepositoryInterface;
 use App\Domain\Repository\TeamRepositoryInterface;
@@ -16,12 +17,19 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final class GameLifecycleService implements GameLifecycleServiceInterface
 {
+    use HandBrainTurnHelper;
+
     public function __construct(
         private readonly TeamRepositoryInterface $teams,
         private readonly TeamMemberRepositoryInterface $members,
         private readonly EntityManagerInterface $em,
         private readonly WerewolfRoleAssigner $werewolfAssigner,
     ) {
+    }
+
+    protected function getTeamMemberRepository(): TeamMemberRepositoryInterface
+    {
+        return $this->members;
     }
 
     public function start(Game $game, User $requestedBy): GameStartSummary
@@ -65,6 +73,10 @@ final class GameLifecycleService implements GameLifecycleServiceInterface
 
         if ('werewolf' === $game->getMode()) {
             $this->assignWerewolfRoles($game, $teamA, $teamB);
+        }
+
+        if ('hand_brain' === $game->getMode()) {
+            $this->refreshHandBrainStateForTeam($game, $teamA);
         }
 
         $this->em->flush();

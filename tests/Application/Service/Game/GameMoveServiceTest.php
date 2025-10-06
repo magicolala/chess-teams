@@ -4,8 +4,10 @@ namespace App\Tests\Application\Service\Game;
 
 use App\Application\DTO\MakeMoveInput;
 use App\Application\Port\ChessEngineInterface;
+use App\Application\Service\Game\GameLifecycleService;
 use App\Application\Service\Game\GameMoveService;
 use App\Application\Service\GameEndEvaluator;
+use App\Application\Service\Werewolf\WerewolfRoleAssigner;
 use App\Application\Service\Werewolf\WerewolfVoteService;
 use App\Domain\Repository\GameRepositoryInterface;
 use App\Domain\Repository\MoveRepositoryInterface;
@@ -148,6 +150,115 @@ final class GameMoveServiceTest extends TestCase
         $this->assertSame('fen-after', $game->getFen());
         $this->assertSame(Game::TEAM_B, $game->getTurnTeam());
         $this->assertNotNull($game->getTurnDeadline());
+    }
+
+    public function testHandBrainRolesRotateAcrossTurns(): void
+    {
+        $creator = $this->createUser();
+        $game = new Game();
+        $game->setStatus(Game::STATUS_LOBBY);
+        $game->setCreatedBy($creator);
+        $game->setMode('hand_brain');
+
+        $teamA = new Team($game, Team::NAME_A);
+        $teamB = new Team($game, Team::NAME_B);
+
+        $membersA = [];
+        for ($i = 0; $i < 3; ++$i) {
+            $user = new User();
+            $user->setEmail(sprintf('a%d@example.com', $i));
+            $membersA[] = new TeamMember($teamA, $user, $i);
+        }
+
+        $membersB = [];
+        for ($i = 0; $i < 3; ++$i) {
+            $user = new User();
+            $user->setEmail(sprintf('b%d@example.com', $i));
+            $membersB[] = new TeamMember($teamB, $user, $i);
+        }
+
+        $teams = $this->createMock(TeamRepositoryInterface::class);
+        $teams->method('findOneByGameAndName')->willReturnMap([
+            [$game, Team::NAME_A, $teamA],
+            [$game, Team::NAME_B, $teamB],
+        ]);
+
+        $membersRepo = $this->createMock(TeamMemberRepositoryInterface::class);
+        $membersRepo->method('countActiveByTeam')->willReturnMap([
+            [$teamA, count($membersA)],
+            [$teamB, count($membersB)],
+        ]);
+        $membersRepo->method('areAllActivePlayersReady')->with($game)->willReturn(true);
+        $membersRepo->method('findActiveOrderedByTeam')->willReturnMap([
+            [$teamA, $membersA],
+            [$teamB, $membersB],
+        ]);
+
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects($this->exactly(4))->method('flush');
+
+        $assigner = $this->createMock(WerewolfRoleAssigner::class);
+        $assigner->expects($this->never())->method('assignForGame');
+
+        $lifecycle = new GameLifecycleService($teams, $membersRepo, $em, $assigner);
+        $lifecycle->start($game, $creator);
+
+        $this->assertSame($membersA[0]->getId(), $game->getHandBrainHandMemberId());
+        $this->assertSame($membersA[1]->getId(), $game->getHandBrainBrainMemberId());
+
+        $gameId = $game->getId();
+
+        $games = $this->createMock(GameRepositoryInterface::class);
+        $games->expects($this->exactly(3))->method('get')->with($gameId)->willReturn($game);
+
+        $moves = $this->createMock(MoveRepositoryInterface::class);
+        $moves->expects($this->exactly(3))->method('add')->with($this->isInstanceOf(Move::class));
+
+        $engine = $this->createMock(ChessEngineInterface::class);
+        $engine->method('applyUci')->willReturnOnConsecutiveCalls(
+            ['fenAfter' => 'fen-1', 'san' => 'e4'],
+            ['fenAfter' => 'fen-2', 'san' => 'e5'],
+            ['fenAfter' => 'fen-3', 'san' => 'Nc3'],
+        );
+
+        $lock = $this->createMock(SharedLockInterface::class);
+        $lock->method('acquire')->willReturn(true);
+        $lock->expects($this->exactly(3))->method('release');
+        $lockFactory = $this->createMock(LockFactory::class);
+        $lockFactory->expects($this->exactly(3))->method('createLock')->willReturn($lock);
+
+        $werewolf = $this->createMock(WerewolfVoteService::class);
+        $werewolf->expects($this->never())->method('openVote');
+
+        $service = new GameMoveService(
+            $games,
+            $teams,
+            $membersRepo,
+            $moves,
+            $engine,
+            $lockFactory,
+            $em,
+            new GameEndEvaluator(),
+            $werewolf,
+        );
+
+        $service->play(new MakeMoveInput($gameId, 'e2e4', (string) $membersA[0]->getUser()->getId()), $membersA[0]->getUser());
+        $this->assertSame($membersB[0]->getId(), $game->getHandBrainHandMemberId());
+        $this->assertSame($membersB[1]->getId(), $game->getHandBrainBrainMemberId());
+        $this->assertSame('brain', $game->getHandBrainCurrentRole());
+        $this->assertNull($game->getHandBrainPieceHint());
+
+        $service->play(new MakeMoveInput($gameId, 'e7e5', (string) $membersB[0]->getUser()->getId()), $membersB[0]->getUser());
+        $this->assertSame($membersA[1]->getId(), $game->getHandBrainHandMemberId());
+        $this->assertSame($membersA[2]->getId(), $game->getHandBrainBrainMemberId());
+        $this->assertSame('brain', $game->getHandBrainCurrentRole());
+        $this->assertNull($game->getHandBrainPieceHint());
+
+        $service->play(new MakeMoveInput($gameId, 'g1f3', (string) $membersA[1]->getUser()->getId()), $membersA[1]->getUser());
+        $this->assertSame($membersB[1]->getId(), $game->getHandBrainHandMemberId());
+        $this->assertSame($membersB[2]->getId(), $game->getHandBrainBrainMemberId());
+        $this->assertSame('brain', $game->getHandBrainCurrentRole());
+        $this->assertNull($game->getHandBrainPieceHint());
     }
 
     private function createLiveGame(): Game
