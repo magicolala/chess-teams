@@ -990,7 +990,7 @@ export default class extends Controller {
             </div>
         `
 
-        const opacity = typeof backgroundOpacity === 'number' ? backgroundOpacity : 1
+        const opacity = this.resolveOverlayBackgroundOpacity(backgroundOpacity)
 
         overlay.style.cssText = `
             position: absolute;
@@ -1196,6 +1196,18 @@ export default class extends Controller {
         }
 
         return this.isCurrentUserBrain()
+    }
+
+    resolveOverlayBackgroundOpacity(requestedOpacity) {
+        if (typeof requestedOpacity === 'number') {
+            return requestedOpacity
+        }
+
+        if (this.shouldKeepCanvasVisibleWhenInactive()) {
+            return 0.4
+        }
+
+        return 1
     }
 
     updateHandBrainStateFromPayload(payload) {
