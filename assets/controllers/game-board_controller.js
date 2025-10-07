@@ -933,7 +933,9 @@ export default class extends Controller {
 
         const canvas = boardEl.querySelector('canvas')
         if (canvas) {
-            const shouldShow = this.statusValue === 'live' && !!canInteract
+            const shouldShow =
+                this.statusValue === 'live' &&
+                (!!canInteract || this.shouldKeepCanvasVisibleWhenInactive())
             canvas.style.visibility = shouldShow ? 'visible' : 'hidden'
         }
 
@@ -974,7 +976,7 @@ export default class extends Controller {
         }
     }
 
-    renderBoardOverlay(boardEl, { icon, title, text, button, spinning } = {}) {
+    renderBoardOverlay(boardEl, { icon, title, text, button, spinning, backgroundOpacity } = {}) {
         const overlay = document.createElement('div')
         overlay.className = 'board-overlay'
         overlay.innerHTML = `
@@ -988,13 +990,15 @@ export default class extends Controller {
             </div>
         `
 
+        const opacity = this.resolveOverlayBackgroundOpacity(backgroundOpacity)
+
         overlay.style.cssText = `
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 1);
+            background: rgba(0, 0, 0, ${opacity});
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1071,12 +1075,12 @@ export default class extends Controller {
                 }
             }
 
-            return {
-                icon: 'psychology',
-                title: 'Indice en préparation',
-                text: 'Le cerveau de votre équipe choisit une pièce.',
-                spinning: true,
-            }
+                return {
+                    icon: 'psychology',
+                    title: 'Indice en préparation',
+                    text: 'Le cerveau de votre équipe choisit une pièce.',
+                    spinning: true,
+                }
         }
 
         if (state.currentRole === 'hand') {
@@ -1178,6 +1182,31 @@ export default class extends Controller {
         }
 
         return false
+    }
+
+    shouldKeepCanvasVisibleWhenInactive() {
+        if (!this.isHandBrainMode()) {
+            return false
+        }
+
+        const state = this.handBrainState || {}
+        if (state.currentRole !== 'brain') {
+            return false
+        }
+
+        return this.isCurrentUserBrain()
+    }
+
+    resolveOverlayBackgroundOpacity(requestedOpacity) {
+        if (typeof requestedOpacity === 'number') {
+            return requestedOpacity
+        }
+
+        if (this.shouldKeepCanvasVisibleWhenInactive()) {
+            return 0.4
+        }
+
+        return 1
     }
 
     updateHandBrainStateFromPayload(payload) {
