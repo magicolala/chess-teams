@@ -1072,6 +1072,7 @@ export default class extends Controller {
                     icon: 'psychology',
                     title: 'Choisissez une pièce',
                     text: 'Sélectionnez un type de pièce dans le panneau Hand-Brain pour guider votre coéquipier.',
+                    backgroundOpacity: 0.4,
                 }
             }
 
