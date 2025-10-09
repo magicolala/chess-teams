@@ -14,24 +14,51 @@ if (($_SERVER['APP_ENV'] ?? $_ENV['APP_ENV'] ?? null) !== 'test') {
     return;
 }
 
-$databaseUrl = (string) ($_SERVER['DATABASE_URL'] ?? $_ENV['DATABASE_URL'] ?? '');
-if ('' !== $databaseUrl && !str_starts_with($databaseUrl, 'sqlite:') && !str_starts_with($databaseUrl, 'sqlite3:')) {
-    return;
-}
-
 $kernel = new App\Kernel('test', true);
 $kernel->boot();
 
 /** @var EntityManagerInterface $em */
 $em = $kernel->getContainer()->get('doctrine')->getManager();
-$metadata = $em->getMetadataFactory()->getAllMetadata();
-if (!empty($metadata)) {
-    $tool = new SchemaTool($em);
-    // Drop and recreate schema to start clean for tests
-    try {
-        $tool->dropSchema($metadata);
-    } catch (Throwable $e) {
-        // ignore drop errors
+
+try {
+    $connection = $em->getConnection();
+
+    if (!$connection->isConnected()) {
+        $connection->connect();
     }
+} catch (Throwable $exception) {
+    fwrite(
+        STDERR,
+        sprintf(
+            "Skipping schema sync: unable to connect to test database (%s).\n",
+            $exception->getMessage()
+        )
+    );
+
+    return;
+}
+
+$metadata = $em->getMetadataFactory()->getAllMetadata();
+if (empty($metadata)) {
+    return;
+}
+
+$tool = new SchemaTool($em);
+
+try {
+    $tool->dropSchema($metadata);
+} catch (Throwable $exception) {
+    // ignore drop errors (for example when schema was never created)
+}
+
+try {
     $tool->createSchema($metadata);
+} catch (Throwable $exception) {
+    fwrite(
+        STDERR,
+        sprintf(
+            "Unable to sync test schema: %s\n",
+            $exception->getMessage()
+        )
+    );
 }
