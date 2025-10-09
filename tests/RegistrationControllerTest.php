@@ -27,7 +27,7 @@ final class RegistrationControllerTest extends WebTestCase
         // Register a new user
         $this->client->request('GET', '/register');
         self::assertResponseIsSuccessful();
-        self::assertPageTitleContains('Créer un compte');
+        self::assertPageTitleContains('Create an account');
 
         $email = 'test+'.bin2hex(random_bytes(4)).'@example.com';
         $this->client->submitForm('🎆 Créer mon compte', [
