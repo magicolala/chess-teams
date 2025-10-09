@@ -94,6 +94,53 @@ Ce plan couvre les vérifications manuelles à effectuer sur l'application Chess
   - Vérifier que seules les personnes invitées peuvent rejoindre via le code.
   - Tenter d'appeler les actions `markReady`, `decideTimeout` via un utilisateur non autorisé et contrôler la réponse.
 
+### 3.6 Modes avancés et temps réel
+- **TC-20 — Lobby et démarrage orchestrés :**
+  1. Depuis le lobby, rejoindre successivement les équipes A/B et vérifier les messages de confirmation et les badges d'appartenance.
+  2. Basculer l'état "Prêt"/"Pas prêt" pour un joueur et s'assurer de la mise à jour côté interface et flash message.
+  3. En tant que créateur, tenter de démarrer sans tous les joueurs prêts (erreur attendue), puis lancer la partie lorsque les deux équipes sont prêtes.【F:templates/game/show.html.twig†L720-L900】【F:src/Controller/GameWebController.php†L201-L319】
+- **TC-21 — Activation du mode rapide :**
+  1. Pendant une partie longue, déclencher `/games/{id}/enable-fast-mode` (bouton ou appel direct) et vérifier la réponse JSON (`fastModeEnabled`, `fastModeDeadline`, `turnDeadline`).
+  2. Confirmer que le timer UI passe en mode rapide (délais raccourcis, badge mis à jour) et que le mode est diffusé aux clients actifs via Mercure/polling.【F:src/Controller/GameController.php†L340-L366】【F:assets/controllers/chess-timer_controller.js†L360-L448】【F:templates/game/show.html.twig†L600-L610】
+- **TC-22 — Décision après timeout :**
+  1. Simuler un dépassement de temps afin d'afficher le panneau de décision et vérifier que seul le camp concerné voit les actions.
+  2. Tester les deux décisions (`end`, `allow_next`) et contrôler le statut et la reprise du tour côté clients (polling + Mercure).【F:templates/game/show.html.twig†L670-L686】【F:src/Controller/GameController.php†L416-L447】【F:assets/controllers/game-board_controller.js†L608-L704】
+- **TC-23 — Revendiquer la victoire :**
+  1. Provoquer trois timeouts consécutifs de l'adversaire pour rendre disponible l'action "Revendiquer la victoire".
+  2. Déclencher l'action et vérifier la réponse (`claimed`, `result`, `winnerTeam`) ainsi que l'arrêt des timers et l'affichage du résultat dans l'UI.【F:templates/game/show.html.twig†L923-L935】【F:src/Controller/GameController.php†L369-L394】【F:assets/controllers/game-poll_controller.js†L160-L175】
+- **TC-24 — Notifications multi-canaux :**
+  1. Activer/désactiver les toggles bureau/son/flash et vérifier la persistance dans `localStorage` et les événements `chess:notification-settings-changed`.
+  2. Lors d'un changement de tour, confirmer la réception des alertes correspondantes (test permission bureau, son de test, flash titre) et la synchronisation avec les préférences profil.【F:templates/game/show.html.twig†L640-L665】【F:assets/controllers/notification-controls_controller.js†L6-L190】【F:assets/controllers/game-poll_controller.js†L20-L85】
+- **TC-25 — Synchronisation temps réel :**
+  1. Ouvrir la partie sur deux navigateurs ; vérifier que le polling s'arrête lorsque Mercure est connecté et que les coups/états sont propagés instantanément.
+  2. Forcer un refresh manuel (`/games/{id}` + `/state`) et s'assurer de la cohérence des données (timer, joueur courant, deadline effective).【F:assets/controllers/game-poll_controller.js†L7-L176】【F:src/Controller/GameController.php†L452-L520】【F:assets/controllers/game-board_controller.js†L647-L704】
+- **TC-26 — Mode Hand & Brain :**
+  1. Activer le mode via l'endpoint dédié et contrôler l'affectation des rôles cerveau/main dans l'UI.
+  2. Définir un indice de pièce (`/hand-brain/hint`) et s'assurer de la mise à jour instantanée du panneau et des restrictions de coups côté main.【F:templates/game/show.html.twig†L500-L544】【F:src/Controller/HandBrainController.php†L16-L70】【F:assets/controllers/game-board_controller.js†L618-L681】
+- **TC-27 — Mode Loup-Garou (configuration & rappel) :**
+  1. Depuis la création de partie, activer l'option Loup-Garou et, pour ≥6 joueurs, l'option "Un loup par équipe" ; vérifier l'affichage conditionnel de la case supplémentaire.
+  2. En partie, confirmer la présence du badge mode, du rappel de rôle individuel et de l'alerte lorsque la phase de vote est ouverte.【F:templates/home/index.html.twig†L49-L70】【F:templates/game/show.html.twig†L568-L996】【F:src/Controller/WerewolfController.php†L30-L103】
+- **TC-28 — Phase de vote Loup-Garou :**
+  1. Lancer une phase de vote, soumettre un vote et vérifier la mise à jour des totaux en direct côté client.
+  2. En tant que créateur/admin, clôturer le vote et valider la propagation de l'état `voteOpen=false` et du résumé des résultats.【F:assets/controllers/werewolf-vote_controller.js†L19-L148】【F:src/Controller/WerewolfController.php†L104-L155】【F:templates/game/show.html.twig†L986-L993】
+- **TC-29 — Historique incrémental des coups :**
+  1. Jouer plusieurs coups et vérifier que l'endpoint `/games/{id}/moves` ne retourne que les coups valides (SAN/UCI) dans l'ordre.
+  2. Contrôler que la liste UI est enrichie sans doublon et que la navigation PGN reste disponible après la fin de partie.【F:src/Controller/GameController.php†L230-L302】【F:assets/controllers/game-board_controller.js†L710-L748】【F:assets/controllers/game-poll_controller.js†L129-L175】
+
+### 3.7 API et intégrations externes
+- **TC-30 — Endpoint `/games/{id}/state` :**
+  1. Interroger l'API et vérifier la complétude des blocs `timing`, `handBrain`, `claimVictory`, `timeoutDecision`.
+  2. Croiser les données avec l'UI (timer, panneaux conditionnels) pour garantir la cohérence de la diffusion temps réel.【F:src/Controller/GameController.php†L452-L520】【F:assets/controllers/game-poll_controller.js†L160-L175】
+- **TC-31 — API de vote Werewolf :**
+  1. Tester `/games/{id}/votes` sans authentification (refus attendu), en tant que participant (201) puis en tant que non participant (403).
+  2. Vérifier `/games/{id}/votes/close` pour le créateur vs un joueur lambda (403) et confirmer que `voteOpen` passe à `false` dans la réponse.【F:src/Controller/WerewolfController.php†L59-L155】【F:assets/controllers/werewolf-vote_controller.js†L24-L142】
+- **TC-32 — API Hand & Brain :**
+  1. Appeler `/games/{id}/hand-brain/enable` puis `/hint` et vérifier les contrôles d'accès (participants uniquement) et les payloads (`currentRole`, `pieceHint`).
+  2. Confirmer que la diffusion Mercure met à jour les clients connectés sans rechargement.【F:src/Controller/HandBrainController.php†L16-L70】【F:assets/controllers/game-board_controller.js†L618-L681】
+- **TC-33 — API Fast Mode & timeout :**
+  1. Séquencer des appels `enable-fast-mode`, `tick`, `timeout-decision` pour vérifier les transitions de statut et la publication Mercure.
+  2. Contrôler les codes HTTP (200/201) et les champs `pending`, `timedOutApplied` selon les scénarios.【F:src/Controller/GameController.php†L340-L447】【F:assets/controllers/chess-timer_controller.js†L360-L470】
+
 ## 4. Critères de sortie
 - Tous les cas de tests critiques (TC-01 à TC-14) réussissent sans régression majeure.
 - Les anomalies bloquantes ou critiques détectées sont consignées et disposent d'un plan de correction.
